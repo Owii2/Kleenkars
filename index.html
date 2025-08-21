@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kleenkars Booking</title>
+  <meta name="theme-color" content="#111" />
+  <style>
+    :root { --brand:#007BFF; --bg:#f4f4f4; --text:#333; --darkbg:#111; --darkpanel:#222; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+    header { display:flex; justify-content:space-between; align-items:center; padding:15px; background:#111; color:#fff; position:sticky; top:0; z-index:2; }
+    header img { height:40px; }
+    .toggle-btn { cursor:pointer; padding:6px 10px; border:1px solid #fff; border-radius:6px; font-size:14px; }
+    .banner { width:100%; height:200px; background:url('https://images.unsplash.com/photo-1617983312824-fc4437f8ff63?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat; }
+    main { padding:18px; max-width:640px; margin:auto; }
+    h1 { text-align:center; margin:10px 0 6px; }
+    p.sub { text-align:center; margin:0 0 10px; color:#666; }
+    label { display:block; margin-top:14px; font-weight:bold; }
+    input, select { width:100%; padding:12px; margin-top:6px; border:1px solid #ccc; border-radius:8px; font-size:16px; background:#fff; }
+    .car-options { display:flex; gap:8px; margin-top:10px; }
+    .car-options div { flex:1; padding:12px; border:2px solid #ccc; border-radius:10px; text-align:center; cursor:pointer; user-select:none; }
+    .car-options .active { border-color:var(--brand); background:#eaf3ff; }
+    button { margin-top:18px; padding:14px; width:100%; background:var(--brand); color:#fff; border:none; border-radius:10px; font-size:17px; cursor:pointer; }
+    button:hover { filter:brightness(0.95); }
+    small.help { color:#666; display:block; margin-top:4px; }
+    /* Popup */
+    #previewBox { display:none; position:fixed; inset:auto 0 0 0; margin:auto; top:12%; width:min(92%,420px); background:#fff; color:#111; border:2px solid var(--brand); border-radius:12px; padding:16px; z-index:10; }
+    #previewBox h3 { margin:0 0 8px; }
+    #previewBox pre { white-space:pre-wrap; font-size:14px; background:#fafafa; padding:10px; border-radius:8px; border:1px solid #eee; }
+    #closePreview { margin-top:10px; background:#dc3545; }
+    /* Dark mode */
+    body.dark { background:var(--darkbg); color:#eee; }
+    body.dark header { background:var(--darkpanel); }
+    body.dark input, body.dark select { background:var(--darkpanel); color:#fff; border:1px solid #555; }
+    body.dark button { background:#28a745; }
+    body.dark #previewBox { background:#1a1a1a; color:#eee; border-color:#28a745; }
+    .note { font-size:13px; color:#666; margin-top:6px; }
+    .footer { text-align:center; padding:20px; font-size:13px; color:#777; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://via.placeholder.com/150x40?text=Kleenkars" alt="Kleenkars Logo" />
+    <div class="toggle-btn" onclick="toggleTheme()">🌙/☀️</div>
+  </header>
+
+  <div class="banner" aria-hidden="true"></div>
+
+  <main>
+    <h1>Book Your Wash</h1>
+    <p class="sub">Fast, clean, and shiny — powered by Kleenkars ✨</p>
+
+    <form id="bookingForm" novalidate>
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" autocomplete="name" required />
+
+      <label for="phone">Phone Number</label>
+      <input id="phone" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{10,12}" placeholder="e.g. 91XXXXXXXXXX" required />
+      <small class="help">Enter country code + number (digits only).</small>
+
+      <label for="service">Service</label>
+      <select id="service" name="service"></select>
+
+      <label>Vehicle Type</label>
+      <div class="car-options" role="group" aria-label="Vehicle Type">
+        <div id="bike" onclick="selectVehicle('Bike')">🏍 Bike</div>
+        <div id="car"  onclick="selectVehicle('Car')" >🚗 Car (Hatchback/Sedan)</div>
+        <div id="suv"  onclick="selectVehicle('SUV')" >🚘 SUV</div>
+      </div>
+
+      <label for="datetime">Date & Time</label>
+      <input id="datetime" name="datetime" type="datetime-local" required />
+
+      <button type="submit">Confirm Booking</button>
+      <div class="note">Submitting saves your booking and opens WhatsApp to confirm.</div>
+    </form>
+  </main>
+
+  <!-- Popup -->
+  <div id="previewBox">
+    <h3>WhatsApp Preview</h3>
+    <pre id="adminMsg"></pre>
+    <pre id="custMsg"></pre>
+    <button id="closePreview" onclick="document.getElementById('previewBox').style.display='none'">Close</button>
+  </div>
+
+  <div class="footer">© <span id="year"></span> Kleenkars</div>
+
+  <script>
+    // ====== EDIT THESE TWO LINES (digits only, no +) ======
+    const ADMIN_WHATSAPP   = "91XXXXXXXXXX"; // your admin number (receives new booking alert)
+    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // your business/account number (optional)
+    // ======================================================
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    let selectedVehicle = "Car";
+
+    const priceList = {
+      Bike: [{ name: "Basic Car Wash", price: 50 }],
+      Car: [
+        { name: "Basic Car Wash",   price: 150 },
+        { name: "Premium Car Wash", price: 200 },
+        { name: "Detailing",        price: 2000 }
+      ],
+      SUV: [
+        { name: "Basic Car Wash",   price: 200 },
+        { name: "Premium Car Wash", price: 250 },
+        { name: "Detailing",        price: 2500 }
+      ]
+    };
+
+    function refreshServices(selectedServiceName = null) {
+      const serviceSelect = document.getElementById('service');
+      const currentSelection = selectedServiceName ||
+        (serviceSelect.options[serviceSelect.selectedIndex]?.text.split(" - ")[0]);
+
+      serviceSelect.innerHTML = "";
+      priceList[selectedVehicle].forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.price;
+        option.textContent = `${service.name} - ₹${service.price}`;
+        if (service.name === currentSelection) option.selected = true;
+        serviceSelect.appendChild(option);
+      });
+    }
+
+    function selectVehicle(vehicle) {
+      selectedVehicle = vehicle;
+      document.querySelectorAll(".car-options div").forEach(div => div.classList.remove("active"));
+      document.getElementById(vehicle.toLowerCase()).classList.add("active");
+      refreshServices();
+    }
+
+    function toggleTheme() { document.body.classList.toggle('dark'); }
+
+    // Set min datetime to now (helps on iPhone date picker)
+    (function setMinDate() {
+      const dt = document.getElementById('datetime');
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      dt.min = now.toISOString().slice(0,16);
+    })();
+
+    // Booking form submit
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const nameEl = document.getElementById('name');
+      const phoneEl = document.getElementById('phone');
+      const serviceEl = document.getElementById('service');
+      const datetimeEl = document.getElementById('datetime');
+
+      const name = nameEl.value.trim();
+      const phone = phoneEl.value.replace(/\D/g, '');
+      const service = serviceEl.options[serviceEl.selectedIndex].text;
+      const datetime = datetimeEl.value;
+
+      if (!name || !phone || !datetime) {
+        alert("Please fill all fields correctly.");
+        return;
+      }
+
+      const adminMsg = `New Booking 🚗
+Name: ${name}
+Number: ${phone}
+Service: ${service}
+Vehicle: ${selectedVehicle}
+Date/Time: ${datetime}`;
+
+      const custMsg = `Hi ${name} 👋
+Your Kleenkars booking is confirmed!
+Service: ${service}
+Vehicle: ${selectedVehicle}
+Date/Time: ${datetime}
+See you soon ✨`;
+
+      try {
+        // Save to database via Netlify Function
+        const res = await fetch('/.netlify/functions/saveBooking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, service, vehicle: selectedVehicle, datetime })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          // Preview & WhatsApp
+          document.getElementById('adminMsg').textContent = "📩 Admin WhatsApp:\n\n" + adminMsg;
+          document.getElementById('custMsg').textContent  = "📲 Customer WhatsApp:\n\n" + custMsg;
+          document.getElementById('previewBox').style.display = 'block';
+          alert("✅ Booking saved!");
+
+          // Open WhatsApp chats on iPhone
+          if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`, '_blank');
+          if (phone)         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`, '_blank');
+        } else {
+          alert("❌ Failed to save booking. " + (result.error || ""));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Network/Server error.");
+      }
+    });
+
+    // Initial state
+    selectVehicle("Car");
+  </script>
+</body>
+</html>
