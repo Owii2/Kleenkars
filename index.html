@@ -1,239 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kleenkars Booking</title>
-  <meta name="theme-color" content="#111" />
-  <style>
-    :root { --brand:#007BFF; --bg:#f4f4f4; --text:#333; --darkbg:#111; --darkpanel:#222; }
-    * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
-    header { display:flex; justify-content:space-between; align-items:center; padding:15px; background:#111; color:#fff; position:sticky; top:0; z-index:2; }
-    header img { height:40px; }
-    .toggle-btn { cursor:pointer; padding:6px 10px; border:1px solid #fff; border-radius:6px; font-size:14px; }
-    .banner { width:100%; height:200px; background:url('https://images.unsplash.com/photo-1617983312824-fc4437f8ff63?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat; }
-    main { padding:18px; max-width:640px; margin:auto; }
-    h1 { text-align:center; margin:10px 0 6px; }
-    p.sub { text-align:center; margin:0 0 10px; color:#666; }
-    label { display:block; margin-top:14px; font-weight:bold; }
-    input, select { width:100%; padding:12px; margin-top:6px; border:1px solid #ccc; border-radius:8px; font-size:16px; background:#fff; }
-    .car-options { display:flex; gap:8px; margin-top:10px; }
-    .car-options div { flex:1; padding:12px; border:2px solid #ccc; border-radius:10px; text-align:center; cursor:pointer; user-select:none; }
-    .car-options .active { border-color:var(--brand); background:#eaf3ff; }
-    button { margin-top:18px; padding:14px; width:100%; background:var(--brand); color:#fff; border:none; border-radius:10px; font-size:17px; cursor:pointer; }
-    button:hover { filter:brightness(0.95); }
-    small.help { color:#666; display:block; margin-top:4px; }
-    #previewBox { display:none; position:fixed; inset:auto 0 0 0; margin:auto; top:12%; width:min(92%,420px); background:#fff; color:#111; border:2px solid var(--brand); border-radius:12px; padding:16px; z-index:10; }
-    #previewBox h3 { margin:0 0 8px; }
-    #previewBox pre { white-space:pre-wrap; font-size:14px; background:#fafafa; padding:10px; border-radius:8px; border:1px solid #eee; }
-    #closePreview { margin-top:10px; background:#dc3545; }
-    body.dark { background:var(--darkbg); color:#eee; }
-    body.dark header { background:var(--darkpanel); }
-    body.dark input, body.dark select { background:var(--darkpanel); color:#fff; border:1px solid #555; }
-    body.dark button { background:#28a745; }
-    body.dark #previewBox { background:#1a1a1a; color:#eee; border-color:#28a745; }
-    .note { font-size:13px; color:#666; margin-top:6px; }
-    .footer { text-align:center; padding:20px; font-size:13px; color:#777; }
-    .muted { color:#777; font-size:13px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kleenkars — Premium Car Care</title>
+<meta name="theme-color" content="#0f172a" />
+<style>
+  :root { --primary:#0f172a; --accent:#21c8f6; --text:#111111; --bg:#f8fafc; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:var(--text)}
+  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.8);backdrop-filter:saturate(120%) blur(12px);border-bottom:1px solid #e5e7eb}
+  .nav{max-width:1100px;margin:auto;display:flex;align-items:center;gap:20px;padding:12px 16px}
+  .nav a{color:var(--text);text-decoration:none;opacity:.9}
+  .nav a:hover{opacity:1}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+  .pill{margin-left:auto;display:flex;gap:10px}
+  .btn{padding:10px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff}
+  .btn.primary{background:var(--primary);color:#fff;border:none}
+  .hero{max-width:1100px;margin:0 auto 10px;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;padding:24px 16px}
+  .hero .title{font-size:36px;line-height:1.1;margin:6px 0}
+  .hero .sub{color:#475569}
+  .hero .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+  .hero .img{border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+  .hero .img img{width:100%;height:100%;object-fit:cover}
+  label{display:block;margin-top:10px;font-weight:600}
+  input,select{width:100%;padding:12px;margin-top:6px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+  button{margin-top:14px;padding:12px;width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:16px}
+  button:hover{filter:brightness(1.02)}
+  .muted{font-size:13px;color:#64748b}
+  .gallery{max-width:1100px;margin:10px auto 40px;padding:0 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .gallery img{width:100%;height:200px;object-fit:cover;border-radius:12px}
+  .section{max-width:1100px;margin:20px auto;padding:0 16px}
+  .footer{border-top:1px solid #e5e7eb;color:#64748b;text-align:center;padding:18px}
+  #previewBox{display:none;position:fixed;inset:0;place-items:center;background:rgba(0,0,0,.35)}
+  #previewCard{background:#fff;max-width:420px;width:92%;border-radius:14px;padding:16px}
+  #previewCard pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;white-space:pre-wrap}
+  @media (max-width:860px){ .hero{grid-template-columns:1fr;}.pill{display:none}}
+</style>
 </head>
 <body>
-  <header>
-    <img src="https://via.placeholder.com/150x40?text=Kleenkars" alt="Kleenkars Logo" />
-    <div class="toggle-btn" onclick="toggleTheme()">🌙/☀️</div>
-  </header>
-
-  <div class="banner" aria-hidden="true"></div>
-
-  <main>
-    <h1>Book Your Wash</h1>
-    <p class="sub">Fast, clean, and shiny — powered by Kleenkars ✨</p>
-
-    <form id="bookingForm" novalidate>
-      <label for="name">Name</label>
-      <input id="name" name="name" type="text" autocomplete="name" required />
-
-      <label for="phone">Phone Number</label>
-      <input id="phone" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{10,12}" placeholder="e.g. 91XXXXXXXXXX" required />
-      <small class="help">Enter country code + number (digits only).</small>
-
-      <label for="service">Service</label>
-      <select id="service" name="service">
-        <option disabled selected>Loading services…</option>
-      </select>
-      <small class="muted" id="svcHint"></small>
-
-      <label>Vehicle Type</label>
-      <div class="car-options" role="group" aria-label="Vehicle Type">
-        <div id="bike" onclick="selectVehicle('Bike')">🏍 Bike</div>
-        <div id="car"  onclick="selectVehicle('Car')" >🚗 Car (Hatchback/Sedan)</div>
-        <div id="suv"  onclick="selectVehicle('SUV')" >🚘 SUV</div>
-      </div>
-
-      <label for="datetime">Date & Time</label>
-      <input id="datetime" name="datetime" type="datetime-local" required />
-
-      <button type="submit">Confirm Booking</button>
-      <div class="note">Submitting saves your booking and opens WhatsApp to confirm.</div>
-    </form>
-
-    <!-- 🔐 Admin Login Button -->
-    <div style="text-align:center; margin-top:20px;">
-      <a href="admin.html" style="display:inline-block; padding:10px 16px; background:#2b2f45; color:#fff; text-decoration:none; border-radius:8px; font-size:14px;">
-        🔐 Admin Login
-      </a>
+<header>
+  <nav class="nav">
+    <a class="logo" href="/"><img src="/logo.svg" alt="Kleenkars" style="height:34px"/>Kleenkars</a>
+    <a href="#services">Services</a>
+    <a href="#contact">Contact</a>
+    <div class="pill">
+      <a class="btn" href="/admin.html">🔐 Admin</a>
+      <a class="btn primary" href="#book">Book now</a>
     </div>
-  </main>
+  </nav>
+</header>
 
-  <!-- Popup -->
-  <div id="previewBox">
-    <h3>WhatsApp Preview</h3>
-    <pre id="adminMsg"></pre>
-    <pre id="custMsg"></pre>
-    <button id="closePreview" onclick="document.getElementById('previewBox').style.display='none'">Close</button>
+<section class="hero" id="book">
+  <div>
+    <div style="color:var(--accent);font-weight:700">Premium • Doorstep • Care</div>
+    <h1 class="title" id="tagline">Premium doorstep car care.</h1>
+    <p class="sub">We treat your vehicle like a VIP — gentle products, meticulous detailing, on your schedule.</p>
+
+    <div class="card">
+      <form id="bookingForm" novalidate>
+        <label>Name</label>
+        <input id="name" type="text" required>
+
+        <label>Phone Number</label>
+        <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]{10,12}" placeholder="e.g. 91XXXXXXXXXX" required>
+        <small class="muted">Enter country code + number (digits only).</small>
+
+        <label>Vehicle Type</label>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn" onclick="selectVehicle('Bike')" id="btnBike">🏍 Bike</button>
+          <button type="button" class="btn" onclick="selectVehicle('Car')"  id="btnCar">🚗 Car</button>
+          <button type="button" class="btn" onclick="selectVehicle('SUV')"  id="btnSuv">🚘 SUV</button>
+        </div>
+
+        <label>Service</label>
+        <select id="service"><option>Loading…</option></select>
+        <small class="muted" id="svcHint"></small>
+
+        <label>Date & Time</label>
+        <input type="datetime-local" id="datetime" required>
+
+        <button type="submit">Confirm Booking</button>
+        <div class="muted" style="margin-top:6px">Submitting saves your booking and opens WhatsApp to confirm.</div>
+      </form>
+      <div style="text-align:center;margin-top:10px">
+        <a href="/admin.html" class="muted">🔐 Admin Login</a>
+      </div>
+    </div>
   </div>
+  <div class="img"><img id="heroImg" src="" alt="Kleenkars hero"></div>
+</section>
 
-  <div class="footer">© <span id="year"></span> Kleenkars</div>
+<section class="section" id="services">
+  <h2>Our Services</h2>
+  <p class="muted">Carefully curated packages for bikes, cars, and SUVs.</p>
+</section>
 
-  <script>
-    // ====== EDIT THESE TWO LINES (digits only, no +) ======
-    const ADMIN_WHATSAPP   = "91XXXXXXXXXX"; // admin receives new booking alert
-    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // optional
-    // ======================================================
+<section class="gallery" id="gallery"></section>
 
-    document.getElementById('year').textContent = new Date().getFullYear();
+<section class="section" id="contact">
+  <h2>Contact</h2>
+  <p class="muted">WhatsApp us anytime for priority support.</p>
+</section>
 
-    let selectedVehicle = "Car";
-    let priceList = { Bike: [], Car: [], SUV: [] }; // filled from DB
+<div id="previewBox"><div id="previewCard">
+  <h3>WhatsApp Preview</h3>
+  <pre id="adminMsg"></pre>
+  <pre id="custMsg"></pre>
+  <button class="btn" onclick="document.getElementById('previewBox').style.display='none'">Close</button>
+</div></div>
 
-    function toggleTheme(){ document.body.classList.toggle('dark'); }
+<footer class="footer">© <span id="year"></span> Kleenkars</footer>
 
-    // Set min datetime to now
-    (function setMinDate() {
-      const dt = document.getElementById('datetime');
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      dt.min = now.toISOString().slice(0,16);
-    })();
+<script>
+  const ADMIN_WHATSAPP = "91XXXXXXXXXX"; // <-- put your admin number (digits only)
 
-    function selectVehicle(vehicle) {
-      selectedVehicle = vehicle;
-      document.querySelectorAll(".car-options div").forEach(div => div.classList.remove("active"));
-      document.getElementById(vehicle.toLowerCase()).classList.add("active");
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  let selectedVehicle = "Car";
+  let priceList = { Bike: [], Car: [], SUV: [] };
+
+  function applyTheme(s) {
+    if (!s) return;
+    document.documentElement.style.setProperty('--primary', s.primary_color || '#0f172a');
+    document.documentElement.style.setProperty('--accent',  s.accent_color  || '#21c8f6');
+    document.documentElement.style.setProperty('--text',    s.text_color    || '#111111');
+    document.getElementById('heroImg').src = s.hero_image;
+    document.getElementById('tagline').textContent = s.tagline || 'Premium doorstep car care.';
+    const g = document.getElementById('gallery');
+    g.innerHTML = '';
+    try {
+      const arr = JSON.parse(s.gallery_json || '[]');
+      (arr || []).slice(0,6).forEach(url=>{
+        const img = document.createElement('img'); img.src=url; img.alt='Gallery';
+        g.appendChild(img);
+      });
+    } catch {}
+  }
+
+  async function loadSettings(){
+    try {
+      const r = await fetch('/.netlify/functions/site-settings');
+      const { settings } = await r.json();
+      applyTheme(settings);
+    } catch(e){ console.log('settings load failed', e); }
+  }
+
+  async function loadServices(){
+    try {
+      const r = await fetch('/.netlify/functions/admin-services');
+      const data = await r.json();
+      priceList = { Bike: [], Car: [], SUV: [] };
+      for (const s of data.services) priceList[s.vehicle_type].push({ name: s.name, price: s.price });
+      refreshServices();
+    } catch(e){
+      console.log('services load failed', e);
       refreshServices();
     }
+  }
 
-    function refreshServices(selectedServiceName = null) {
-      const serviceSelect = document.getElementById('service');
-      const hint = document.getElementById('svcHint');
-      const currentSelection = selectedServiceName ||
-        (serviceSelect.options[serviceSelect.selectedIndex]?.text.split(" - ")[0]);
+  function selectVehicle(v){
+    selectedVehicle = v;
+    for (const id of ['btnBike','btnCar','btnSuv']) document.getElementById(id).classList.remove('primary');
+    if (v==='Bike') document.getElementById('btnBike').classList.add('primary');
+    if (v==='Car')  document.getElementById('btnCar').classList.add('primary');
+    if (v==='SUV')  document.getElementById('btnSuv').classList.add('primary');
+    refreshServices();
+  }
 
-      const items = priceList[selectedVehicle] || [];
-      serviceSelect.innerHTML = "";
-
-      if (!items.length) {
-        const opt = document.createElement('option');
-        opt.textContent = "No services available";
-        opt.disabled = true;
-        opt.selected = true;
-        serviceSelect.appendChild(opt);
-        hint.textContent = "No active services for this vehicle. Check Admin → Services.";
-        return;
-      }
-
-      items.forEach(service => {
-        const option = document.createElement('option');
-        option.value = service.price;
-        option.textContent = `${service.name} - ₹${service.price}`;
-        if (service.name === currentSelection) option.selected = true;
-        serviceSelect.appendChild(option);
-      });
-
-      hint.textContent = `${items.length} item(s) for ${selectedVehicle}`;
+  function refreshServices(){
+    const sel = document.getElementById('service');
+    const hint = document.getElementById('svcHint');
+    sel.innerHTML = '';
+    const items = priceList[selectedVehicle] || [];
+    if (!items.length) {
+      sel.innerHTML = '<option disabled selected>No services available</option>';
+      hint.textContent = 'No active services for ' + selectedVehicle;
+      return;
     }
+    items.forEach(s=>{
+      const opt = document.createElement('option');
+      opt.value = s.price;
+      opt.textContent = `${s.name} - ₹${s.price}`;
+      sel.appendChild(opt);
+    });
+    hint.textContent = `${items.length} option(s) for ${selectedVehicle}`;
+  }
 
-    async function loadServicesForPublic(){
-      try {
-        const res = await fetch('/.netlify/functions/admin-services'); 
-        const data = await res.json();
-        if (data && Array.isArray(data.services)) {
-          priceList = { Bike: [], Car: [], SUV: [] };
-          for (const s of data.services) {
-            if (!priceList[s.vehicle_type]) priceList[s.vehicle_type] = [];
-            priceList[s.vehicle_type].push({ name: s.name, price: s.price });
-          }
-        }
-      } catch (e){
-        console.error('Failed to load services', e);
-      } finally {
-        refreshServices();
-      }
-    }
+  (function setMinDate(){
+    const dt = document.getElementById('datetime');
+    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    dt.min = now.toISOString().slice(0,16);
+  })();
 
-    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+  document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.replace(/\D/g,'');
+    const service = document.getElementById('service').options[document.getElementById('service').selectedIndex]?.text || '';
+    const datetime = document.getElementById('datetime').value;
+    if (!name || !phone || !datetime || !service) return alert('Please fill all fields.');
 
-      const nameEl = document.getElementById('name');
-      const phoneEl = document.getElementById('phone');
-      const serviceEl = document.getElementById('service');
-      const datetimeEl = document.getElementById('datetime');
-
-      const name = nameEl.value.trim();
-      const phone = phoneEl.value.replace(/\D/g, '');
-      const service = serviceEl.options[serviceEl.selectedIndex]?.text || '';
-      const datetime = datetimeEl.value;
-
-      if (!name || !phone || !datetime || !service) {
-        alert("Please fill all fields correctly.");
-        return;
-      }
-
-      const adminMsg = `New Booking 🚗
+    const adminMsg = `New Booking 🚗
 Name: ${name}
 Number: ${phone}
 Service: ${service}
 Vehicle: ${selectedVehicle}
 Date/Time: ${datetime}`;
-
-      const custMsg = `Hi ${name} 👋
+    const custMsg = `Hi ${name} 👋
 Your Kleenkars booking is confirmed!
 Service: ${service}
 Vehicle: ${selectedVehicle}
 Date/Time: ${datetime}
 See you soon ✨`;
 
-      try {
-        const res = await fetch('/.netlify/functions/saveBooking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, service, vehicle: selectedVehicle, datetime })
-        });
+    try{
+      const res = await fetch('/.netlify/functions/saveBooking', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ name, phone, service, vehicle: selectedVehicle, datetime })
+      });
+      const out = await res.json();
+      if (out.success){
+        document.getElementById('adminMsg').textContent = adminMsg;
+        document.getElementById('custMsg').textContent  = custMsg;
+        document.getElementById('previewBox').style.display='grid';
+        alert('✅ Booking saved!');
+        if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`,'_blank');
+        if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`,'_blank');
+      } else alert('❌ Failed: ' + (out.error || 'Server error'));
+    } catch(err){ alert('❌ Network/Server error'); }
+  });
 
-        const result = await res.json();
-
-        if (result.success) {
-          document.getElementById('adminMsg').textContent = "📩 Admin WhatsApp:\n\n" + adminMsg;
-          document.getElementById('custMsg').textContent  = "📲 Customer WhatsApp:\n\n" + custMsg;
-          document.getElementById('previewBox').style.display = 'block';
-          alert("✅ Booking saved!");
-
-          if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`, '_blank');
-          if (phone)         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`, '_blank');
-        } else {
-          alert("❌ Failed to save booking. " + (result.error || ""));
-        }
-      } catch (err) {
-        console.error(err);
-        alert("❌ Network/Server error.");
-      }
-    });
-
-    (async function init(){
-      await loadServicesForPublic();
-      selectVehicle("Car");
-    })();
-  </script>
+  (async function init(){
+    await Promise.all([loadSettings(), loadServices()]);
+    selectVehicle('Car');
+  })();
+</script>
 </body>
 </html>
