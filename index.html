@@ -83,7 +83,9 @@
             </div>
             <div>
               <label for="phone">Phone number</label>
-              <input id="phone" name="phone" placeholder="10-digit mobile " pattern="\\d{10}" required>
+              <!-- FIXED: tel + numeric + maxlength + correct pattern -->
+              <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
+                     placeholder="10-digit mobile" maxlength="10" pattern="[0-9]{10}" required>
             </div>
           </div>
 
@@ -184,6 +186,11 @@
   // --- Init
   document.getElementById('yr').textContent = new Date().getFullYear();
   els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
+
+  // sanitize phone as user types (digits only, max 10)
+  els.phone.addEventListener('input', ()=>{
+    els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10);
+  });
 
   function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
   function applyServiceRules(){
