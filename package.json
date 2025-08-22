@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18 <=22"
+  },
   "dependencies": {
-    "@netlify/neon": "^0.7.1"
+    "@netlify/neon": "latest"
   }
 }
