@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Kleenkars Admin</title>
+<style>
+  body{font-family:Arial, sans-serif;margin:0;background:#0f1115;color:#eaeaea}
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#151823}
+  h1{font-size:18px;margin:0}
+  main{padding:16px;max-width:900px;margin:auto}
+  .card{background:#171b26;border:1px solid #23283b;border-radius:12px;padding:14px;margin-bottom:14px}
+  input,select,button{padding:10px;border-radius:8px;border:1px solid #2b2f45;background:#10131b;color:#eaeaea;width:100%}
+  button{background:#3178ff;border:none;cursor:pointer}
+  button.secondary{background:#2b2f45}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{border-bottom:1px solid #2b2f45;padding:8px;text-align:left}
+  .flex{display:flex;gap:8px;flex-wrap:wrap}
+  .hide{display:none}
+  .muted{opacity:.8;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔐 Kleenkars Admin</h1>
+  <button class="secondary" id="logoutBtn">Logout</button>
+</header>
+
+<main>
+  <!-- Login -->
+  <div id="loginCard" class="card">
+    <h3>Owner Login</h3>
+    <div class="row">
+      <input id="pwd" type="password" placeholder="Admin password"/>
+      <button id="loginBtn">Login</button>
+    </div>
+    <p class="muted">Set in Netlify → Environment variables → <code>ADMIN_PASSWORD</code>.</p>
+  </div>
+
+  <div id="dash" class="hide">
+
+    <!-- Services -->
+    <div class="card">
+      <h3>🛠 Services & Prices</h3>
+      <div class="row">
+        <input id="svcName" placeholder="Service name (e.g., Basic Car Wash)"/>
+        <select id="svcVehicle"><option>Bike</option><option selected>Car</option><option>SUV</option></select>
+        <input id="svcPrice" type="number" placeholder="Price (₹)"/>
+        <select id="svcActive"><option value="true" selected>Active</option><option value="false">Inactive</option></select>
+      </div>
+      <div class="flex" style="margin-top:10px"><button id="addSvc">Add service</button></div>
+      <table id="svcTbl">
+        <thead><tr><th>ID</th><th>Name</th><th>Vehicle</th><th>Price</th><th>Active</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted">These feed the customer page dropdown automatically.</p>
+    </div>
+
+    <!-- Bookings -->
+    <div class="card">
+      <h3>🧾 Recent Bookings</h3>
+      <div class="flex">
+        <button id="refreshBookings">Refresh</button>
+        <a id="exportCsv" class="secondary" href="#" target="_blank" style="padding:10px 12px;border-radius:8px;text-decoration:none;">Export CSV</a>
+      </div>
+      <table id="bookingsTbl">
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Service</th><th>Vehicle</th><th>Date/Time</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const API = {
+  login: '/.netlify/functions/admin-login',
+  services: '/.netlify/functions/admin-services',
+  bookings: '/.netlify/functions/admin-bookings'
+};
+
+const token = () => localStorage.getItem('kk_token');
+const auth = () => token() ? { 'authorization': 'Bearer ' + token() } : {};
+function show(id, on=true){ document.getElementById(id).classList[on?'remove':'add']('hide'); }
+
+async function postJSON(url, data){
+  const r = await fetch(url,{method:'POST',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
+  return r.json();
+}
+async function putJSON(url, data){
+  const r = await fetch(url,{method:'PUT',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
+  return r.json();
+}
+async function delJSON(url, data){
+  const r = await fetch(url,{method:'DELETE',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
+  return r.json();
+}
+async function getJSON(url){
+  const r = await fetch(url,{headers:{...auth()}});
+  return r.json();
+}
+
+// Login / Logout
+document.getElementById('loginBtn').onclick = async () => {
+  const out = await postJSON(API.login, { password: document.getElementById('pwd').value });
+  if (out.token) { localStorage.setItem('kk_token', out.token); await init(); }
+  else alert(out.error || 'Login failed');
+};
+document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('kk_token'); location.reload(); };
+
+// Services
+async function loadServices(){
+  const out = await getJSON(API.services); // GET is public
+  const tb = document.querySelector('#svcTbl tbody');
+  tb.innerHTML = (out.services||[]).map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td><input value="${s.name}" data-id="${s.id}" data-field="name"/></td>
+      <td>
+        <select data-id="${s.id}" data-field="vehicle_type">
+          ${['Bike','Car','SUV'].map(v=>`<option ${s.vehicle_type===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" value="${s.price}" data-id="${s.id}" data-field="price"/></td>
+      <td>
+        <select data-id="${s.id}" data-field="active">
+          <option value="true" ${s.active?'selected':''}>Active</option>
+          <option value="false" ${!s.active?'selected':''}>Inactive</option>
+        </select>
+      </td>
+      <td class="flex">
+        <button onclick="saveRow(${s.id})">Save</button>
+        <button class="secondary" onclick="delRow(${s.id})">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+window.saveRow = async function(id){
+  const sel = (f) => document.querySelector(`[data-id="${id}"][data-field="${f}"]`);
+  const payload = {
+    id,
+    name: sel('name').value,
+    vehicle_type: sel('vehicle_type').value,
+    price: Number(sel('price').value),
+    active: sel('active').value === 'true'
+  };
+  const out = await putJSON(API.services, payload);
+  if (out.error) alert(out.error); else alert('Saved');
+  await loadServices();
+};
+window.delRow = async function(id){
+  if (!confirm('Delete this service?')) return;
+  const out = await delJSON(API.services, { id });
+  if (out.error) alert(out.error); else await loadServices();
+};
+document.getElementById('addSvc').onclick = async () => {
+  const name = document.getElementById('svcName').value.trim();
+  const vehicle_type = document.getElementById('svcVehicle').value;
+  const price = Number(document.getElementById('svcPrice').value);
+  const active = document.getElementById('svcActive').value === 'true';
+  if (!name || !price) return alert('Fill name and price');
+  const out = await postJSON(API.services, { name, vehicle_type, price, active });
+  if (out.error) alert(out.error); else {
+    document.getElementById('svcName').value = '';
+    document.getElementById('svcPrice').value = '';
+    await loadServices();
+  }
+};
+
+// Bookings
+async function loadBookings(){
+  const out = await getJSON(API.bookings + '?limit=200');
+  if (out.error) { alert(out.error); return; }
+  const tb = document.querySelector('#bookingsTbl tbody');
+  tb.innerHTML = (out.bookings||[]).map(b => `
+    <tr>
+      <td>${b.id}</td><td>${b.name}</td>
+      <td><a href="https://wa.me/${b.phone}" target="_blank">${b.phone}</a></td>
+      <td>${b.service}</td><td>${b.vehicle}</td>
+      <td>${new Date(b.datetime).toLocaleString()}</td>
+    </tr>`).join('');
+  document.getElementById('exportCsv').href = API.bookings + '?csv=1';
+}
+document.getElementById('refreshBookings').onclick = loadBookings;
+
+// Init
+async function init(){
+  if (!token()) { show('loginCard', true); show('dash', false); return; }
+  show('loginCard', false); show('dash', true);
+  await Promise.all([loadServices(), loadBookings()]);
+}
+init();
+</script>
+</body>
+</html>
