@@ -7,18 +7,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433;--accent:#7a3cff}
-  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-  header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#111018;border-bottom:1px solid var(--border)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  /* Header with logo */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 20px;background:#111018;border-bottom:1px solid var(--border)
+  }
+  .logo-title{display:flex;align-items:center;gap:12px;min-height:56px}
+  .logo{
+    width:130px; height:auto; display:block;
+    background:#0f0f16; border:1px solid var(--border); border-radius:10px; padding:6px;
+  }
   .title{font-weight:800;font-size:1.2rem}
+  .actions{display:none;gap:8px}
   .btn{background:var(--accent);border:0;color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
   .btn.secondary{background:#2a2a3a}
   .btn.danger{background:#d64545}
   .btn:disabled{opacity:.6;cursor:not-allowed}
+
   .wrap{max-width:1120px;margin:auto;padding:20px}
-  .tabs{display:flex;gap:8px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px}
-  .p16{padding:16px} .p24{padding:24px} .muted{color:var(--muted)}
-  .grid{display:grid;gap:10px} .two{grid-template-columns:1fr 1fr} .three{grid-template-columns:1fr 1fr 1fr}
+  .p24{padding:24px}
+  .muted{color:var(--muted)}
+  .section{display:none}
+  .section.active{display:block}
   input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0f0f16;color:#fff}
   table{width:100%;border-collapse:collapse;margin-top:8px}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
@@ -26,15 +39,17 @@
   .bar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
   .row{display:flex;gap:8px;flex-wrap:wrap}
   .pill{display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.8rem}
-  .section{display:none}
-  .section.active{display:block}
   canvas{width:100%;max-width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:#0f0f16}
 </style>
 </head>
 <body>
   <header>
-    <div class="title">Kleenkars — Admin</div>
-    <div class="tabs">
+    <div class="logo-title">
+      <!-- Uses your uploaded logo; falls back to /logo.svg if needed -->
+      <img src="/assets/logo.png" alt="Kleenkars logo" class="logo" onerror="this.src='/logo.svg'">
+      <span class="title">Admin</span>
+    </div>
+    <div id="actions" class="actions">
       <button data-tab="bookings" class="btn secondary">Bookings</button>
       <button data-tab="stats" class="btn secondary">Statistics</button>
       <button data-tab="services" class="btn secondary">Services</button>
@@ -42,7 +57,7 @@
     </div>
   </header>
 
-  <!-- LOGIN -->
+  <!-- LOGIN (visible first) -->
   <div id="loginPanel" class="wrap">
     <div class="card p24" style="max-width:420px;margin:60px auto;">
       <h2 style="margin:0 0 8px;">Admin Login</h2>
@@ -54,7 +69,7 @@
     </div>
   </div>
 
-  <!-- APP -->
+  <!-- APP (hidden until login) -->
   <div id="app" class="wrap" style="display:none;">
 
     <!-- Bookings -->
@@ -94,25 +109,21 @@
       <!-- Editor -->
       <div id="editWrap" class="card p24" style="margin-top:12px;display:none;">
         <h3 id="editTitle" style="margin:0 0 10px;">Edit booking</h3>
-        <div class="grid two">
-          <label>Customer name<input id="eName"></label>
-          <label>Phone<input id="ePhone" inputmode="numeric" maxlength="15"></label>
-          <label>Date<input type="date" id="eDate"></label>
-          <label>Time<input type="time" id="eTime" step="900"></label>
-          <label>Vehicle
-            <select id="eVehicle">
-              <option>Bike</option><option>Hatch/Sedan</option><option>SUV</option>
-            </select>
+        <div class="row" style="gap:12px;flex-wrap:wrap;">
+          <label style="flex:1 1 240px;">Customer name<input id="eName"></label>
+          <label style="flex:1 1 200px;">Phone<input id="ePhone" inputmode="numeric" maxlength="15"></label>
+          <label style="flex:1 1 160px;">Date<input type="date" id="eDate"></label>
+          <label style="flex:1 1 160px;">Time<input type="time" id="eTime" step="900"></label>
+          <label style="flex:1 1 180px;">Vehicle
+            <select id="eVehicle"><option>Bike</option><option>Hatch/Sedan</option><option>SUV</option></select>
           </label>
-          <label>Service
-            <select id="eService">
-              <option>Basic</option><option>Premium</option><option>Detailing</option>
-            </select>
+          <label style="flex:1 1 200px;">Service
+            <select id="eService"><option>Basic</option><option>Premium</option><option>Detailing</option></select>
           </label>
-          <label>Visit
+          <label style="flex:1 1 180px;">Visit
             <select id="eVisit"><option>In-Shop</option><option>Home Visit</option></select>
           </label>
-          <label>Address<textarea id="eAddress" rows="2"></textarea></label>
+          <label style="flex:1 1 100%;min-width:260px;">Address<textarea id="eAddress" rows="2"></textarea></label>
         </div>
         <div class="row" style="margin-top:10px;">
           <span class="pill" id="ePrice">Price: —</span>
@@ -153,24 +164,18 @@
         <div style="overflow:auto;margin-top:10px;">
           <table>
             <thead>
-              <tr>
-                <th>Service</th>
-                <th>Bike</th>
-                <th>Hatch/Sedan</th>
-                <th>SUV</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>Service</th><th>Bike</th><th>Hatch/Sedan</th><th>SUV</th><th>Actions</th></tr>
             </thead>
             <tbody id="svcRows"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
           </table>
         </div>
 
         <h3 style="margin:16px 0 8px;">Add / Update service</h3>
-        <div class="grid three">
-          <label>Name<input id="svName" placeholder="e.g., Premium"></label>
-          <label>Bike (₹ or blank)<input id="svBike" inputmode="numeric"></label>
-          <label>Hatch/Sedan (₹ or blank)<input id="svSedan" inputmode="numeric"></label>
-          <label>SUV (₹ or blank)<input id="svSuv" inputmode="numeric"></label>
+        <div class="row" style="gap:12px;flex-wrap:wrap;">
+          <label style="flex:1 1 220px;">Name<input id="svName" placeholder="e.g., Premium"></label>
+          <label style="flex:1 1 180px;">Bike (₹ or blank)<input id="svBike" inputmode="numeric"></label>
+          <label style="flex:1 1 180px;">Hatch/Sedan (₹ or blank)<input id="svSedan" inputmode="numeric"></label>
+          <label style="flex:1 1 180px;">SUV (₹ or blank)<input id="svSuv" inputmode="numeric"></label>
         </div>
         <div class="row" style="margin-top:10px;">
           <button id="svSave" class="btn">Save service</button>
@@ -182,9 +187,10 @@
   </div>
 
 <script>
-/* ===================== Auth ===================== */
+/* ===================== Auth & View Control ===================== */
 const TOKEN_KEY = "kleenkars_token";
 const els = {
+  actions: document.getElementById('actions'),
   loginPanel: document.getElementById('loginPanel'),
   app: document.getElementById('app'),
   loginBtn: document.getElementById('loginBtn'),
@@ -192,16 +198,24 @@ const els = {
   user: document.getElementById('user'),
   pass: document.getElementById('pass'),
   loginMsg: document.getElementById('loginMsg'),
-  tabs: document.querySelectorAll('header .tabs .btn.secondary'),
-  sections: document.querySelectorAll('.section'),
+  navBtns: () => document.querySelectorAll('#actions [data-tab]'),
+  sections: () => document.querySelectorAll('.section'),
 };
 
 function token(){ return localStorage.getItem(TOKEN_KEY) || ""; }
 function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
 function clearToken(){ localStorage.removeItem(TOKEN_KEY); }
 
-function showApp(){ els.loginPanel.style.display='none'; els.app.style.display='block'; }
-function showLogin(){ els.loginPanel.style.display='block'; els.app.style.display='none'; }
+function showLogin(){
+  els.actions.style.display = "none";
+  els.loginPanel.style.display = "block";
+  els.app.style.display = "none";
+}
+function showApp(){
+  els.actions.style.display = "flex";
+  els.loginPanel.style.display = "none";
+  els.app.style.display = "block";
+}
 
 async function login(){
   els.loginMsg.textContent="";
@@ -213,188 +227,170 @@ async function login(){
     });
     const d = await r.json();
     if(!r.ok || !d.ok || !d.token) throw new Error(d.error||"Login failed");
-    setToken(d.token); showApp(); tabTo('bookings'); loadBookings();
+    setToken(d.token);
+    showApp();
+    tabTo('bookings');
+    loadBookings();
   }catch(e){ els.loginMsg.textContent = e.message; }
   finally{ els.loginBtn.disabled=false; els.loginBtn.textContent="Login"; }
 }
 els.loginBtn.addEventListener('click', login);
-els.logout.addEventListener('click', ()=>{ clearToken(); location.reload(); });
+els.logout.addEventListener('click', ()=>{ clearToken(); showLogin(); });
 
 /* ===================== Tabs ===================== */
 function tabTo(id){
-  els.sections.forEach(s=>s.classList.remove('active'));
+  els.sections().forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  els.tabs.forEach(b=> b.classList.toggle('btn', b.dataset.tab!==id), b=> b.classList.toggle('secondary', b.dataset.tab===id));
+  els.navBtns().forEach(b=>{
+    b.classList.remove('secondary'); b.classList.add('secondary'); // reset
+    if(b.dataset.tab===id){ b.classList.remove('secondary'); b.classList.add('btn'); }
+  });
+  if(id==='bookings') loadBookings();
+  if(id==='stats') loadStats();
+  if(id==='services') loadServices();
 }
-els.tabs.forEach(b=> b.addEventListener('click', ()=>{ tabTo(b.dataset.tab); if(b.dataset.tab==='bookings') loadBookings(); if(b.dataset.tab==='stats') loadStats(); if(b.dataset.tab==='services') loadServices(); }));
+els.actions.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-tab]'); if(!btn) return;
+  tabTo(btn.dataset.tab);
+});
 
 /* ===================== Bookings ===================== */
-const bEls = {
-  rows: document.getElementById('rows'),
-  count: document.getElementById('count'),
-  fFrom: document.getElementById('fFrom'),
-  fTo: document.getElementById('fTo'),
-  fService: document.getElementById('fService'),
-  fSearch: document.getElementById('fSearch'),
-  fApply: document.getElementById('fApply'),
-  fClear: document.getElementById('fClear'),
-  editWrap: document.getElementById('editWrap'),
-  editTitle: document.getElementById('editTitle'),
-  eName: document.getElementById('eName'),
-  ePhone: document.getElementById('ePhone'),
-  eDate: document.getElementById('eDate'),
-  eTime: document.getElementById('eTime'),
-  eVehicle: document.getElementById('eVehicle'),
-  eService: document.getElementById('eService'),
-  eVisit: document.getElementById('eVisit'),
-  eAddress: document.getElementById('eAddress'),
-  ePrice: document.getElementById('ePrice'),
-  save: document.getElementById('save'),
-  del: document.getElementById('delete'),
-  close: document.getElementById('close'),
-  eMsg: document.getElementById('eMsg'),
+const b = {
+  rows: document.getElementById('rows'), count: document.getElementById('count'),
+  fFrom: document.getElementById('fFrom'), fTo: document.getElementById('fTo'), fService: document.getElementById('fService'), fSearch: document.getElementById('fSearch'),
+  fApply: document.getElementById('fApply'), fClear: document.getElementById('fClear'),
+  editWrap: document.getElementById('editWrap'), editTitle: document.getElementById('editTitle'),
+  eName: document.getElementById('eName'), ePhone: document.getElementById('ePhone'), eDate: document.getElementById('eDate'), eTime: document.getElementById('eTime'),
+  eVehicle: document.getElementById('eVehicle'), eService: document.getElementById('eService'), eVisit: document.getElementById('eVisit'), eAddress: document.getElementById('eAddress'),
+  ePrice: document.getElementById('ePrice'), save: document.getElementById('save'), del: document.getElementById('delete'), close: document.getElementById('close'), eMsg: document.getElementById('eMsg')
 };
-function qs(params){ return Object.entries(params).filter(([,v])=>v!=null && v!=="").map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&"); }
+function esc(s){ return String(s==null?"":s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
+function qs(o){ return Object.entries(o).filter(([,v])=>v!=null && v!=="").map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&"); }
 
 async function loadBookings(){
-  bEls.rows.innerHTML = `<tr><td colspan="10" class="muted">Loading…</td></tr>`;
+  if(!token()){ showLogin(); return; }
+  b.rows.innerHTML = `<tr><td colspan="10" class="muted">Loading…</td></tr>`;
   const url = "/.netlify/functions/admin-bookings?" + qs({
-    from: bEls.fFrom.value, to: bEls.fTo.value, service: bEls.fService.value, search: bEls.fSearch.value.trim()
+    from:b.fFrom.value, to:b.fTo.value, service:b.fService.value, search:b.fSearch.value.trim()
   });
   try{
     const r = await fetch(url, { headers:{ Authorization:`Bearer ${token()}` }});
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed to load bookings");
     const rows = d.rows || [];
-    bEls.count.textContent = `${rows.length} bookings`;
-    if(rows.length===0){ bEls.rows.innerHTML = `<tr><td colspan="10" class="muted">No bookings.</td></tr>`; return; }
-    bEls.rows.innerHTML = "";
-    rows.forEach(b=>{
+    b.count.textContent = `${rows.length} bookings`;
+    if(rows.length===0){ b.rows.innerHTML = `<tr><td colspan="10" class="muted">No bookings.</td></tr>`; return; }
+    b.rows.innerHTML = "";
+    rows.forEach(row=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${b.order_id ?? "-"}</td>
-        <td>${esc(b.name)}</td>
-        <td>${esc(b.phone)}</td>
-        <td>${esc(b.vehicle)}</td>
-        <td>${esc(b.service)}</td>
-        <td>${esc(b.date)}</td>
-        <td>${esc(b.time)}</td>
-        <td>${esc(b.visit)}</td>
-        <td>${b.price ? "₹"+Number(b.price) : "-"}</td>
+        <td>${row.order_id ?? "-"}</td>
+        <td>${esc(row.name)}</td>
+        <td>${esc(row.phone)}</td>
+        <td>${esc(row.vehicle)}</td>
+        <td>${esc(row.service)}</td>
+        <td>${esc(row.date)}</td>
+        <td>${esc(row.time)}</td>
+        <td>${esc(row.visit)}</td>
+        <td>${row.price ? "₹"+Number(row.price) : "-"}</td>
         <td>
           <button class="btn secondary" data-act="edit">Edit</button>
           <button class="btn danger" data-act="delete">Delete</button>
-        </td>
-      `;
-      tr.dataset.booking = JSON.stringify(b);
-      bEls.rows.appendChild(tr);
+        </td>`;
+      tr.dataset.booking = JSON.stringify(row);
+      b.rows.appendChild(tr);
     });
   }catch(e){
     alert(e.message);
-    if(/unauthorized|token/i.test(e.message)){ clearToken(); location.reload(); }
+    if(/unauthorized|token/i.test(e.message)){ clearToken(); showLogin(); }
   }
 }
-bEls.fApply.addEventListener('click', loadBookings);
-bEls.fClear.addEventListener('click', ()=>{ bEls.fFrom.value=""; bEls.fTo.value=""; bEls.fService.value=""; bEls.fSearch.value=""; loadBookings(); });
+b.fApply.addEventListener('click', loadBookings);
+b.fClear.addEventListener('click', ()=>{ b.fFrom.value=""; b.fTo.value=""; b.fService.value=""; b.fSearch.value=""; loadBookings(); });
 
-bEls.rows.addEventListener('click', (e)=>{
+b.rows.addEventListener('click', (e)=>{
   const btn = e.target.closest('button'); if(!btn) return;
-  const tr = e.target.closest('tr'); const b = JSON.parse(tr.dataset.booking||"{}");
-  if(btn.dataset.act==="edit") openEditor(b);
-  if(btn.dataset.act==="delete") adminDelete(b);
+  const tr = e.target.closest('tr'); const row = JSON.parse(tr.dataset.booking||"{}");
+  if(btn.dataset.act==="edit") openEditor(row);
+  if(btn.dataset.act==="delete") adminDelete(row);
 });
 
-function openEditor(b){
-  bEls.editTitle.textContent = `Edit #${b.order_id}`;
-  bEls.eName.value = b.name||"";
-  bEls.ePhone.value = b.phone||"";
-  bEls.eDate.value = b.date||"";
-  bEls.eTime.value = b.time||"";
-  bEls.eVehicle.value = b.vehicle||"Hatch/Sedan";
-  bEls.eService.value = b.service||"Basic";
-  bEls.eVisit.value = b.visit||"In-Shop";
-  bEls.eAddress.value = b.address||"";
-  bEls.eMsg.textContent = "";
+function openEditor(row){
+  b.editTitle.textContent = `Edit #${row.order_id}`;
+  b.eName.value = row.name||"";
+  b.ePhone.value = row.phone||"";
+  b.eDate.value = row.date||"";
+  b.eTime.value = row.time||"";
+  b.eVehicle.value = row.vehicle||"Hatch/Sedan";
+  b.eService.value = row.service||"Basic";
+  b.eVisit.value = row.visit||"In-Shop";
+  b.eAddress.value = row.address||"";
+  b.eMsg.textContent = "";
   updatePriceUI();
-  bEls.editWrap.style.display = "block";
-  bEls.save.onclick = ()=> adminSave(b.order_id);
-  bEls.del.onclick = ()=> adminDelete(b);
+  b.editWrap.style.display = "block";
+  b.save.onclick = ()=> adminSave(row.order_id);
+  b.del.onclick = ()=> adminDelete(row);
 }
-bEls.close.addEventListener('click', ()=> bEls.editWrap.style.display="none");
-bEls.eVehicle.addEventListener('change', ()=>{ if(bEls.eVehicle.value==="Bike") bEls.eService.value="Basic"; updatePriceUI(); });
-bEls.eService.addEventListener('change', updatePriceUI);
-bEls.eVisit.addEventListener('change', updatePriceUI);
+b.close.addEventListener('click', ()=> b.editWrap.style.display="none");
+b.eVehicle.addEventListener('change', ()=>{ if(b.eVehicle.value==="Bike") b.eService.value="Basic"; updatePriceUI(); });
+b.eService.addEventListener('change', updatePriceUI);
+b.eVisit.addEventListener('change', updatePriceUI);
 function updatePriceUI(){
-  const price = calcPrice(bEls.eVehicle.value, bEls.eService.value, bEls.eVisit.value);
-  bEls.ePrice.textContent = price!=null ? `Price: ₹${price}` : "Price: — (service not available)";
-}
-function calcPrice(vehicle, service, visit){
   const P = { "Bike":{Basic:50,Premium:null,Detailing:null}, "Hatch/Sedan":{Basic:150,Premium:200,Detailing:1500}, "SUV":{Basic:200,Premium:250,Detailing:2500} };
-  let p = P?.[vehicle]?.[service] ?? null; if(p==null) return null; if(visit==="Home Visit") p += 50; return p;
+  let p = P?.[b.eVehicle.value]?.[b.eService.value] ?? null; if(p==null){ b.ePrice.textContent="Price: —"; return; }
+  if(b.eVisit.value==="Home Visit") p += 50; b.ePrice.textContent = `Price: ₹${p}`;
 }
-function esc(s){ return String(s==null?"":s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
-
 async function adminSave(order_id){
   const payload = {
     order_id,
-    name: bEls.eName.value.trim(),
-    phone: bEls.ePhone.value.replace(/\D/g,'').slice(0,15),
-    date: bEls.eDate.value,
-    time: bEls.eTime.value,
-    vehicle: bEls.eVehicle.value,
-    service: bEls.eService.value,
-    visit: bEls.eVisit.value,
-    address: bEls.eAddress.value.trim()
+    name: b.eName.value.trim(),
+    phone: b.ePhone.value.replace(/\D/g,'').slice(0,15),
+    date: b.eDate.value,
+    time: b.eTime.value,
+    vehicle: b.eVehicle.value,
+    service: b.eService.value,
+    visit: b.eVisit.value,
+    address: b.eAddress.value.trim()
   };
   try{
     const r = await fetch("/.netlify/functions/admin-updateBooking",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
+      method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
       body: JSON.stringify(payload)
     });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Update failed");
-    bEls.eMsg.textContent = "Saved.";
-    loadBookings();
-  }catch(e){ bEls.eMsg.textContent = e.message; }
+    b.eMsg.textContent = "Saved."; loadBookings();
+  }catch(e){ b.eMsg.textContent = e.message; }
 }
-
-async function adminDelete(b){
-  if(!confirm(`Delete booking #${b.order_id}?`)) return;
+async function adminDelete(row){
+  if(!confirm(`Delete booking #${row.order_id}?`)) return;
   try{
     const r = await fetch("/.netlify/functions/admin-deleteBooking",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
-      body: JSON.stringify({ order_id: b.order_id })
+      method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
+      body: JSON.stringify({ order_id: row.order_id })
     });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Delete failed");
-    bEls.editWrap.style.display="none";
-    loadBookings();
+    b.editWrap.style.display="none"; loadBookings();
   }catch(e){ alert(e.message); }
 }
 
 /* ===================== Statistics ===================== */
-const sEls = {
-  sGroup: document.getElementById('sGroup'), sFrom: document.getElementById('sFrom'), sTo: document.getElementById('sTo'),
-  sApply: document.getElementById('sApply'), sTotal: document.getElementById('sTotal'), chart: document.getElementById('chart')
-};
-sEls.sApply.addEventListener('click', loadStats);
-
+const s = { sGroup: document.getElementById('sGroup'), sFrom: document.getElementById('sFrom'), sTo: document.getElementById('sTo'),
+            sApply: document.getElementById('sApply'), sTotal: document.getElementById('sTotal'), chart: document.getElementById('chart') };
+s.sApply.addEventListener('click', loadStats);
 async function loadStats(){
-  const url = "/.netlify/functions/admin-stats?" + qs({
-    group: sEls.sGroup.value, from: sEls.sFrom.value, to: sEls.sTo.value
-  });
+  if(!token()){ showLogin(); return; }
+  const url = "/.netlify/functions/admin-stats?" + new URLSearchParams({ group:s.sGroup.value, from:s.sFrom.value, to:s.sTo.value }).toString();
   try{
     const r = await fetch(url, { headers:{ Authorization:`Bearer ${token()}` }});
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed to load stats");
     const pts = d.points || [];
     const total = pts.reduce((a,p)=>a + Number(p.total||0), 0);
-    sEls.sTotal.textContent = "Total: ₹" + total;
+    s.sTotal.textContent = "Total: ₹" + total;
 
-    // Draw a super-simple bar chart (no external libs)
-    const cv = sEls.chart, ctx = cv.getContext('2d');
+    const cv = s.chart, ctx = cv.getContext('2d');
     const W = cv.width = cv.clientWidth, H = cv.height = cv.clientHeight;
     ctx.clearRect(0,0,W,H);
     const max = Math.max(1, ...pts.map(p=>Number(p.total||0)));
@@ -411,42 +407,43 @@ async function loadStats(){
 }
 
 /* ===================== Services ===================== */
-const vCols = ["bike","sedan","suv"];
-const svcEls = { rows: document.getElementById('svcRows'), refresh: document.getElementById('svcRefresh'),
+const svc = {
+  rows: document.getElementById('svcRows'),
   name: document.getElementById('svName'), bike: document.getElementById('svBike'), sedan: document.getElementById('svSedan'), suv: document.getElementById('svSuv'),
-  save: document.getElementById('svSave'), msg: document.getElementById('svMsg')
+  save: document.getElementById('svSave'), msg: document.getElementById('svMsg'), refresh: document.getElementById('svcRefresh')
 };
-svcEls.refresh.addEventListener('click', loadServices);
-svcEls.save.addEventListener('click', saveService);
+svc.refresh.addEventListener('click', loadServices);
+svc.save.addEventListener('click', saveService);
 
 async function loadServices(){
-  svcEls.rows.innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
+  if(!token()){ showLogin(); return; }
+  svc.rows.innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
   try{
     const r = await fetch("/.netlify/functions/admin-services", { headers:{ Authorization:`Bearer ${token()}` }});
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed");
     const rows = d.rows || [];
-    if(rows.length===0){ svcEls.rows.innerHTML = `<tr><td colspan="5" class="muted">No services.</td></tr>`; return; }
-    svcEls.rows.innerHTML="";
+    if(rows.length===0){ svc.rows.innerHTML = `<tr><td colspan="5" class="muted">No services.</td></tr>`; return; }
+    svc.rows.innerHTML="";
     rows.forEach(s=>{
       const tr = document.createElement('tr');
       const fmt = v=> v==null ? "<span class='muted'>—</span>" : "₹"+Number(v);
       tr.innerHTML = `<td>${esc(s.name)}</td><td>${fmt(s.bike)}</td><td>${fmt(s.sedan)}</td><td>${fmt(s.suv)}</td>
       <td><button class='btn secondary' data-act='edit'>Edit</button> <button class='btn danger' data-act='del'>Delete</button></td>`;
       tr.dataset.service = JSON.stringify(s);
-      svcEls.rows.appendChild(tr);
+      svc.rows.appendChild(tr);
     });
   }catch(e){ alert(e.message); }
 }
-svcEls.rows.addEventListener('click', async (e)=>{
+document.getElementById('svcRows').addEventListener('click', async (e)=>{
   const btn = e.target.closest('button'); if(!btn) return;
   const tr = e.target.closest('tr'); const s = JSON.parse(tr.dataset.service||"{}");
   if(btn.dataset.act==='edit'){
-    svcEls.name.value = s.name;
-    svcEls.bike.value = s.bike ?? "";
-    svcEls.sedan.value = s.sedan ?? "";
-    svcEls.suv.value = s.suv ?? "";
-    svcEls.msg.textContent = "Loaded into form. Edit and click Save service.";
+    svc.name.value = s.name;
+    svc.bike.value = s.bike ?? "";
+    svc.sedan.value = s.sedan ?? "";
+    svc.suv.value = s.suv ?? "";
+    svc.msg.textContent = "Loaded into form. Edit and click Save service.";
   }
   if(btn.dataset.act==='del'){
     if(!confirm(`Delete service "${s.name}"?`)) return;
@@ -464,12 +461,12 @@ svcEls.rows.addEventListener('click', async (e)=>{
 });
 async function saveService(){
   const payload = {
-    name: svcEls.name.value.trim(),
-    bike: numOrNull(svcEls.bike.value),
-    sedan: numOrNull(svcEls.sedan.value),
-    suv: numOrNull(svcEls.suv.value)
+    name: svc.name.value.trim(),
+    bike: toIntOrNull(svc.bike.value),
+    sedan: toIntOrNull(svc.sedan.value),
+    suv: toIntOrNull(svc.suv.value)
   };
-  if(!payload.name){ svcEls.msg.textContent = "Enter service name."; return; }
+  if(!payload.name){ svc.msg.textContent = "Enter service name."; return; }
   try{
     const r = await fetch("/.netlify/functions/admin-services", {
       method:"POST",
@@ -478,11 +475,10 @@ async function saveService(){
     });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Save failed");
-    svcEls.msg.textContent = "Saved.";
-    loadServices();
-  }catch(e){ svcEls.msg.textContent = e.message; }
+    svc.msg.textContent = "Saved."; loadServices();
+  }catch(e){ svc.msg.textContent = e.message; }
 }
-function numOrNull(v){ v=String(v||"").trim(); if(v==="") return null; const n = parseInt(v,10); return Number.isFinite(n)?n:null; }
+function toIntOrNull(v){ v=String(v||"").trim(); if(v==="") return null; const n=parseInt(v,10); return Number.isFinite(n)?n:null; }
 
 /* ===================== Boot ===================== */
 if(token()){ showApp(); tabTo('bookings'); loadBookings(); } else showLogin();
