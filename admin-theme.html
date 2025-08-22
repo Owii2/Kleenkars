@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Kleenkars • Theme Editor</title>
+<style>
+  body{font-family:Inter,system-ui,Arial;margin:0;background:#0f1115;color:#eaeaea}
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#151823}
+  main{max-width:800px;margin:auto;padding:16px}
+  .card{background:#171b26;border:1px solid #23283b;border-radius:12px;padding:14px;margin:10px 0}
+  label{display:block;margin:10px 0 4px}
+  input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #2b2f45;background:#10131b;color:#eaeaea}
+  button{padding:10px 14px;border-radius:8px;border:none;background:#3178ff;color:#fff;cursor:pointer}
+  a{color:#9ab7ff}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .muted{opacity:.8;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div>🎨 Theme Editor</div>
+  <nav><a href="/admin.html">← Back to Admin</a></nav>
+</header>
+<main>
+  <div class="card">
+    <p class="muted">Tip: Gallery accepts image URLs (one per line). Changes apply to the public landing page.</p>
+    <div class="row">
+      <div>
+        <label>Primary Color</label>
+        <input id="primary_color" placeholder="#0f172a">
+      </div>
+      <div>
+        <label>Accent Color</label>
+        <input id="accent_color" placeholder="#21c8f6">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Text Color</label>
+        <input id="text_color" placeholder="#111111">
+      </div>
+      <div>
+        <label>Hero Image URL</label>
+        <input id="hero_image" placeholder="https://.../hero.jpg">
+      </div>
+    </div>
+    <label>Tagline</label>
+    <input id="tagline" placeholder="Premium doorstep car care.">
+
+    <label>Gallery Image URLs (one per line)</label>
+    <textarea id="gallery" rows="6" placeholder="https://.../1.jpg
+https://.../2.jpg"></textarea>
+
+    <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+      <button id="saveBtn">Save Settings</button>
+      <button id="reloadBtn" type="button" onclick="loadSettings()">Reload</button>
+      <a class="muted" href="/" target="_blank" style="align-self:center">Preview homepage ↗</a>
+    </div>
+    <div id="status" class="muted" style="margin-top:8px"></div>
+  </div>
+</main>
+
+<script>
+const API = '/.netlify/functions/site-settings';
+const token = () => localStorage.getItem('kk_token');
+const auth = () => token() ? { 'authorization': 'Bearer ' + token() } : {};
+function setStatus(msg){ document.getElementById('status').textContent = msg || ''; }
+
+async function loadSettings(){
+  try{
+    const r = await fetch(API);
+    const { settings } = await r.json();
+    document.getElementById('primary_color').value = settings.primary_color || '#0f172a';
+    document.getElementById('accent_color').value  = settings.accent_color  || '#21c8f6';
+    document.getElementById('text_color').value    = settings.text_color    || '#111111';
+    document.getElementById('hero_image').value    = settings.hero_image;
+    document.getElementById('tagline').value       = settings.tagline || '';
+    try {
+      const arr = JSON.parse(settings.gallery_json || '[]');
+      document.getElementById('gallery').value = (arr || []).join('\n');
+    } catch { document.getElementById('gallery').value = ''; }
+    setStatus('Loaded current settings.');
+  } catch(e){ setStatus('Failed to load settings.'); }
+}
+
+document.getElementById('saveBtn').onclick = async ()=>{
+  if (!token()) { alert('Please login in admin first.'); location.href="/admin.html"; return; }
+  const body = {
+    primary_color: document.getElementById('primary_color').value.trim(),
+    accent_color:  document.getElementById('accent_color').value.trim(),
+    text_color:    document.getElementById('text_color').value.trim(),
+    hero_image:    document.getElementById('hero_image').value.trim(),
+    tagline:       document.getElementById('tagline').value.trim(),
+    gallery:       document.getElementById('gallery').value.split('\n').map(s=>s.trim()).filter(Boolean)
+  };
+  try{
+    const r = await fetch(API, { method:'POST', headers:{'content-type':'application/json', ...auth()}, body: JSON.stringify(body) });
+    const out = await r.json();
+    if (out.ok) setStatus('✅ Saved. Refresh the homepage to see changes.');
+    else setStatus('❌ Save failed: ' + (out.error || 'error'));
+  }catch(e){ setStatus('❌ Save failed.'); }
+};
+
+loadSettings();
+</script>
+</body>
+</html>
