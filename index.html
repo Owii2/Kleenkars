@@ -255,15 +255,13 @@ Notes:
   });
   applyServiceRules(); visitChanged(); updatePriceUI();
 
-  // --- Submit
+  // --- Submit with loading state
   els.confirm.addEventListener('click', async ()=>{
     if(!document.getElementById('booking').reportValidity()) return;
 
     const raw = (els.phone.value || '').replace(/\D/g,'');
     if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
-
     if(!validTime()){ alert("Choose a time between 10:00 and 20:00."); return; }
-
     if(PRICES?.[els.vehicle.value]?.[els.service.value] == null){
       alert(`${els.service.value} is not available for ${els.vehicle.value}.`);
       return;
@@ -281,6 +279,11 @@ Notes:
       price: computePrice()
     };
 
+    const btn = els.confirm;
+    const oldLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+
     try{
       const r = await fetch("/.netlify/functions/saveBooking", {
         method:"POST",
@@ -288,17 +291,23 @@ Notes:
         body: JSON.stringify(payload)
       });
       const data = await r.json();
-      if(!data.ok) throw new Error(data.error || "Failed to save");
+
+      if(!r.ok || !data.ok){
+        const msg = data?.error || `Save failed (${r.status})`;
+        throw new Error(msg);
+      }
 
       showToast("✅ Booking confirmed!");
-
       const text = buildSummary();
       if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
       if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank", "noopener");
 
     }catch(err){
       console.error(err);
-      alert("Could not save booking. Please try again.");
+      alert(err.message || "Could not save booking. Please try again.");
+    }finally{
+      btn.disabled = false;
+      btn.textContent = oldLabel;
     }
   });
 </script>
