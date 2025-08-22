@@ -1,15 +1,7 @@
 // netlify/functions/saveBooking.js
-import { Pool } from "@neondatabase/serverless";
-
-// Pick up the Neon connection string from Netlify env
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  console.error("Missing DATABASE_URL env var");
-}
-const pool = new Pool({ connectionString });
+import { pool } from "./_db.js";
 
 export async function handler(event) {
-  // Allow simple OPTIONS preflight (harmless even if same-origin)
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 204,
@@ -29,19 +21,18 @@ export async function handler(event) {
   try {
     const data = JSON.parse(event.body || "{}");
 
-    // ---- Basic validation (frontend also checks)
-    const missing =
-      !data.name || !data.phone || !data.vehicle || !data.service || !data.date || !data.time;
-    if (missing) {
+    // Required fields
+    if (!data.name || !data.phone || !data.vehicle || !data.service || !data.date || !data.time) {
       return {
         statusCode: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         body: JSON.stringify({ ok: false, error: "Missing required fields" })
       };
     }
 
-    // ---- Normalize inputs
+    // Normalize/sanitize
     const name = String(data.name || "").trim().slice(0, 200);
-    const phone = String(data.phone || "").replace(/\D/g, "").slice(0, 15); // keep digits only
+    const phone = String(data.phone || "").replace(/\D/g, "").slice(0, 15); // digits only
     const vehicle = String(data.vehicle || "").trim();
     const service = String(data.service || "").trim();
     const visit = (data.visit || "In-Shop").toString();
@@ -50,11 +41,7 @@ export async function handler(event) {
 
     // date → YYYY-MM-DD
     let cleanDate = String(data.date || "").trim();
-    try {
-      cleanDate = new Date(cleanDate).toISOString().split("T")[0];
-    } catch {
-      /* keep as-is */
-    }
+    try { cleanDate = new Date(cleanDate).toISOString().split("T")[0]; } catch {}
 
     // time → HH:MM (24h)
     let cleanTime = String(data.time || "").trim();
@@ -63,11 +50,9 @@ export async function handler(event) {
       const hh = String(d.getUTCHours()).padStart(2, "0");
       const mm = String(d.getUTCMinutes()).padStart(2, "0");
       cleanTime = `${hh}:${mm}`;
-    } catch {
-      /* keep as-is */
-    }
+    } catch {}
 
-    // ---- Ensure table exists
+    // Ensure table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS kleenkars_bookings (
         id SERIAL PRIMARY KEY,
@@ -84,7 +69,7 @@ export async function handler(event) {
       )
     `);
 
-    // ---- Insert
+    // Insert booking
     await pool.query(
       `INSERT INTO kleenkars_bookings
        (name, phone, vehicle, service, date, time, visit, address, price)
@@ -92,20 +77,20 @@ export async function handler(event) {
       [name, phone, vehicle, service, cleanDate, cleanTime, visit, address, price]
     );
 
-    // Phones for WhatsApp (digits only, with country code, or null)
+    // WhatsApp numbers (digits only, optional)
     const admin = (process.env.ADMIN_PHONE || "").replace(/\D/g, "") || null;
     const manager = (process.env.MANAGER_PHONE || "").replace(/\D/g, "") || null;
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ ok: true, admin, manager })
     };
   } catch (err) {
     console.error("Error saving booking:", err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ ok: false, error: err.message })
     };
   }
