@@ -34,7 +34,6 @@
   input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0f0f16;color:var(--ink);outline:none}
   input::placeholder,textarea::placeholder{color:#6f6f84}
   .help{font-size:.85rem;color:var(--muted)}
-  .err{color:#ff9a9a;font-size:.85rem;margin-top:6px;display:none}
   .price{margin-top:10px;font-weight:800;font-size:1.1rem;background:#101018;border:1px dashed #2a2a3a;padding:10px 12px;border-radius:12px}
   .radio-row{display:flex;gap:10px;flex-wrap:wrap}
   .radio{display:flex;align-items:center;gap:8px;border:1px solid var(--border);padding:8px 10px;border-radius:10px;background:#0f0f16}
@@ -111,8 +110,10 @@
             </div>
             <div>
               <label for="time">Preferred time <span class="help">(10:00 AM–8:00 PM IST)</span></label>
-              <input type="time" id="time" name="time" required min="10:00" max="20:00" step="900">
-              <div id="timeErr" class="err">Please pick a time between 10:00 AM and 8:00 PM.</div>
+              <!-- DROPDOWN replaces time input -->
+              <select id="time" name="time" required>
+                <option value="" disabled selected>Select a time</option>
+              </select>
             </div>
           </div>
 
@@ -148,6 +149,15 @@
   <div class="toast" id="toast">✅ Booking confirmed!</div>
 
 <script>
+  // --- Hard-kill any stray HTML validations/patterns from cached builds
+  (function scrubConstraints(){
+    const form = document.getElementById('booking');
+    // Prevent any native submit from Enter key
+    form.addEventListener('submit', e => e.preventDefault());
+    // Remove any stray pattern attributes that might still exist in cached DOM
+    document.querySelectorAll('[pattern]').forEach(el => el.removeAttribute('pattern'));
+  })();
+
   // --- Pricing & rules
   const PRICES = {
     "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
@@ -164,7 +174,6 @@
     phone: document.getElementById('phone'),
     date: document.getElementById('date'),
     time: document.getElementById('time'),
-    timeErr: document.getElementById('timeErr'),
     visitRadios: document.querySelectorAll('input[name="visit"]'),
     addressWrap: document.getElementById('addressWrap'),
     address: document.getElementById('address'),
@@ -176,6 +185,26 @@
   // --- Init
   document.getElementById('yr').textContent = new Date().getFullYear();
   els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
+
+  // Populate time slots 10:00 to 20:00 every 15 minutes
+  (function buildTimeOptions(){
+    const start = 10 * 60, end = 20 * 60, step = 15;
+    for (let m = start; m <= end; m += step) {
+      const hh = String(Math.floor(m/60)).padStart(2,'0');
+      const mm = String(m%60).padStart(2,'0');
+      const opt = document.createElement('option');
+      opt.value = `${hh}:${mm}`;
+      opt.textContent = formatAmPm(hh, mm);
+      els.time.appendChild(opt);
+    }
+  })();
+
+  function formatAmPm(hh, mm){
+    let h = parseInt(hh,10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return `${String(h)}:${mm} ${ampm}`;
+  }
 
   // Phone: digits only, cap at 10
   els.phone.addEventListener('input', ()=>{
@@ -211,39 +240,12 @@
     if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
   }
 
-  // Time window guard (works with 12h or 24h pickers)
-  const MIN = 10*60, MAX = 20*60; // minutes from midnight
-  function enforceTimeWindow(){
-    const val = els.time.value;
-    if(!val){ els.time.setCustomValidity(''); els.timeErr.style.display='none'; return false; }
-    const parts = val.split(':');
-    const hh = parseInt(parts[0],10), mm = parseInt(parts[1],10);
-    if(Number.isNaN(hh) || Number.isNaN(mm)){
-      els.time.setCustomValidity('Pick a valid time'); els.timeErr.style.display='block'; return false;
-    }
-    let mins = hh*60 + mm;
-    if(mins < MIN){ mins = MIN; snapTo(mins); showTimeError(); return false; }
-    if(mins > MAX){ mins = MAX; snapTo(mins); showTimeError(); return false; }
-    els.time.setCustomValidity(''); els.timeErr.style.display='none'; return true;
-  }
-  function snapTo(mins){
-    const hh = String(Math.floor(mins/60)).padStart(2,'0');
-    const mm = String(mins%60).padStart(2,'0');
-    els.time.value = `${hh}:${mm}`;
-  }
-  function showTimeError(){
-    els.time.setCustomValidity('Please pick a time between 10:00 and 20:00');
-    els.time.reportValidity();
-    els.timeErr.style.display='block';
-  }
-  function validTime(){ return enforceTimeWindow(); }
-
   // Bind dynamic behavior
-  ['change','input','blur'].forEach(ev=> els.time.addEventListener(ev, enforceTimeWindow));
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
     els.service.addEventListener(ev, updatePriceUI);
     els.date.addEventListener(ev, updatePriceUI);
+    els.time.addEventListener(ev, ()=>{/* nothing needed; options already valid */});
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
     els.address?.addEventListener(ev, updatePriceUI);
   });
@@ -251,11 +253,11 @@
 
   // Submit with loading state (custom validation only)
   els.confirm.addEventListener('click', async ()=>{
-    // Manual checks
+    // Manual checks (no browser popups)
     if(!els.name.value.trim()){ alert("Please enter your name."); return; }
     if(!(els.vehicle.value && els.service.value)){ alert("Please select vehicle and service."); return; }
     if(!els.date.value){ alert("Please select a date."); return; }
-    if(!validTime()) return;
+    if(!els.time.value){ alert("Please choose a time between 10:00 AM and 8:00 PM."); return; }
 
     const raw = (els.phone.value || '').replace(/\D/g,'');
     if(raw.length!==10){ alert("Enter a valid 10-digit phone number."); return; }
@@ -269,7 +271,7 @@
       vehicle: els.vehicle.value,
       service: els.service.value,
       date: els.date.value,
-      time: els.time.value,
+      time: els.time.value, // "HH:MM" (24h) from select
       visit: getVisit(),
       address: (els.address?.value || "").trim(),
       price: computePrice()
