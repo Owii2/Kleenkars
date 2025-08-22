@@ -1,65 +1,60 @@
 // netlify/functions/admin-bookings.js
-import { withConnection } from "@netlify/neon";
+import { Pool } from "@neondatabase/serverless";
 
-const JWT_SECRET = process.env.ADMIN_JWT_SECRET || "";
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-export default withConnection(async (sql, event) => {
-  // auth check
-  const cookie = getCookie(event.headers || {}, "kk_admin");
-  const ok = JWT_SECRET && cookie && await verify(cookie, JWT_SECRET);
-
-  // ping from login.html to see if already logged-in
-  if (event.httpMethod === "POST" && event.headers?.["x-auth-check"] === "1") {
-    return { statusCode: ok ? 204 : 401 };
+export async function handler(event) {
+  if (event.httpMethod !== "GET") {
+    return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  if (!ok) return json({ ok:false, error:"Unauthorized" }, 401);
-
-  const rows = await sql/*sql*/`
-    SELECT id, created_at, name, phone, vehicle, service, visit, address, date_on, time_at, price
-    FROM kleenkars_bookings
-    ORDER BY created_at DESC
-    LIMIT 500
-  `;
-  return json({ ok:true, count: rows.length, bookings: rows });
-});
-
-// --- helpers
-function json(data, code=200){ return { statusCode:code, headers:{ "Content-Type":"application/json" }, body: JSON.stringify(data) }; }
-function getCookie(headers, name){
-  const raw = headers.cookie || headers.Cookie || "";
-  const parts = raw.split(/;\s*/);
-  for (const p of parts){
-    const [k, ...rest] = p.split("=");
-    if (k === name) return rest.join("=");
+  // --- Check for token
+  const auth = event.headers.authorization || "";
+  if (!auth.startsWith("Bearer ")) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ ok: false, error: "Unauthorized" })
+    };
   }
-  return "";
-}
-async function verify(token, secret){
+  const token = auth.replace("Bearer ", "").trim();
+  if (!token) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ ok: false, error: "Invalid token" })
+    };
+  }
+
   try {
-    const [h,p,s] = token.split(".");
-    if (!h || !p || !s) return false;
-    const enc = new TextEncoder();
-    const data = `${h}.${p}`;
-    const expected = await hmacSHA256(enc.encode(data), enc.encode(secret));
-    if (!timingSafeEqual(s, expected)) return false;
-    const payload = JSON.parse(atoburl(p));
-    if (payload.exp && Math.floor(Date.now()/1000) > payload.exp) return false;
-    return true;
-  } catch { return false; }
-}
-async function hmacSHA256(data, secret){
-  const key = await crypto.subtle.importKey("raw", secret, { name:"HMAC", hash:"SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, data);
-  return bufToB64url(sig);
-}
-function bufToB64url(buf){
-  const bin = String.fromCharCode(...new Uint8Array(buf));
-  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-}
-function atoburl(s){ return Buffer.from(s.replace(/-/g,"+").replace(/_/g,"/"), "base64").toString("utf8"); }
-function timingSafeEqual(a,b){
-  if (a.length !== b.length) return false;
-  let out = 0; for (let i=0;i<a.length;i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return out === 0;
+    // Ensure bookings table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        phone TEXT,
+        vehicle TEXT,
+        service TEXT,
+        date TEXT,
+        time TEXT,
+        visit TEXT,
+        address TEXT,
+        price INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    const result = await pool.query(
+      "SELECT id, name, phone, vehicle, service, date, time, visit, address, price, created_at FROM kleenkars_bookings ORDER BY created_at DESC"
+    );
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ ok: true, rows: result.rows })
+    };
+  } catch (err) {
+    console.error("Error loading bookings:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ ok: false, error: err.message })
+    };
+  }
 }
