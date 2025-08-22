@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kleenkars — Admin Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433;--accent:#7a3cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:var(--ink);line-height:1.6}
+  .wrap{max-width:420px;margin:auto;padding:28px}
+  .card{background:#13131b;border:1px solid var(--border);border-radius:16px;padding:20px}
+  h1{margin:0 0 8px}
+  .muted{color:var(--muted)}
+  input,button{
+    width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0f0f16;color:var(--ink);outline:none
+  }
+  button{margin-top:12px;background:var(--accent);border-color:#5c29ef;font-weight:700;cursor:pointer}
+  .msg{margin-top:10px;font-size:.9rem}
+  .center{display:flex;gap:10px;justify-content:center;margin-top:10px}
+  a{color:#e9e9ef}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div style="text-align:center;margin:20px 0 16px">
+      <img src="/assets/logo.png" alt="Kleenkars" style="width:56px;height:56px;border-radius:12px;border:1px solid var(--border)" onerror="this.src='/logo.svg'">
+      <h1>Kleenkars Admin</h1>
+      <div class="muted">Sign in to view bookings</div>
+    </div>
+
+    <div class="card">
+      <form id="f">
+        <label for="pwd" class="muted">Admin password</label>
+        <input id="pwd" type="password" placeholder="Enter password" required>
+        <button id="btn" type="submit">Sign in</button>
+        <div id="msg" class="msg muted"></div>
+      </form>
+      <div class="center">
+        <a href="/">← Back to site</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+(async function check() {
+  // Try a quick ping to admin API to see if already logged in
+  try{
+    const r = await fetch('/.netlify/functions/admin-bookings', { method:'POST', headers:{'X-Auth-Check':'1'} });
+    if(r.status === 204){ window.location.href = '/admin.html'; }
+  }catch(_){}
+})();
+
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const msg = document.getElementById('msg');
+  btn.disabled = true; btn.textContent = 'Signing in…'; msg.textContent = '';
+  try{
+    const r = await fetch('/.netlify/functions/admin-login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: document.getElementById('pwd').value })
+    });
+    if(r.ok){ window.location.href = '/admin.html'; return; }
+    const data = await r.json().catch(()=>({}));
+    msg.textContent = data.error || 'Invalid password';
+  }catch(err){
+    msg.textContent = 'Login failed. Try again.';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+</script>
+</body>
+</html>
