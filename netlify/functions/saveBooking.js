@@ -1,6 +1,34 @@
 // netlify/functions/saveBooking.js
 import { pool } from "./_db.js";
 
+function json(statusCode, obj) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    },
+    body: JSON.stringify(obj),
+  };
+}
+
+// Find the smallest positive integer not used in order_id
+async function getNextOrderId() {
+  // Fast path: if table empty, return 1
+  const c = await pool.query(`SELECT COUNT(*)::int AS c FROM kleenkars_bookings`);
+  if ((c.rows[0]?.c ?? 0) === 0) return 1;
+
+  // Get all order_ids (not too many for this app) and compute the first gap
+  const r = await pool.query(`SELECT order_id FROM kleenkars_bookings ORDER BY order_id ASC`);
+  let expected = 1;
+  for (const row of r.rows) {
+    const id = Number(row.order_id);
+    if (id > expected) break;          // found a gap
+    if (id === expected) expected++;   // move to next expected
+  }
+  return expected; // first missing
+}
+
 export async function handler(event) {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -23,16 +51,12 @@ export async function handler(event) {
 
     // Required fields
     if (!data.name || !data.phone || !data.vehicle || !data.service || !data.date || !data.time) {
-      return {
-        statusCode: 400,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ ok: false, error: "Missing required fields" })
-      };
+      return json(400, { ok: false, error: "Missing required fields" });
     }
 
     // Normalize/sanitize
     const name = String(data.name || "").trim().slice(0, 200);
-    const phone = String(data.phone || "").replace(/\D/g, "").slice(0, 15); // digits only
+    const phone = String(data.phone || "").replace(/\D/g, "").slice(0, 15);
     const vehicle = String(data.vehicle || "").trim();
     const service = String(data.service || "").trim();
     const visit = (data.visit || "In-Shop").toString();
@@ -52,10 +76,11 @@ export async function handler(event) {
       cleanTime = `${hh}:${mm}`;
     } catch {}
 
-    // Ensure table exists
+    // Ensure table & columns
     await pool.query(`
       CREATE TABLE IF NOT EXISTS kleenkars_bookings (
         id SERIAL PRIMARY KEY,
+        order_id INT UNIQUE,           -- will set NOT NULL after backfilling
         name TEXT,
         phone TEXT,
         vehicle TEXT,
@@ -69,29 +94,43 @@ export async function handler(event) {
       )
     `);
 
-    // Insert booking
+    // Make sure order_id column exists & is unique
+    // (If created above, UNIQUE is already in definition; this is safe for older tables.)
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+            WHERE table_name='kleenkars_bookings' AND column_name='order_id'
+        ) THEN
+          ALTER TABLE kleenkars_bookings ADD COLUMN order_id INT;
+        END IF;
+        BEGIN
+          ALTER TABLE kleenkars_bookings ADD CONSTRAINT kleenkars_bookings_order_id_key UNIQUE(order_id);
+        EXCEPTION WHEN duplicate_table THEN
+          -- constraint already exists
+          NULL;
+        END;
+      END$$;
+    `);
+
+    // Compute the smallest available order_id
+    const nextId = await getNextOrderId();
+
+    // Insert booking (with order_id)
     await pool.query(
       `INSERT INTO kleenkars_bookings
-       (name, phone, vehicle, service, date, time, visit, address, price)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-      [name, phone, vehicle, service, cleanDate, cleanTime, visit, address, price]
+       (order_id, name, phone, vehicle, service, date, time, visit, address, price)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [nextId, name, phone, vehicle, service, cleanDate, cleanTime, visit, address, price]
     );
 
-    // WhatsApp numbers (digits only, optional)
     const admin = (process.env.ADMIN_PHONE || "").replace(/\D/g, "") || null;
     const manager = (process.env.MANAGER_PHONE || "").replace(/\D/g, "") || null;
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ ok: true, admin, manager })
-    };
+    return json(200, { ok: true, order_id: nextId, admin, manager });
   } catch (err) {
-    console.error("Error saving booking:", err);
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ ok: false, error: err.message })
-    };
+    console.error("saveBooking error:", err);
+    return json(500, { ok: false, error: err.message });
   }
 }
