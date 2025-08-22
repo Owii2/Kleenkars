@@ -4,12 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kleenkars — Premium Wash & Detailing</title>
-<meta name="description" content="Book Kleenkars: Bike • Hatch/Sedan • SUV. Premium car care, doorstep or in-shop.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--accent:#7a3cff;--accent-2:#111016;--border:#242433;--radius:16px;--shadow:0 10px 30px rgba(0,0,0,.35)}
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:
     radial-gradient(1000px 600px at 80% -10%, rgba(122,60,255,.15), transparent 60%),
     radial-gradient(900px 500px at -10% 20%, rgba(122,60,255,.12), transparent 60%), var(--bg);
     color:var(--ink);line-height:1.6}
@@ -17,7 +16,6 @@
   .wrap{max-width:1100px;margin:auto;padding:20px}
   header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 20px}
   .brand{display:flex;align-items:center;gap:12px}
-  /* CHANGED: medium logo size */
   .brand img{width:100px;height:100px;object-fit:contain;border-radius:10px;background:#0f0f16;border:1px solid var(--border)}
   .title{font-weight:800;letter-spacing:.3px}
   .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:.85rem}
@@ -84,21 +82,13 @@
                 <option value="Hatch/Sedan">Hatchback / Sedan</option>
                 <option value="SUV">SUV</option>
               </select>
-              <div class="help">Bike supports <b>Basic</b> only.</div>
             </div>
             <div>
               <label for="service">Service</label>
               <select id="service" name="service" required>
-                <option value="" disabled selected>Select</option>
-                <option value="Basic">Basic Wash</option>
-                <option value="Premium">Premium Car Wash</option>
-                <option value="Detailing">Detailing</option>
+                <option value="" disabled selected>Select vehicle first</option>
               </select>
-              <div class="help">
-                Basic: Bike ₹50 • Hatch/Sedan ₹150 • SUV ₹200<br>
-                Premium: Hatch/Sedan ₹200 • SUV ₹250<br>
-                Detailing: Hatch/Sedan ₹1500 • SUV ₹2500
-              </div>
+              <div class="help" id="serviceHelp">Choose a vehicle to see pricing.</div>
             </div>
           </div>
 
@@ -116,7 +106,7 @@
           <div>
             <label>Visit type</label>
             <div class="radio-row">
-              <label class="radio"><input type="radio" name="visit" value="Washing Center" checked> Washing Center</label>
+              <label class="radio"><input type="radio" name="visit" value="In-Shop" checked> In-Shop</label>
               <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
             </div>
           </div>
@@ -129,7 +119,7 @@
           <div class="price" id="priceBox">Estimated price: —</div>
 
           <button class="btn primary" type="button" id="confirm">Confirm Booking</button>
-          <div class="help">Confirm saves your booking.</div>
+          <div class="help">Confirm saves your booking and opens WhatsApp confirmation.</div>
         </form>
       </div>
 
@@ -145,122 +135,126 @@
   <div class="toast" id="toast">✅ Booking confirmed!</div>
 
 <script>
-  // --- Pricing
-  const PRICES = {
-    "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
-    "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
-    "SUV":         { "Basic": 200, "Premium": 250,  "Detailing": 2500 }
-  };
-  const HOME_SURCHARGE = 50;
+const els = {
+  vehicle: document.getElementById('vehicle'),
+  service: document.getElementById('service'),
+  serviceHelp: document.getElementById('serviceHelp'),
+  name: document.getElementById('name'),
+  phone: document.getElementById('phone'),
+  date: document.getElementById('date'),
+  time: document.getElementById('time'),
+  visitRadios: document.querySelectorAll('input[name="visit"]'),
+  addressWrap: document.getElementById('addressWrap'),
+  address: document.getElementById('address'),
+  priceBox: document.getElementById('priceBox'),
+  confirm: document.getElementById('confirm'),
+  toast: document.getElementById('toast')
+};
+document.getElementById('yr').textContent = new Date().getFullYear();
+els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 
-  // --- Elements
-  const els = {
-    vehicle: document.getElementById('vehicle'),
-    service: document.getElementById('service'),
-    name: document.getElementById('name'),
-    phone: document.getElementById('phone'),
-    date: document.getElementById('date'),
-    time: document.getElementById('time'),
-    visitRadios: document.querySelectorAll('input[name="visit"]'),
-    addressWrap: document.getElementById('addressWrap'),
-    address: document.getElementById('address'),
-    priceBox: document.getElementById('priceBox'),
-    confirm: document.getElementById('confirm'),
-    toast: document.getElementById('toast')
-  };
+// store services pricing from admin DB
+let SERVICES = []; 
+async function loadServices(){
+  try{
+    const r = await fetch("/.netlify/functions/admin-services");
+    const d = await r.json();
+    if(d.ok){ SERVICES = d.rows || []; }
+  }catch(e){ console.error("Service load failed", e); }
+}
+loadServices();
 
-  // Init
-  document.getElementById('yr').textContent = new Date().getFullYear();
-  els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
-  els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
+function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
 
-  function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
-  function applyServiceRules(){
-    const v = els.vehicle.value;
-    [...els.service.options].forEach(o => { if(!o.value) return; o.disabled = (PRICES[v]?.[o.value] == null); });
-    if(v==="Bike") els.service.value = "Basic";
-  }
-  function computePrice(){
-    const v = els.vehicle.value, s = els.service.value;
-    let p = PRICES?.[v]?.[s] ?? null;
-    if(p == null) return null;
-    if(getVisit()==="Home Visit") p += HOME_SURCHARGE;
-    return p;
-  }
-  function updatePriceUI(){
-    const v = els.vehicle.value, s = els.service.value;
-    const p = computePrice();
-    if(p!=null){
-      const extra = getVisit()==="Home Visit" ? ` (+₹${HOME_SURCHARGE})` : "";
-      els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${extra})</span>`;
-    } else els.priceBox.textContent = "Estimated price: —";
-  }
-  function visitChanged(){
-    const v = getVisit();
-    els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
-    if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
-  }
-
-  // WhatsApp helpers
-  function sanitizePhone(num){ return String(num||'').replace(/\D/g,''); }
-  function validDigits(num){ return /^\d{8,15}$/.test(num); }
-  function openWA(raw, text){
-    const p = sanitizePhone(raw);
-    if(!validDigits(p)) return false;
-    window.open(`https://api.whatsapp.com/send?phone=${p}&text=${encodeURIComponent(text)}`, "_blank");
-    return true;
-  }
-
-  function buildSummary(payload){
-    return `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
-  }
-  function showToast(msg){ els.toast.textContent=msg; els.toast.style.display='block'; setTimeout(()=>els.toast.style.display='none',2500); }
-
-  // Bind
-  ['change','input'].forEach(ev=>{
-    els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
-    els.service.addEventListener(ev, updatePriceUI);
-    els.date.addEventListener(ev, updatePriceUI);
-    els.time.addEventListener(ev, updatePriceUI);
-    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+function populateServices(){
+  const v = els.vehicle.value;
+  els.service.innerHTML = `<option value="" disabled selected>Select</option>`;
+  if(!v){ els.serviceHelp.textContent="Choose a vehicle to see pricing."; return; }
+  const matches = SERVICES.filter(s=> s.name );
+  matches.forEach(s=>{
+    let price = null;
+    if(v==="Bike") price = s.bike;
+    if(v==="Hatch/Sedan") price = s.sedan;
+    if(v==="SUV") price = s.suv;
+    if(price!=null){
+      const opt = document.createElement("option");
+      opt.value = s.name;
+      opt.textContent = `${s.name} — ₹${price}`;
+      opt.dataset.price = price;
+      els.service.appendChild(opt);
+    }
   });
-  applyServiceRules(); visitChanged(); updatePriceUI();
+  els.serviceHelp.textContent = matches.length ? "Select a service" : "No services available.";
+}
 
-  // Submit
-  els.confirm.addEventListener('click', async ()=>{
-    const raw = els.phone.value.replace(/\D/g,'');
-    if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
+function computePrice(){
+  const v = els.vehicle.value, s = els.service.value;
+  if(!v || !s) return null;
+  const svc = SERVICES.find(x=>x.name===s);
+  if(!svc) return null;
+  let p = null;
+  if(v==="Bike") p = svc.bike;
+  if(v==="Hatch/Sedan") p = svc.sedan;
+  if(v==="SUV") p = svc.suv;
+  if(p==null) return null;
+  if(getVisit()==="Home Visit") p += 50;
+  return p;
+}
+function updatePriceUI(){
+  const v = els.vehicle.value, s = els.service.value;
+  const p = computePrice();
+  if(p!=null){
+    els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${getVisit()==="Home Visit"?" +₹50":""})</span>`;
+  } else {
+    els.priceBox.textContent = "Estimated price: —";
+  }
+}
 
-    const payload = {
-      name: els.name.value.trim(),
-      phone: raw,
-      vehicle: els.vehicle.value,
-      service: els.service.value,
-      date: els.date.value,
-      time: els.time.value,
-      visit: getVisit(),
-      address: els.address?.value.trim(),
-      price: computePrice()
-    };
+function visitChanged(){
+  const v = getVisit();
+  els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
+  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
+}
 
-    els.confirm.disabled = true; els.confirm.textContent = "Saving…";
+['change','input'].forEach(ev=>{
+  els.vehicle.addEventListener(ev, ()=>{ populateServices(); updatePriceUI(); });
+  els.service.addEventListener(ev, updatePriceUI);
+  els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+});
+visitChanged();
 
-    try{
-      const r = await fetch("/.netlify/functions/saveBooking", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await r.json();
-      if(!data.ok) throw new Error(data.error||"Save failed");
+// Submit booking
+els.confirm.addEventListener('click', async ()=>{
+  const raw = els.phone.value.replace(/\D/g,'');
+  if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
 
-      showToast("✅ Booking confirmed!");
-      const text = buildSummary(payload);
-      if(data.admin) openWA(data.admin, text);
-      if(data.manager) openWA(data.manager, "NEW BOOKING ALERT\n\n"+text);
+  const payload = {
+    name: els.name.value.trim(),
+    phone: raw,
+    vehicle: els.vehicle.value,
+    service: els.service.value,
+    date: els.date.value,
+    time: els.time.value,
+    visit: getVisit(),
+    address: els.address?.value.trim(),
+    price: computePrice()
+  };
 
-    }catch(e){ alert(e.message); }
-    finally{ els.confirm.disabled=false; els.confirm.textContent="Confirm Booking"; }
-  });
+  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
+
+  try{
+    const r = await fetch("/.netlify/functions/saveBooking", {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if(!data.ok) throw new Error(data.error||"Save failed");
+    els.toast.textContent="✅ Booking confirmed!"; els.toast.style.display="block"; setTimeout(()=>els.toast.style.display="none",2500);
+    const text = `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
+    if(data.admin) window.open(`https://api.whatsapp.com/send?phone=${data.admin}&text=${encodeURIComponent(text)}`, "_blank");
+  }catch(e){ alert(e.message); }
+  finally{ els.confirm.disabled=false; els.confirm.textContent="Confirm Booking"; }
+});
 </script>
 </body>
 </html>
