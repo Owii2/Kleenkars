@@ -1,92 +1,64 @@
 // netlify/functions/admin-bookings.js
 import { neon, neonConfig } from "@neondatabase/serverless";
-
-// Use HTTP fetch client (no WebSockets)
 neonConfig.fetchConnectionCache = true;
 
-function json(statusCode, obj) {
-  return {
-    statusCode,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(obj),
-  };
-}
+const ok = (obj) => ({
+  statusCode: 200,
+  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+  body: JSON.stringify(obj),
+});
+const err = (code, message) => ({
+  statusCode: code,
+  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+  body: JSON.stringify({ ok: false, error: message }),
+});
 
 export async function handler(event) {
-  if (event.httpMethod !== "GET") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
+  if (event.httpMethod !== "GET") return err(405, "Method Not Allowed");
 
-  // --- minimal token presence check (matches admin.html)
+  // minimal token presence (you can upgrade later)
   const auth = event.headers.authorization || "";
-  if (!auth.startsWith("Bearer ")) {
-    return json(401, { ok: false, error: "Unauthorized" });
-  }
-  const token = auth.slice("Bearer ".length).trim();
-  if (!token) return json(401, { ok: false, error: "Invalid token" });
+  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
   try {
     const sql = neon(process.env.DATABASE_URL);
 
-    // Ensure table exists (safe no-op if already there)
+    // ensure table
     await sql`
       CREATE TABLE IF NOT EXISTS kleenkars_bookings (
         id SERIAL PRIMARY KEY,
-        name TEXT,
-        phone TEXT,
-        vehicle TEXT,
-        service TEXT,
-        date TEXT,
-        time TEXT,
-        visit TEXT,
-        address TEXT,
-        price INT,
+        order_id INT UNIQUE,
+        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
+        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
-    // Detect actual column names present (some older tables might use booking_date/booking_time)
-    const cols = await sql`
-      SELECT column_name
-      FROM information_schema.columns
-      WHERE table_schema = 'public'
-        AND table_name = 'kleenkars_bookings'
-    `;
-    const set = new Set(cols.map(r => r.column_name));
+    const { from = "", to = "", service = "", search = "" } = event.queryStringParameters || {};
 
-    const dateCol =
-      set.has("date") ? `"date"` :
-      set.has("booking_date") ? `booking_date` :
-      `''::text`;
+    // Build WHERE parts
+    const where = [];
+    if (from) where.push(`(NULLIF(date,'')::date >= ${sql(from)}::date)`);
+    if (to) where.push(`(NULLIF(date,'')::date <= ${sql(to)}::date)`);
+    if (service) where.push(`service = ${sql(service)}`);
+    if (search) {
+      const q = `%${search.toLowerCase()}%`;
+      where.push(`(LOWER(name) LIKE ${sql(q)} OR phone LIKE ${sql('%' + search.replace(/\D/g, '') + '%')})`);
+    }
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-    const timeCol =
-      set.has("time") ? `"time"` :
-      set.has("booking_time") ? `booking_time` :
-      `''::text`;
-
-    // Build SELECT text with aliases for frontend
-    const selectSql = `
-      SELECT
-        id,
-        name,
-        phone,
-        vehicle,
-        service,
-        ${dateCol} AS "date",
-        ${timeCol} AS "time",
-        visit,
-        address,
-        price,
-        created_at
+    const rows = await sql(
+      `
+      SELECT order_id, name, phone, vehicle, service, date, time, visit, address, price, created_at
       FROM kleenkars_bookings
+      ${whereSql}
       ORDER BY created_at DESC
-    `;
+      `
+    );
 
-    const rows = await sql(selectSql);
-
-    return json(200, { ok: true, rows });
-  } catch (err) {
-    console.error("admin-bookings error:", err);
-    return json(500, { ok: false, error: err.message });
+    return ok({ ok: true, rows });
+  } catch (e) {
+    console.error("admin-bookings", e);
+    return err(500, e.message);
   }
 }
