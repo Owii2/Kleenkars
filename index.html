@@ -14,7 +14,7 @@
   .nav a{color:var(--text);text-decoration:none;opacity:.9}
   .nav a:hover{opacity:1}
   .logo{display:flex;align-items:center;gap:10px;font-weight:700}
-  .logo img{height:34px; width:auto; display:block}
+  .logo img{height:34px;width:auto;display:block}
   .pill{margin-left:auto;display:flex;gap:10px}
   .btn{padding:10px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff}
   .btn.primary{background:var(--primary);color:#fff;border:none}
@@ -61,8 +61,8 @@
         <input id="name" type="text" required>
 
         <label>Phone Number</label>
-        <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]{10,12}" placeholder="e.g. 91XXXXXXXXXX" required>
-        <small class="muted">Number (digits only).</small>
+        <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]{10,15}" placeholder="e.g. 9199XXXXXXXX" required>
+        <small class="muted">Enter country code + number (digits only).</small>
 
         <label>Vehicle Type</label>
         <div style="display:flex;gap:8px">
@@ -110,7 +110,8 @@
 <footer class="footer">© <span id="year"></span> Kleenkars</footer>
 
 <script>
-  const ADMIN_WHATSAPP = "919910578378"; // your admin number (digits only)
+  // ✅ Set your admin number here (digits only, with country code)
+  const ADMIN_WHATSAPP = "919910578378";
   const DEFAULT_HERO = 'https://images.unsplash.com/photo-1617983312824-fc4437f8ff63?auto=format&fit=crop&w=1600&q=80';
 
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -124,16 +125,16 @@
     document.documentElement.style.setProperty('--accent',  s.accent_color  || '#21c8f6');
     document.documentElement.style.setProperty('--text',    s.text_color    || '#111111');
 
-    // Robust hero with fallback
+    // Hero with fallback
     const hero = document.getElementById('heroImg');
     const chosen = (s.hero_image || '').trim() || DEFAULT_HERO;
     hero.onerror = () => { if (hero.src !== DEFAULT_HERO) hero.src = DEFAULT_HERO; };
     hero.src = chosen;
 
-    // Tagline defaults to Premium car care.
+    // Tagline default
     document.getElementById('tagline').textContent = s.tagline || 'Premium car care.';
 
-    // Gallery (bad links auto-remove)
+    // Gallery (remove bad links automatically)
     const g = document.getElementById('gallery');
     g.innerHTML = '';
     try {
@@ -201,42 +202,65 @@
     dt.min = now.toISOString().slice(0,16);
   })();
 
+  // ✅ UPDATED SUBMIT HANDLER (no preview; sends WhatsApp to admin + customer)
   document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
+
     const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.replace(/\D/g,'');
+    const phone = document.getElementById('phone').value.replace(/\D/g,''); // digits only
     const service = document.getElementById('service').options[document.getElementById('service').selectedIndex]?.text || '';
     const datetime = document.getElementById('datetime').value;
-    if (!name || !phone || !datetime || !service) return alert('Please fill all fields.');
 
-    const adminMsg = `New Booking 🚗
+    if (!name || !phone || !/^\d{10,15}$/.test(phone) || !datetime || !service) {
+      alert('Please enter a valid name, phone (with country code), service, and date/time.');
+      return;
+    }
+
+    const adminMsg =
+`New Booking 🚗
 Name: ${name}
 Number: ${phone}
 Service: ${service}
 Vehicle: ${selectedVehicle}
 Date/Time: ${datetime}`;
-    const custMsg = `Hi ${name} 👋
+
+    const custMsg =
+`Hi ${name} 👋
 Your Kleenkars booking is confirmed!
 Service: ${service}
 Vehicle: ${selectedVehicle}
 Date/Time: ${datetime}
 See you soon ✨`;
 
+    // Build wa.me URLs (digits only, with country code)
+    const adminNumber    = String(ADMIN_WHATSAPP).replace(/\D/g,''); // e.g., 919910578378
+    const customerNumber = phone;
+
+    const adminURL = `https://wa.me/${adminNumber}?text=${encodeURIComponent(adminMsg)}`;
+    const custURL  = `https://wa.me/${customerNumber}?text=${encodeURIComponent(custMsg)}`;
+
     try{
-      // Save to DB
+      // Save to DB first
       const res = await fetch('/.netlify/functions/saveBooking', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ name, phone, service, vehicle: selectedVehicle, datetime })
       });
       const out = await res.json();
-      if (out.success){
-        // Open WhatsApp chats directly (no preview)
-        if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`,'_blank');
-        if (phone)        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`,'_blank');
-      } else {
+      if (!out.success) {
         alert('❌ Failed: ' + (out.error || 'Server error'));
+        return;
       }
+
+      // Open WhatsApp links; iOS may block the 2nd popup, so we open the admin first, then try customer.
+      const w1 = window.open(adminURL, '_blank');
+      setTimeout(()=> { window.open(custURL, '_blank'); }, 300);
+
+      // If popups blocked, at least navigate current tab to admin chat
+      if (!w1) window.location.href = adminURL;
+
     } catch(err){
+      console.error(err);
       alert('❌ Network/Server error');
     }
   });
