@@ -1,105 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kleenkars Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b0b12;color:#e9e9ef}
-  header{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#13131b;border-bottom:1px solid #242433}
-  .title{font-size:1.3rem;font-weight:800}
-  .btn{background:#7a3cff;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-  .btn:hover{background:#692fe0}
-  .container{padding:20px;max-width:1000px;margin:auto}
-  table{width:100%;border-collapse:collapse;margin-top:20px}
-  th,td{padding:10px;border:1px solid #242433;text-align:left}
-  th{background:#1d1d29}
-  .muted{color:#b8b8c6;font-size:.9rem}
-  .login{max-width:400px;margin:80px auto;padding:24px;background:#13131b;border:1px solid #242433;border-radius:12px}
-  .login h2{margin-top:0;font-size:1.2rem}
-  .login input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #242433;background:#0f0f16;color:#fff}
+  :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433;--accent:#7a3cff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#111018;border-bottom:1px solid var(--border)}
+  .title{font-weight:800;font-size:1.25rem}
+  .btn{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .wrap{max-width:1060px;margin:auto;padding:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px}
+  .p24{padding:24px}
+  .muted{color:var(--muted)}
+  .login input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#0f0f16;color:#fff;margin:8px 0}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
+  thead th{background:#1a1a25;position:sticky;top:0}
+  .topbar{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px}
 </style>
 </head>
 <body>
   <header>
-    <div class="title">Kleenkars Admin</div>
+    <div class="title">Kleenkars — Admin</div>
     <button id="logout" class="btn" style="display:none;">Logout</button>
   </header>
 
-  <div id="loginWrap" class="login">
-    <h2>Admin Login</h2>
-    <input id="user" type="text" placeholder="Username" required>
-    <input id="pass" type="password" placeholder="Password" required>
-    <button id="loginBtn" class="btn">Login</button>
-    <p class="muted">Only for authorized staff.</p>
+  <!-- Login panel -->
+  <div id="loginPanel" class="wrap">
+    <div class="card p24 login" style="max-width:420px;margin:60px auto;">
+      <h2 style="margin:0 0 8px;">Admin Login</h2>
+      <p class="muted" style="margin:0 0 16px;">Enter your credentials.</p>
+      <input id="user" type="text" placeholder="Username" autocomplete="username" />
+      <input id="pass" type="password" placeholder="Password" autocomplete="current-password" />
+      <button id="loginBtn" class="btn" style="width:100%;margin-top:6px;">Login</button>
+      <div id="loginMsg" class="muted" style="margin-top:10px;"></div>
+    </div>
   </div>
 
-  <div id="adminWrap" class="container" style="display:none;">
-    <h2>Bookings</h2>
-    <table>
-      <thead>
-        <tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>Service</th><th>Date/Time</th><th>Visit</th><th>Price</th></tr>
-      </thead>
-      <tbody id="bookings"></tbody>
-    </table>
+  <!-- Admin panel -->
+  <div id="adminPanel" class="wrap" style="display:none;">
+    <div class="card p24">
+      <div class="topbar">
+        <h2 style="margin:0;">Bookings</h2>
+        <button id="refresh" class="btn">Refresh</button>
+      </div>
+      <div class="muted" id="hint">Showing newest first.</div>
+      <div style="overflow:auto;margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Phone</th><th>Vehicle</th><th>Service</th>
+              <th>Date</th><th>Time</th><th>Visit</th><th>Price</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="8" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 <script>
+  // --- Simple client-side session (no Neon in browser)
   const els = {
-    loginWrap: document.getElementById('loginWrap'),
-    adminWrap: document.getElementById('adminWrap'),
+    loginPanel: document.getElementById('loginPanel'),
+    adminPanel: document.getElementById('adminPanel'),
     loginBtn: document.getElementById('loginBtn'),
-    logout: document.getElementById('logout'),
     user: document.getElementById('user'),
     pass: document.getElementById('pass'),
-    bookings: document.getElementById('bookings')
+    msg: document.getElementById('loginMsg'),
+    logout: document.getElementById('logout'),
+    rows: document.getElementById('rows'),
+    refresh: document.getElementById('refresh'),
   };
 
-  // Save token
-  function saveToken(t){ localStorage.setItem("kleenkars_token", t); }
-  function getToken(){ return localStorage.getItem("kleenkars_token"); }
-  function clearToken(){ localStorage.removeItem("kleenkars_token"); }
+  const TOKEN_KEY = "kleenkars_token";
 
-  async function login(){
-    const r = await fetch("/.netlify/functions/admin-login",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({user:els.user.value,pass:els.pass.value})
-    });
-    const d = await r.json();
-    if(r.ok && d.token){ saveToken(d.token); showAdmin(); }
-    else alert(d.error||"Login failed");
+  function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
+  function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
+  function clearToken(){ localStorage.removeItem(TOKEN_KEY); }
+
+  function showLogin(){
+    els.loginPanel.style.display = "block";
+    els.adminPanel.style.display = "none";
+    els.logout.style.display = "none";
   }
-
-  async function loadBookings(){
-    const token = getToken();
-    const r = await fetch("/.netlify/functions/admin-bookings",{ headers:{ Authorization:`Bearer ${token}` }});
-    const d = await r.json();
-    els.bookings.innerHTML="";
-    if(d.ok){
-      d.rows.forEach(b=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML = `<td>${b.name}</td><td>${b.phone}</td><td>${b.vehicle}</td><td>${b.service}</td><td>${b.date} ${b.time}</td><td>${b.visit}</td><td>₹${b.price}</td>`;
-        els.bookings.appendChild(tr);
-      });
-    } else {
-      alert(d.error||"Failed to load bookings");
-    }
-  }
-
   function showAdmin(){
-    els.loginWrap.style.display="none";
-    els.adminWrap.style.display="block";
-    els.logout.style.display="inline-block";
+    els.loginPanel.style.display = "none";
+    els.adminPanel.style.display = "block";
+    els.logout.style.display = "inline-block";
     loadBookings();
   }
 
-  els.loginBtn.addEventListener('click', login);
-  els.logout.addEventListener('click', ()=>{ clearToken(); location.reload(); });
+  async function login(){
+    els.msg.textContent = "";
+    els.loginBtn.disabled = true; els.loginBtn.textContent = "Signing in…";
+    try{
+      const r = await fetch("/.netlify/functions/admin-login", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ user: els.user.value.trim(), pass: els.pass.value })
+      });
+      const d = await r.json();
+      if(!r.ok || !d.ok || !d.token) throw new Error(d.error || "Login failed");
+      setToken(d.token);
+      showAdmin();
+    }catch(err){
+      els.msg.textContent = err.message;
+    }finally{
+      els.loginBtn.disabled = false; els.loginBtn.textContent = "Login";
+    }
+  }
 
-  // Auto-login if token exists
-  if(getToken()){ showAdmin(); }
+  async function loadBookings(){
+    els.rows.innerHTML = `<tr><td colspan="8" class="muted">Loading…</td></tr>`;
+    try{
+      const r = await fetch("/.netlify/functions/admin-bookings", {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      const d = await r.json();
+      if(!r.ok || !d.ok) throw new Error(d.error || "Failed to load bookings");
+
+      if(!Array.isArray(d.rows) || d.rows.length===0){
+        els.rows.innerHTML = `<tr><td colspan="8" class="muted">No bookings yet.</td></tr>`;
+        return;
+      }
+
+      els.rows.innerHTML = "";
+      d.rows.forEach(b=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(b.name)}</td>
+          <td>${escapeHtml(b.phone)}</td>
+          <td>${escapeHtml(b.vehicle)}</td>
+          <td>${escapeHtml(b.service)}</td>
+          <td>${escapeHtml(b.date)}</td>
+          <td>${escapeHtml(b.time)}</td>
+          <td>${escapeHtml(b.visit)}</td>
+          <td>${b.price ? "₹"+Number(b.price) : "-"}</td>
+        `;
+        els.rows.appendChild(tr);
+      });
+
+    }catch(err){
+      alert(err.message);
+      if (/unauthorized|token/i.test(err.message)) {
+        clearToken();
+        showLogin();
+      }
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s==null?"":s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;")
+      .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  els.loginBtn.addEventListener('click', login);
+  els.logout.addEventListener('click', ()=>{ clearToken(); showLogin(); });
+  els.refresh.addEventListener('click', loadBookings);
+
+  // Auto-open correct view
+  if(getToken()){ showAdmin(); } else { showLogin(); }
 </script>
 </body>
 </html>
