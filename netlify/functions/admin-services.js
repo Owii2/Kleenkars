@@ -1,59 +1,71 @@
-import { neon } from "@netlify/neon";
-import { json, requireAdmin } from "./_auth.js";
-const sql = neon(process.env.NETLIFY_DATABASE_URL_UNPOOLED);
+// netlify/functions/admin-services.js
+import { neon, neonConfig } from "@neondatabase/serverless";
+neonConfig.fetchConnectionCache = true;
 
-export default async (request) => {
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS",
-        "access-control-allow-headers": "content-type,authorization",
-      },
-    });
-  }
+const ok = (obj) => ({
+  statusCode: 200, headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" }, body: JSON.stringify(obj)
+});
+const err = (code, msg) => ({
+  statusCode: code, headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" }, body: JSON.stringify({ ok:false, error: msg })
+});
 
-  if (request.method === "GET") {
-    const rows = await sql`SELECT * FROM services WHERE active = TRUE ORDER BY vehicle_type, price, id;`;
-    return json({ services: rows });
-  }
+export async function handler(event){
+  const auth = event.headers.authorization || "";
+  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
-  const gate = await requireAdmin(request);
-  if (!gate.ok) return gate.res;
+  try{
+    const sql = neon(process.env.DATABASE_URL);
 
-  try {
-    if (request.method === "POST") {
-      const { name, vehicle_type, price, active = true } = await request.json();
-      const [row] = await sql`
-        INSERT INTO services (name, vehicle_type, price, active)
-        VALUES (${name}, ${vehicle_type}, ${price}, ${active})
-        RETURNING *;`;
-      return json({ ok: true, service: row });
+    await sql`
+      CREATE TABLE IF NOT EXISTS kleenkars_services (
+        name TEXT PRIMARY KEY,
+        bike INT NULL,
+        sedan INT NULL,
+        suv INT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    if (event.httpMethod === "GET") {
+      const rows = await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
+      return ok({ ok:true, rows });
     }
 
-    if (request.method === "PUT") {
-      const { id, name, vehicle_type, price, active } = await request.json();
-      const [row] = await sql`
-        UPDATE services
-        SET name = COALESCE(${name}, name),
-            vehicle_type = COALESCE(${vehicle_type}, vehicle_type),
-            price = COALESCE(${price}, price),
-            active = COALESCE(${active}, active)
-        WHERE id = ${id}
-        RETURNING *;`;
-      return json({ ok: true, service: row });
+    if (event.httpMethod === "POST") {
+      const body = JSON.parse(event.body || "{}");
+      const name  = String(body.name||"").trim().slice(0,100);
+      const bike  = normInt(body.bike);
+      const sedan = normInt(body.sedan);
+      const suv   = normInt(body.suv);
+      if (!name) return err(400, "Missing service name");
+
+      await sql`
+        INSERT INTO kleenkars_services (name, bike, sedan, suv, updated_at)
+        VALUES (${name}, ${bike}, ${sedan}, ${suv}, NOW())
+        ON CONFLICT (name)
+        DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
+      `;
+      return ok({ ok:true });
     }
 
-    if (request.method === "DELETE") {
-      const { id } = await request.json();
-      await sql`DELETE FROM services WHERE id = ${id};`;
-      return json({ ok: true });
+    if (event.httpMethod === "DELETE") {
+      const body = JSON.parse(event.body || "{}");
+      const name = String(body.name||"").trim();
+      if (!name) return err(400, "Missing service name");
+      const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING name`;
+      if (r.length === 0) return err(404, "Service not found");
+      return ok({ ok:true });
     }
 
-    return json({ error: "Method not allowed" }, 405);
-  } catch (e) {
-    console.error(e);
-    return json({ error: "DB error" }, 500);
+    return err(405, "Method Not Allowed");
+  }catch(e){
+    console.error("admin-services", e);
+    return err(500, e.message);
   }
-};
+}
+
+function normInt(v){
+  if (v === null || v === undefined || v === "") return null;
+  const n = parseInt(String(v), 10);
+  return Number.isFinite(n) ? n : null;
+}
