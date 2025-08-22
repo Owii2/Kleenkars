@@ -77,6 +77,13 @@
       <button type="submit">Confirm Booking</button>
       <div class="note">Submitting saves your booking and opens WhatsApp to confirm.</div>
     </form>
+
+    <!-- 🔐 Admin Login Button -->
+    <div style="text-align:center; margin-top:20px;">
+      <a href="admin.html" style="display:inline-block; padding:10px 16px; background:#2b2f45; color:#fff; text-decoration:none; border-radius:8px; font-size:14px;">
+        🔐 Admin Login
+      </a>
+    </div>
   </main>
 
   <!-- Popup -->
@@ -102,7 +109,7 @@
 
     function toggleTheme(){ document.body.classList.toggle('dark'); }
 
-    // Set min datetime to now (iPhone-friendly)
+    // Set min datetime to now
     (function setMinDate() {
       const dt = document.getElementById('datetime');
       const now = new Date();
@@ -149,7 +156,7 @@
 
     async function loadServicesForPublic(){
       try {
-        const res = await fetch('/.netlify/functions/admin-services'); // GET is public
+        const res = await fetch('/.netlify/functions/admin-services'); 
         const data = await res.json();
         if (data && Array.isArray(data.services)) {
           priceList = { Bike: [], Car: [], SUV: [] };
@@ -157,25 +164,9 @@
             if (!priceList[s.vehicle_type]) priceList[s.vehicle_type] = [];
             priceList[s.vehicle_type].push({ name: s.name, price: s.price });
           }
-        } else {
-          console.warn('Unexpected services payload', data);
         }
       } catch (e){
         console.error('Failed to load services', e);
-        // fallback so page still works if function down
-        priceList = {
-          Bike: [{ name: "Basic Car Wash", price: 50 }],
-          Car: [
-            { name: "Basic Car Wash", price: 150 },
-            { name: "Premium Car Wash", price: 200 },
-            { name: "Detailing", price: 2000 }
-          ],
-          SUV: [
-            { name: "Basic Car Wash", price: 200 },
-            { name: "Premium Car Wash", price: 250 },
-            { name: "Detailing", price: 2500 }
-          ]
-        };
       } finally {
         refreshServices();
       }
@@ -214,7 +205,6 @@ Date/Time: ${datetime}
 See you soon ✨`;
 
       try {
-        // Save to database via Netlify Function
         const res = await fetch('/.netlify/functions/saveBooking', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
