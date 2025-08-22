@@ -1,29 +1,35 @@
 // netlify/functions/admin-bookings.js
-import { pool } from "./_db.js";
+import { neon, neonConfig } from "@neondatabase/serverless";
 
-/**
- * Returns bookings for the admin table.
- * - Auth: simple Bearer token presence (matches your current admin.html)
- * - Detects whether the table uses columns named "date"/"time" or alternatives like "booking_date"/"booking_time"
- */
+// Use HTTP fetch client (no WebSockets)
+neonConfig.fetchConnectionCache = true;
+
+function json(statusCode, obj) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(obj),
+  };
+}
+
 export async function handler(event) {
   if (event.httpMethod !== "GET") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  // --- minimal token presence check (same as your admin.html)
+  // --- minimal token presence check (matches admin.html)
   const auth = event.headers.authorization || "";
   if (!auth.startsWith("Bearer ")) {
     return json(401, { ok: false, error: "Unauthorized" });
   }
   const token = auth.slice("Bearer ".length).trim();
-  if (!token) {
-    return json(401, { ok: false, error: "Invalid token" });
-  }
+  if (!token) return json(401, { ok: false, error: "Invalid token" });
 
   try {
-    // Ensure table exists (no-op if already there)
-    await pool.query(`
+    const sql = neon(process.env.DATABASE_URL);
+
+    // Ensure table exists (safe no-op if already there)
+    await sql`
       CREATE TABLE IF NOT EXISTS kleenkars_bookings (
         id SERIAL PRIMARY KEY,
         name TEXT,
@@ -37,29 +43,29 @@ export async function handler(event) {
         price INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `;
 
-    // Figure out which column names actually exist in your DB
-    const colsRes = await pool.query(`
+    // Detect actual column names present (some older tables might use booking_date/booking_time)
+    const cols = await sql`
       SELECT column_name
       FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = 'kleenkars_bookings'
-    `);
-    const cols = new Set(colsRes.rows.map(r => r.column_name));
+      WHERE table_schema = 'public'
+        AND table_name = 'kleenkars_bookings'
+    `;
+    const set = new Set(cols.map(r => r.column_name));
 
-    // choose the actual column names (quoted identifiers where needed)
     const dateCol =
-      cols.has("date") ? `"date"` :
-      cols.has("booking_date") ? `booking_date` :
+      set.has("date") ? `"date"` :
+      set.has("booking_date") ? `booking_date` :
       `''::text`;
 
     const timeCol =
-      cols.has("time") ? `"time"` :
-      cols.has("booking_time") ? `booking_time` :
+      set.has("time") ? `"time"` :
+      set.has("booking_time") ? `booking_time` :
       `''::text`;
 
-    // Build the SELECT using the detected cols, alias to "date"/"time" for the frontend
-    const sql = `
+    // Build SELECT text with aliases for frontend
+    const selectSql = `
       SELECT
         id,
         name,
@@ -76,19 +82,11 @@ export async function handler(event) {
       ORDER BY created_at DESC
     `;
 
-    const result = await pool.query(sql);
+    const rows = await sql(selectSql);
 
-    return json(200, { ok: true, rows: result.rows });
+    return json(200, { ok: true, rows });
   } catch (err) {
     console.error("admin-bookings error:", err);
     return json(500, { ok: false, error: err.message });
   }
-}
-
-function json(statusCode, obj) {
-  return {
-    statusCode,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(obj),
-  };
 }
