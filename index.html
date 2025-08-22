@@ -42,26 +42,7 @@
   footer{opacity:.9;padding:28px 8px;text-align:center;color:var(--muted)}
   @media (max-width:780px){.hero{grid-template-columns:1fr}.hero-media{aspect-ratio:3/2}}
   .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f0f16;border:1px solid #2a2a3a;padding:12px 16px;border-radius:12px;display:none;z-index:99}
-  .debug{position:fixed;right:10px;bottom:10px;font-size:12px;color:#ffb3b3}
 </style>
-
-<script>
-// --- iOS Safari: nuke native validation everywhere (before DOM paints)
-(function killNativeValidation(){
-  const yes = ()=>true;
-  const stop = e => { e.preventDefault(); e.stopImmediatePropagation(); return false; };
-  // Kill form/field validity functions
-  ['checkValidity','reportValidity'].forEach(fn=>{
-    try{ if(HTMLFormElement.prototype[fn]) HTMLFormElement.prototype[fn]=yes; }catch{}
-    try{ if(HTMLInputElement.prototype[fn]) HTMLInputElement.prototype[fn]=yes; }catch{}
-    try{ if(HTMLSelectElement.prototype[fn]) HTMLSelectElement.prototype[fn]=yes; }catch{}
-    try{ if(HTMLTextAreaElement.prototype[fn]) HTMLTextAreaElement.prototype[fn]=yes; }catch{}
-  });
-  // Block any 'invalid' or implicit submit
-  window.addEventListener('invalid', stop, true);
-  window.addEventListener('submit', stop, true);
-})();
-</script>
 </head>
 <body>
   <div class="wrap">
@@ -81,26 +62,23 @@
         <h1>Premium car care.</h1>
         <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
 
-        <!-- novalidate + no 'required' + JS validation only -->
         <form id="booking" class="grid" autocomplete="on" novalidate>
           <div class="grid two">
             <div>
               <label for="name">Customer name</label>
-              <input id="name" name="name" placeholder="Full name">
+              <input id="name" name="name" placeholder="Full name" required>
             </div>
             <div>
               <label for="phone">Phone number</label>
-              <!-- type=text avoids any iOS auto-validation on tel -->
-              <input id="phone" name="phone" type="text" inputmode="numeric" autocomplete="tel"
-                     placeholder="10-digit mobile" maxlength="10">
+              <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" required>
             </div>
           </div>
 
           <div class="grid two">
             <div>
               <label for="vehicle">Vehicle type</label>
-              <select id="vehicle" name="vehicle">
-                <option value="" selected>Select</option>
+              <select id="vehicle" name="vehicle" required>
+                <option value="" disabled selected>Select</option>
                 <option value="Bike">Bike</option>
                 <option value="Hatch/Sedan">Hatchback / Sedan</option>
                 <option value="SUV">SUV</option>
@@ -109,8 +87,8 @@
             </div>
             <div>
               <label for="service">Service</label>
-              <select id="service" name="service">
-                <option value="" selected>Select</option>
+              <select id="service" name="service" required>
+                <option value="" disabled selected>Select</option>
                 <option value="Basic">Basic Wash</option>
                 <option value="Premium">Premium Car Wash</option>
                 <option value="Detailing">Detailing</option>
@@ -126,14 +104,11 @@
           <div class="grid two">
             <div>
               <label for="date">Preferred date</label>
-              <input type="date" id="date" name="date">
+              <input type="date" id="date" name="date" required>
             </div>
             <div>
-              <label for="time">Preferred time <span class="help">(10:00 AM–8:00 PM IST)</span></label>
-              <!-- Dropdown (no native time input) -->
-              <select id="time" name="time">
-                <option value="" selected>Select a time</option>
-              </select>
+              <label for="time">Preferred time (10:00–20:00)</label>
+              <input type="time" id="time" name="time" required step="900">
             </div>
           </div>
 
@@ -167,21 +142,9 @@
   </div>
 
   <div class="toast" id="toast">✅ Booking confirmed!</div>
-  <div id="dbg" class="debug"></div>
 
 <script>
-  // Scrub ANY leftover constraints that might appear from cached HTML
-  (function scrub(){
-    const kill = el => { el.removeAttribute('pattern'); el.removeAttribute('min'); el.removeAttribute('max'); el.removeAttribute('step'); el.removeAttribute('required'); };
-    document.querySelectorAll('[pattern],[min],[max],[step],[required]').forEach(kill);
-    // show small debug note so we know it's the latest file
-    const d = document.getElementById('dbg');
-    const cnt = document.querySelectorAll('[pattern],[min],[max],[step],[required]').length;
-    d.textContent = `validation scrubbed (leftovers found: ${cnt})`;
-    setTimeout(()=> d.remove(), 4000);
-  })();
-
-  // --- Pricing & rules
+  // --- Pricing
   const PRICES = {
     "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
     "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
@@ -205,32 +168,10 @@
     toast: document.getElementById('toast')
   };
 
-  // Populate time slots 10:00 to 20:00 every 15 minutes
-  (function buildTimeOptions(){
-    const start = 10 * 60, end = 20 * 60, step = 15;
-    for (let m = start; m <= end; m += step) {
-      const hh = String(Math.floor(m/60)).padStart(2,'0');
-      const mm = String(m%60).padStart(2,'0');
-      const opt = document.createElement('option');
-      opt.value = `${hh}:${mm}`;
-      opt.textContent = formatAmPm(hh, mm);
-      els.time.appendChild(opt);
-    }
-  })();
-
-  // Helpers
-  function formatAmPm(hh, mm){
-    let h = parseInt(hh,10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12; if (h === 0) h = 12;
-    return `${String(h)}:${mm} ${ampm}`;
-  }
+  // Init
   document.getElementById('yr').textContent = new Date().getFullYear();
-
-  // Phone: digits only, cap at 10
-  els.phone.addEventListener('input', ()=>{
-    els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10);
-  });
+  els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
+  els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
   function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
   function applyServiceRules(){
@@ -249,10 +190,8 @@
     const v = els.vehicle.value, s = els.service.value;
     const p = computePrice();
     if(p!=null){
-      const extra = getVisit()==="Home Visit" ? ` (+₹${HOME_SURCHARGE} home visit)` : "";
+      const extra = getVisit()==="Home Visit" ? ` (+₹${HOME_SURCHARGE})` : "";
       els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${extra})</span>`;
-    } else if(v && s){
-      els.priceBox.innerHTML = `Estimated price: <span class="help">Not available for ${v} — choose another service.</span>`;
     } else els.priceBox.textContent = "Estimated price: —";
   }
   function visitChanged(){
@@ -261,32 +200,35 @@
     if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
   }
 
-  // Bind dynamic behavior
+  // WhatsApp helpers
+  function sanitizePhone(num){ return String(num||'').replace(/\D/g,''); }
+  function validDigits(num){ return /^\d{8,15}$/.test(num); }
+  function openWA(raw, text){
+    const p = sanitizePhone(raw);
+    if(!validDigits(p)) return false;
+    window.open(`https://api.whatsapp.com/send?phone=${p}&text=${encodeURIComponent(text)}`, "_blank");
+    return true;
+  }
+
+  function buildSummary(payload){
+    return `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
+  }
+  function showToast(msg){ els.toast.textContent=msg; els.toast.style.display='block'; setTimeout(()=>els.toast.style.display='none',2500); }
+
+  // Bind
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
     els.service.addEventListener(ev, updatePriceUI);
     els.date.addEventListener(ev, updatePriceUI);
-    els.time.addEventListener(ev, ()=>{/* dropdown is already valid */});
+    els.time.addEventListener(ev, updatePriceUI);
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
-    els.address?.addEventListener(ev, updatePriceUI);
   });
   applyServiceRules(); visitChanged(); updatePriceUI();
 
-  // Manual validation
-  function ensure(v, msg){ if(!v){ alert(msg); return false; } return true; }
-
-  // Submit with loading state (JS only; native submit is blocked)
+  // Submit
   els.confirm.addEventListener('click', async ()=>{
-    if(!ensure(els.name.value.trim(), "Please enter your name.")) return;
-    const raw = (els.phone.value || '').replace(/\D/g,'');
-    if(raw.length!==10){ alert("Enter a valid 10-digit phone number."); return; }
-    if(!ensure(els.vehicle.value, "Please select a vehicle.")) return;
-    if(!ensure(els.service.value, "Please select a service.")) return;
-    if(PRICES?.[els.vehicle.value]?.[els.service.value] == null){
-      alert(`${els.service.value || 'This service'} is not available for ${els.vehicle.value || 'this vehicle'}.`); return;
-    }
-    if(!ensure(els.date.value, "Please select a date.")) return;
-    if(!ensure(els.time.value, "Please choose a time between 10:00 AM and 8:00 PM.")) return;
+    const raw = els.phone.value.replace(/\D/g,'');
+    if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
 
     const payload = {
       name: els.name.value.trim(),
@@ -296,57 +238,28 @@
       date: els.date.value,
       time: els.time.value,
       visit: getVisit(),
-      address: (els.address?.value || "").trim(),
+      address: els.address?.value.trim(),
       price: computePrice()
     };
 
-    const btn = els.confirm, oldLabel = btn.textContent;
-    btn.disabled = true; btn.textContent = "Saving…";
+    els.confirm.disabled = true; els.confirm.textContent = "Saving…";
 
     try{
       const r = await fetch("/.netlify/functions/saveBooking", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
+        method:"POST", headers:{ "Content-Type":"application/json" },
         body: JSON.stringify(payload)
       });
       const data = await r.json();
-      if(!r.ok || !data.ok) throw new Error(data?.error || `Save failed (${r.status})`);
+      if(!data.ok) throw new Error(data.error||"Save failed");
 
       showToast("✅ Booking confirmed!");
       const text = buildSummary(payload);
-      if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank");
-      if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
+      if(data.admin) openWA(data.admin, text);
+      if(data.manager) openWA(data.manager, "NEW BOOKING ALERT\n\n"+text);
 
-    }catch(err){
-      console.error(err);
-      alert(err.message || "Could not save booking. Please try again.");
-    }finally{
-      btn.disabled = false; btn.textContent = oldLabel;
-    }
+    }catch(e){ alert(e.message); }
+    finally{ els.confirm.disabled=false; els.confirm.textContent="Confirm Booking"; }
   });
-
-  function buildSummary(p){
-    const extraAddr = p.visit==="Home Visit" && p.address ? ` — ${p.address}` : "";
-    return `KLEENKARS BOOKING
-
-Name: ${p.name}
-Customer WhatsApp: +91 ${p.phone}
-Vehicle: ${p.vehicle}
-Service: ${p.service}
-Visit: ${p.visit}${extraAddr}
-Preferred: ${p.date} at ${p.time}
-Estimated Price: ${p.price != null ? "₹"+p.price : "TBC"}
-
-Notes:
-• Bike supports Basic only.
-• Open hours: 10:00 to 20:00.`;
-  }
-
-  function showToast(msg){
-    els.toast.textContent = msg;
-    els.toast.style.display = 'block';
-    setTimeout(()=> els.toast.style.display = 'none', 3000);
-  }
 </script>
 </body>
 </html>
