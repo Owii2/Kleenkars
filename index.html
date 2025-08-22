@@ -37,6 +37,7 @@
     body.dark #previewBox { background:#1a1a1a; color:#eee; border-color:#28a745; }
     .note { font-size:13px; color:#666; margin-top:6px; }
     .footer { text-align:center; padding:20px; font-size:13px; color:#777; }
+    .muted { color:#777; font-size:13px; }
   </style>
 </head>
 <body>
@@ -60,7 +61,10 @@
       <small class="help">Enter country code + number (digits only).</small>
 
       <label for="service">Service</label>
-      <select id="service" name="service"></select>
+      <select id="service" name="service">
+        <option disabled selected>Loading services…</option>
+      </select>
+      <small class="muted" id="svcHint"></small>
 
       <label>Vehicle Type</label>
       <div class="car-options" role="group" aria-label="Vehicle Type">
@@ -89,42 +93,24 @@
 
   <script>
     // ====== EDIT THESE TWO LINES (digits only, no +) ======
-    const ADMIN_WHATSAPP   = "91XXXXXXXXXX"; // your admin number (receives new booking alert)
-    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // your business/account number (optional)
+    const ADMIN_WHATSAPP   = "91XXXXXXXXXX"; // admin receives new booking alert
+    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // optional, not required
     // ======================================================
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
     let selectedVehicle = "Car";
+    let priceList = { Bike: [], Car: [], SUV: [] }; // will be filled from DB
 
-    const priceList = {
-      Bike: [{ name: "Basic Car Wash", price: 50 }],
-      Car: [
-        { name: "Basic Car Wash",   price: 150 },
-        { name: "Premium Car Wash", price: 200 },
-        { name: "Detailing",        price: 2000 }
-      ],
-      SUV: [
-        { name: "Basic Car Wash",   price: 200 },
-        { name: "Premium Car Wash", price: 250 },
-        { name: "Detailing",        price: 2500 }
-      ]
-    };
+    function toggleTheme(){ document.body.classList.toggle('dark'); }
 
-    function refreshServices(selectedServiceName = null) {
-      const serviceSelect = document.getElementById('service');
-      const currentSelection = selectedServiceName ||
-        (serviceSelect.options[serviceSelect.selectedIndex]?.text.split(" - ")[0]);
-
-      serviceSelect.innerHTML = "";
-      priceList[selectedVehicle].forEach(service => {
-        const option = document.createElement('option');
-        option.value = service.price;
-        option.textContent = `${service.name} - ₹${service.price}`;
-        if (service.name === currentSelection) option.selected = true;
-        serviceSelect.appendChild(option);
-      });
-    }
+    // Keep iPhone picker sensible
+    (function setMinDate() {
+      const dt = document.getElementById('datetime');
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      dt.min = now.toISOString().slice(0,16);
+    })();
 
     function selectVehicle(vehicle) {
       selectedVehicle = vehicle;
@@ -133,17 +119,71 @@
       refreshServices();
     }
 
-    function toggleTheme() { document.body.classList.toggle('dark'); }
+    function refreshServices(selectedServiceName = null) {
+      const serviceSelect = document.getElementById('service');
+      const hint = document.getElementById('svcHint');
+      const currentSelection = selectedServiceName ||
+        (serviceSelect.options[serviceSelect.selectedIndex]?.text.split(" - ")[0]);
 
-    // Set min datetime to now (helps on iPhone date picker)
-    (function setMinDate() {
-      const dt = document.getElementById('datetime');
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      dt.min = now.toISOString().slice(0,16);
-    })();
+      const items = priceList[selectedVehicle] || [];
+      serviceSelect.innerHTML = "";
 
-    // Booking form submit
+      if (!items.length) {
+        const opt = document.createElement('option');
+        opt.textContent = "No services available";
+        opt.disabled = true;
+        opt.selected = true;
+        serviceSelect.appendChild(opt);
+        hint.textContent = "No active services for this vehicle. Check Admin → Services.";
+        return;
+      }
+
+      items.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.price;
+        option.textContent = `${service.name} - ₹${service.price}`;
+        if (service.name === currentSelection) option.selected = true;
+        serviceSelect.appendChild(option);
+      });
+
+      hint.textContent = `${items.length} item(s) for ${selectedVehicle}`;
+    }
+
+    async function loadServicesForPublic(){
+      try {
+        const res = await fetch('/.netlify/functions/admin-services'); // GET is public
+        const data = await res.json();
+        if (data && Array.isArray(data.services)) {
+          priceList = { Bike: [], Car: [], SUV: [] };
+          for (const s of data.services) {
+            if (!priceList[s.vehicle_type]) priceList[s.vehicle_type] = [];
+            priceList[s.vehicle_type].push({ name: s.name, price: s.price });
+          }
+        } else {
+          console.warn('Unexpected services payload', data);
+        }
+      } catch (e){
+        console.error('Failed to load services', e);
+        // fallback (so page still works if function down)
+        priceList = {
+          Bike: [{ name: "Basic Car Wash", price: 50 }],
+          Car: [
+            { name: "Basic Car Wash", price: 150 },
+            { name: "Premium Car Wash", price: 200 },
+            { name: "Detailing", price: 2000 }
+          ],
+          SUV: [
+            { name: "Basic Car Wash", price: 200 },
+            { name: "Premium Car Wash", price: 250 },
+            { name: "Detailing", price: 2500 }
+          ]
+        };
+      } finally {
+        refreshServices();
+      }
+    }
+
+    // Submit handler
     document.getElementById('bookingForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -154,10 +194,10 @@
 
       const name = nameEl.value.trim();
       const phone = phoneEl.value.replace(/\D/g, '');
-      const service = serviceEl.options[serviceEl.selectedIndex].text;
+      const service = serviceEl.options[serviceEl.selectedIndex]?.text || '';
       const datetime = datetimeEl.value;
 
-      if (!name || !phone || !datetime) {
+      if (!name || !phone || !datetime || !service) {
         alert("Please fill all fields correctly.");
         return;
       }
@@ -205,8 +245,11 @@ See you soon ✨`;
       }
     });
 
-    // Initial state
-    selectVehicle("Car");
+    // Init
+    (async function init(){
+      await loadServicesForPublic();
+      selectVehicle("Car");
+    })();
   </script>
 </body>
 </html>
