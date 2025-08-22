@@ -63,7 +63,8 @@
         <h1>Premium car care.</h1>
         <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
 
-        <form id="booking" class="grid" autocomplete="on">
+        <!-- novalidate prevents the browser's built-in pattern popups -->
+        <form id="booking" class="grid" autocomplete="on" novalidate>
           <div class="grid two">
             <div>
               <label for="name">Customer name</label>
@@ -72,7 +73,7 @@
             <div>
               <label for="phone">Phone number</label>
               <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
-                     placeholder="10-digit mobile" maxlength="10" pattern="[0-9]{10}" required>
+                     placeholder="10-digit mobile" maxlength="10" required>
             </div>
           </div>
 
@@ -210,7 +211,7 @@
     if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
   }
 
-  // Accepts HH:MM or HH:MM:SS; clamps and shows inline message for out-of-window picks
+  // Time window guard (works with 12h or 24h pickers)
   function enforceTimeWindow(){
     const val = els.time.value;
     if(!val){ els.time.setCustomValidity(''); els.timeErr.style.display='none'; return false; }
@@ -225,108 +226,4 @@
     const MAX = 20*60; // 1200
 
     if(mins < MIN){ mins = MIN; snapTo(mins); showTimeError(); return false; }
-    if(mins > MAX){ mins = MAX; snapTo(mins); showTimeError(); return false; }
-
-    els.time.setCustomValidity(''); els.timeErr.style.display='none'; return true;
-  }
-  function snapTo(mins){
-    const hh = String(Math.floor(mins/60)).padStart(2,'0');
-    const mm = String(mins%60).padStart(2,'0');
-    els.time.value = `${hh}:${mm}`;
-  }
-  function showTimeError(){
-    els.time.setCustomValidity('Please pick a time between 10:00 and 20:00');
-    els.time.reportValidity();
-    els.timeErr.style.display='block';
-  }
-
-  function validTime(){ return enforceTimeWindow(); }
-
-  // Bind dynamic behavior
-  ['change','input','blur'].forEach(ev=> els.time.addEventListener(ev, enforceTimeWindow));
-  ['change','input'].forEach(ev=>{
-    els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
-    els.service.addEventListener(ev, updatePriceUI);
-    els.date.addEventListener(ev, updatePriceUI);
-    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
-    els.address?.addEventListener(ev, updatePriceUI);
-  });
-  applyServiceRules(); visitChanged(); updatePriceUI();
-
-  // Submit with loading state
-  els.confirm.addEventListener('click', async ()=>{
-    if(!document.getElementById('booking').reportValidity()) return;
-
-    if(!validTime()) return;
-
-    const raw = (els.phone.value || '').replace(/\D/g,'');
-    if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
-    if(PRICES?.[els.vehicle.value]?.[els.service.value] == null){
-      alert(`${els.service.value} is not available for ${els.vehicle.value}.`);
-      return;
-    }
-
-    const payload = {
-      name: els.name.value.trim(),
-      phone: raw,
-      vehicle: els.vehicle.value,
-      service: els.service.value,
-      date: els.date.value,
-      time: els.time.value,
-      visit: getVisit(),
-      address: (els.address?.value || "").trim(),
-      price: computePrice()
-    };
-
-    const btn = els.confirm, oldLabel = btn.textContent;
-    btn.disabled = true; btn.textContent = "Saving…";
-
-    try{
-      const r = await fetch("/.netlify/functions/saveBooking", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await r.json();
-      if(!r.ok || !data.ok) throw new Error(data?.error || `Save failed (${r.status})`);
-
-      showToast("✅ Booking confirmed!");
-      const text = buildSummary();
-      if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-      if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank", "noopener");
-
-    }catch(err){
-      console.error(err);
-      alert(err.message || "Could not save booking. Please try again.");
-    }finally{
-      btn.disabled = false; btn.textContent = oldLabel;
-    }
-  });
-
-  function buildSummary(){
-    const v = els.vehicle.value, s = els.service.value, visit = getVisit();
-    const extraAddr = visit==="Home Visit" && els.address?.value.trim() ? ` — ${els.address.value.trim()}` : "";
-    const price = computePrice();
-    return `KLEENKARS BOOKING
-
-Name: ${els.name.value.trim()}
-Customer WhatsApp: +91 ${els.phone.value.trim()}
-Vehicle: ${v}
-Service: ${s}
-Visit: ${visit}${extraAddr}
-Preferred: ${els.date.value} at ${els.time.value}
-Estimated Price: ${price!=null ? "₹"+price : "TBC"}
-
-Notes:
-• Bike supports Basic only.
-• Open hours: 10:00 to 20:00.`;
-  }
-
-  function showToast(msg){
-    els.toast.textContent = msg;
-    els.toast.style.display = 'block';
-    setTimeout(()=> els.toast.style.display = 'none', 3000);
-  }
-</script>
-</body>
-</html>
+    if(mins > MAX){ mins = MAX; snapTo(mins); showTimeError
