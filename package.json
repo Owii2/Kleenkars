@@ -1,0 +1,9 @@
+{
+  "name": "kleenkars",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/neon": "^0.7.1"
+  }
+}
