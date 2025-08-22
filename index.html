@@ -168,7 +168,6 @@ async function tryFetch(url){
   const r = await fetch(url);
   if(!r.ok) throw new Error("HTTP "+r.status);
   const d = await r.json();
-  // support both {ok:true, rows:[...]} and plain arrays
   if(Array.isArray(d)) return d;
   if(d && d.ok && Array.isArray(d.rows)) return d.rows;
   throw new Error("Unexpected response");
@@ -176,34 +175,35 @@ async function tryFetch(url){
 
 async function loadServices(){
   const candidates = [
-    "/.netlify/functions/admin-services?public=1", // if you allow GET public in your function
-    "/.netlify/functions/site-settings?fn=services", // if you expose via site-settings
-    "/.netlify/functions/services" // optional dedicated public endpoint if you add later
+    "/.netlify/functions/admin-services?public=1",
+    "/.netlify/functions/site-settings?fn=services",
+    "/.netlify/functions/services"
   ];
   for(const url of candidates){
     try{
       const rows = await tryFetch(url);
       if(rows && rows.length){ SERVICES = rows; return; }
-    }catch(e){ /* continue to next */ }
+    }catch(e){ /* try next */ }
   }
-  // fallback to built-in prices if no public API available
   SERVICES = FALLBACK;
 }
-await loadServices();
 
 /* ---------- Helpers ---------- */
-function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
+function getVisit(){
+  const r = Array.from(els.visitRadios).find(r=>r.checked);
+  return r ? r.value : "In-Shop";
+}
 
 function servicesForVehicle(v){
   if(!v) return [];
   const key = v==="Bike" ? "bike" : (v==="SUV" ? "suv" : "sedan");
-  return SERVICES.filter(s => s && s.name && s[key]!=null).map(s => ({
-    name:s.name, price:s[key]
-  }));
+  return SERVICES
+    .filter(s => s && s.name && s[key] != null)
+    .map(s => ({ name: String(s.name), price: Number(s[key]) }));
 }
 
 function populateServices(){
-  const v = els.vehicle.value;
+  const v = (els.vehicle.value || "").trim();
   els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
   const list = servicesForVehicle(v);
   if(list.length===0){
@@ -211,30 +211,32 @@ function populateServices(){
     updatePriceUI();
     return;
   }
-  list.forEach(item=>{
+  for(const item of list){
     const opt = document.createElement("option");
     opt.value = item.name;
     opt.textContent = `${item.name} — ₹${item.price}`;
     opt.dataset.price = item.price;
     els.service.appendChild(opt);
-  });
-  // build dynamic help line with all prices for the chosen vehicle
+  }
   els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
   updatePriceUI();
 }
 
 function computePrice(){
-  const v = els.vehicle.value, s = els.service.value;
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
   if(!v || !s) return null;
   const list = servicesForVehicle(v);
   const item = list.find(x=>x.name===s);
   if(!item) return null;
-  let p = Number(item.price);
+  let p = item.price;
   if(getVisit()==="Home Visit") p += 50;
   return p;
 }
+
 function updatePriceUI(){
-  const v = els.vehicle.value, s = els.service.value;
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
   const p = computePrice();
   if(p!=null){
     els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${getVisit()==="Home Visit"?" +₹50":""})</span>`;
@@ -246,17 +248,24 @@ function updatePriceUI(){
 function visitChanged(){
   const v = getVisit();
   els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
-  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
+  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); }
+  else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
-/* ---------- Bind ---------- */
-['change','input'].forEach(ev=>{
-  els.vehicle.addEventListener(ev, populateServices);
-  els.service.addEventListener(ev, updatePriceUI);
-  els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
-});
-visitChanged();
-populateServices(); // initial render in case a default vehicle is preselected
+/* ---------- Init & bindings (no top-level await) ---------- */
+async function init(){
+  await loadServices();
+
+  ['change','input'].forEach(ev=>{
+    els.vehicle.addEventListener(ev, populateServices);
+    els.service.addEventListener(ev, updatePriceUI);
+    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+  });
+
+  visitChanged();
+  populateServices(); // initial render
+}
+init();
 
 /* ---------- Booking submit ---------- */
 els.confirm.addEventListener('click', async ()=>{
@@ -266,8 +275,8 @@ els.confirm.addEventListener('click', async ()=>{
   const payload = {
     name: els.name.value.trim(),
     phone: raw,
-    vehicle: els.vehicle.value,
-    service: els.service.value,
+    vehicle: (els.vehicle.value||"").trim(),
+    service: (els.service.value||"").trim(),
     date: els.date.value,
     time: els.time.value,
     visit: getVisit(),
