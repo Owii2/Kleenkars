@@ -1,8 +1,26 @@
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@netlify/neon"]
+# netlify.toml — clean config for static site + Netlify Functions
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+[build]
+  # Your site is static HTML/CSS/JS at the repo root
+  publish = "."
+  # No build step needed (adjust if you later add one)
+  command = ""
+
+[build.environment]
+  # Match the runtime your functions expect
+  NODE_VERSION = "20"
+
+[functions]
+  # Your functions live here (as in your repo)
+  directory = "netlify/functions"
+  # Use esbuild to bundle
+  node_bundler = "esbuild"
+  # Bundle the Neon serverless driver (used by your DB functions)
+  external_node_modules = ["@neondatabase/serverless"]
+
+# (Optional) If you ever want pretty API URLs like /api/saveBooking
+# uncomment the block below to route /api/* to your functions.
+# [[redirects]]
+#   from = "/api/*"
+#   to = "/.netlify/functions/:splat"
+#   status = 200
