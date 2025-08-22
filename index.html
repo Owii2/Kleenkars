@@ -62,25 +62,25 @@
         <h1>Premium car care.</h1>
         <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
 
-        <!-- Disable browser’s own validation popups -->
+        <!-- novalidate + no 'required' + JS validation only -->
         <form id="booking" class="grid" autocomplete="on" novalidate>
           <div class="grid two">
             <div>
               <label for="name">Customer name</label>
-              <input id="name" name="name" placeholder="Full name" required>
+              <input id="name" name="name" placeholder="Full name">
             </div>
             <div>
               <label for="phone">Phone number</label>
               <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
-                     placeholder="10-digit mobile" maxlength="10" required>
+                     placeholder="10-digit mobile" maxlength="10">
             </div>
           </div>
 
           <div class="grid two">
             <div>
               <label for="vehicle">Vehicle type</label>
-              <select id="vehicle" name="vehicle" required>
-                <option value="" disabled selected>Select</option>
+              <select id="vehicle" name="vehicle">
+                <option value="" selected>Select</option>
                 <option value="Bike">Bike</option>
                 <option value="Hatch/Sedan">Hatchback / Sedan</option>
                 <option value="SUV">SUV</option>
@@ -89,8 +89,8 @@
             </div>
             <div>
               <label for="service">Service</label>
-              <select id="service" name="service" required>
-                <option value="" disabled selected>Select</option>
+              <select id="service" name="service">
+                <option value="" selected>Select</option>
                 <option value="Basic">Basic Wash</option>
                 <option value="Premium">Premium Car Wash</option>
                 <option value="Detailing">Detailing</option>
@@ -106,13 +106,13 @@
           <div class="grid two">
             <div>
               <label for="date">Preferred date</label>
-              <input type="date" id="date" name="date" required>
+              <input type="date" id="date" name="date">
             </div>
             <div>
               <label for="time">Preferred time <span class="help">(10:00 AM–8:00 PM IST)</span></label>
-              <!-- DROPDOWN replaces time input -->
-              <select id="time" name="time" required>
-                <option value="" disabled selected>Select a time</option>
+              <!-- Dropdown (no native time input) -->
+              <select id="time" name="time">
+                <option value="" selected>Select a time</option>
               </select>
             </div>
           </div>
@@ -149,14 +149,11 @@
   <div class="toast" id="toast">✅ Booking confirmed!</div>
 
 <script>
-  // --- Hard-kill any stray HTML validations/patterns from cached builds
-  (function scrubConstraints(){
-    const form = document.getElementById('booking');
-    // Prevent any native submit from Enter key
-    form.addEventListener('submit', e => e.preventDefault());
-    // Remove any stray pattern attributes that might still exist in cached DOM
-    document.querySelectorAll('[pattern]').forEach(el => el.removeAttribute('pattern'));
-  })();
+  // Prevent ANY native validation popups & native submits
+  window.addEventListener('invalid', e => e.preventDefault(), true);
+  window.addEventListener('submit', e => e.preventDefault(), true);
+  // Remove ANY stray pattern attributes if an old cached DOM injects them
+  document.querySelectorAll('[pattern]').forEach(el => el.removeAttribute('pattern'));
 
   // --- Pricing & rules
   const PRICES = {
@@ -182,10 +179,6 @@
     toast: document.getElementById('toast')
   };
 
-  // --- Init
-  document.getElementById('yr').textContent = new Date().getFullYear();
-  els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
-
   // Populate time slots 10:00 to 20:00 every 15 minutes
   (function buildTimeOptions(){
     const start = 10 * 60, end = 20 * 60, step = 15;
@@ -199,12 +192,14 @@
     }
   })();
 
+  // Helpers
   function formatAmPm(hh, mm){
     let h = parseInt(hh,10);
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12; if (h === 0) h = 12;
     return `${String(h)}:${mm} ${ampm}`;
   }
+  document.getElementById('yr').textContent = new Date().getFullYear();
 
   // Phone: digits only, cap at 10
   els.phone.addEventListener('input', ()=>{
@@ -245,25 +240,27 @@
     els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
     els.service.addEventListener(ev, updatePriceUI);
     els.date.addEventListener(ev, updatePriceUI);
-    els.time.addEventListener(ev, ()=>{/* nothing needed; options already valid */});
+    els.time.addEventListener(ev, ()=>{/* dropdown is already valid */});
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
     els.address?.addEventListener(ev, updatePriceUI);
   });
   applyServiceRules(); visitChanged(); updatePriceUI();
 
-  // Submit with loading state (custom validation only)
-  els.confirm.addEventListener('click', async ()=>{
-    // Manual checks (no browser popups)
-    if(!els.name.value.trim()){ alert("Please enter your name."); return; }
-    if(!(els.vehicle.value && els.service.value)){ alert("Please select vehicle and service."); return; }
-    if(!els.date.value){ alert("Please select a date."); return; }
-    if(!els.time.value){ alert("Please choose a time between 10:00 AM and 8:00 PM."); return; }
+  // Manual validation
+  function ensure(v, msg){ if(!v){ alert(msg); return false; } return true; }
 
+  // Submit with loading state (JS only; native submit is blocked)
+  els.confirm.addEventListener('click', async ()=>{
+    if(!ensure(els.name.value.trim(), "Please enter your name.")) return;
     const raw = (els.phone.value || '').replace(/\D/g,'');
     if(raw.length!==10){ alert("Enter a valid 10-digit phone number."); return; }
+    if(!ensure(els.vehicle.value, "Please select a vehicle.")) return;
+    if(!ensure(els.service.value, "Please select a service.")) return;
     if(PRICES?.[els.vehicle.value]?.[els.service.value] == null){
-      alert(`${els.service.value} is not available for ${els.vehicle.value}.`); return;
+      alert(`${els.service.value || 'This service'} is not available for ${els.vehicle.value || 'this vehicle'}.`); return;
     }
+    if(!ensure(els.date.value, "Please select a date.")) return;
+    if(!ensure(els.time.value, "Please choose a time between 10:00 AM and 8:00 PM.")) return;
 
     const payload = {
       name: els.name.value.trim(),
@@ -271,7 +268,7 @@
       vehicle: els.vehicle.value,
       service: els.service.value,
       date: els.date.value,
-      time: els.time.value, // "HH:MM" (24h) from select
+      time: els.time.value,
       visit: getVisit(),
       address: (els.address?.value || "").trim(),
       price: computePrice()
@@ -290,9 +287,9 @@
       if(!r.ok || !data.ok) throw new Error(data?.error || `Save failed (${r.status})`);
 
       showToast("✅ Booking confirmed!");
-      const text = buildSummary();
-      if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-      if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank", "noopener");
+      const text = buildSummary(payload);
+      if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank");
+      if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
 
     }catch(err){
       console.error(err);
@@ -302,19 +299,17 @@
     }
   });
 
-  function buildSummary(){
-    const v = els.vehicle.value, s = els.service.value, visit = getVisit();
-    const extraAddr = visit==="Home Visit" && els.address?.value.trim() ? ` — ${els.address.value.trim()}` : "";
-    const price = computePrice();
+  function buildSummary(p){
+    const extraAddr = p.visit==="Home Visit" && p.address ? ` — ${p.address}` : "";
     return `KLEENKARS BOOKING
 
-Name: ${els.name.value.trim()}
-Customer WhatsApp: +91 ${els.phone.value.trim()}
-Vehicle: ${v}
-Service: ${s}
-Visit: ${visit}${extraAddr}
-Preferred: ${els.date.value} at ${els.time.value}
-Estimated Price: ${price!=null ? "₹"+price : "TBC"}
+Name: ${p.name}
+Customer WhatsApp: +91 ${p.phone}
+Vehicle: ${p.vehicle}
+Service: ${p.service}
+Visit: ${p.visit}${extraAddr}
+Preferred: ${p.date} at ${p.time}
+Estimated Price: ${p.price != null ? "₹"+p.price : "TBC"}
 
 Notes:
 • Bike supports Basic only.
