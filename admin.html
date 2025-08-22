@@ -1,141 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Kleenkars Admin</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kleenkars • Admin Dashboard</title>
 <style>
-  body{font-family:Arial, sans-serif;margin:0;background:#0f1115;color:#eaeaea}
+  body{font-family:Inter,system-ui,Arial;margin:0;background:#0f1115;color:#eaeaea}
   header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#151823}
-  h1{font-size:18px;margin:0}
-  main{padding:16px;max-width:900px;margin:auto}
-  .card{background:#171b26;border:1px solid #23283b;border-radius:12px;padding:14px;margin-bottom:14px}
-  input,select,button{padding:10px;border-radius:8px;border:1px solid #2b2f45;background:#10131b;color:#eaeaea;width:100%}
-  button{background:#3178ff;border:none;cursor:pointer}
+  header h1{margin:0;font-size:18px}
+  main{max-width:1000px;margin:auto;padding:16px}
+  .card{background:#171b26;border:1px solid #23283b;border-radius:12px;padding:14px;margin:10px 0}
+  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #2b2f45;background:#10131b;color:#eaeaea}
+  button{padding:10px 14px;border-radius:8px;border:none;background:#3178ff;color:#fff;cursor:pointer}
   button.secondary{background:#2b2f45}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-  th,td{border-bottom:1px solid #2b2f45;padding:8px;text-align:left}
-  .flex{display:flex;gap:8px;flex-wrap:wrap}
-  .hide{display:none}
+  a{color:#9ab7ff;text-decoration:none}
+  .flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{border-bottom:1px solid #2b2f45;padding:8px;font-size:14px;text-align:left}
+  th{background:#151823}
   .muted{opacity:.8;font-size:12px}
+  .hide{display:none}
 </style>
+<meta name="robots" content="noindex,nofollow"/>
 </head>
 <body>
 <header>
   <h1>🔐 Kleenkars Admin</h1>
-  <button class="secondary" id="logoutBtn">Logout</button>
+  <nav class="flex">
+    <a href="/">← Back to site</a>
+    <button class="secondary" id="logoutBtn">Logout</button>
+  </nav>
 </header>
 
 <main>
-  <!-- Login -->
+  <!-- Login card -->
   <div id="loginCard" class="card">
-    <h3>Owner Login</h3>
-    <div class="row">
-      <input id="pwd" type="password" placeholder="Admin password"/>
+    <h2>Owner Login</h2>
+    <div class="flex" style="gap:8px">
+      <input id="pw" type="password" placeholder="Admin password (set in Netlify)" />
       <button id="loginBtn">Login</button>
     </div>
-    <p class="muted">Set in Netlify → Environment variables → <code>ADMIN_PASSWORD</code>.</p>
+    <div id="loginStatus" class="muted"></div>
   </div>
 
+  <!-- Dashboard -->
   <div id="dash" class="hide">
-
-    <!-- Services -->
     <div class="card">
-      <h3>🛠 Services & Prices</h3>
-      <div class="row">
-        <input id="svcName" placeholder="Service name (e.g., Basic Car Wash)"/>
-        <select id="svcVehicle"><option>Bike</option><option selected>Car</option><option>SUV</option></select>
-        <input id="svcPrice" type="number" placeholder="Price (₹)"/>
-        <select id="svcActive"><option value="true" selected>Active</option><option value="false">Inactive</option></select>
+      <div class="flex" style="margin-bottom:8px">
+        <button id="btnStats">📊 Stats</button>
+        <button id="btnBookings">📖 Bookings</button>
+        <button id="btnServices">🛠 Services</button>
+        <a href="/admin-theme.html" class="secondary" style="padding:10px 14px;border-radius:8px">🎨 Customize Landing Page</a>
       </div>
-      <div class="flex" style="margin-top:10px"><button id="addSvc">Add service</button></div>
-      <table id="svcTbl">
-        <thead><tr><th>ID</th><th>Name</th><th>Vehicle</th><th>Price</th><th>Active</th><th>Actions</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p class="muted">These feed the customer page dropdown automatically.</p>
+      <div id="pane" class="muted">Choose a section above.</div>
     </div>
-
-    <!-- Bookings -->
-    <div class="card">
-      <h3>🧾 Recent Bookings</h3>
-      <div class="flex">
-        <button id="refreshBookings">Refresh</button>
-        <a id="exportCsv" class="secondary" href="#" target="_blank" style="padding:10px 12px;border-radius:8px;text-decoration:none;">Export CSV</a>
-      </div>
-      <table id="bookingsTbl">
-        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Service</th><th>Vehicle</th><th>Date/Time</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
   </div>
 </main>
 
 <script>
 const API = {
   login: '/.netlify/functions/admin-login',
+  bookings: '/.netlify/functions/admin-bookings',
   services: '/.netlify/functions/admin-services',
-  bookings: '/.netlify/functions/admin-bookings'
+  stats: '/.netlify/functions/admin-stats'
 };
+const tokenKey = 'kk_token';
+const loginCard = document.getElementById('loginCard');
+const dash = document.getElementById('dash');
+const pane = document.getElementById('pane');
+const loginStatus = document.getElementById('loginStatus');
 
-const token = () => localStorage.getItem('kk_token');
+// Helpers
+const token = () => localStorage.getItem(tokenKey);
 const auth = () => token() ? { 'authorization': 'Bearer ' + token() } : {};
-function show(id, on=true){ document.getElementById(id).classList[on?'remove':'add']('hide'); }
+function showDash(on){ loginCard.classList.toggle('hide', on); dash.classList.toggle('hide', !on); }
+function json(body, status=200){ return new Response(JSON.stringify(body), {status, headers:{'content-type':'application/json'}}); }
 
-async function postJSON(url, data){
-  const r = await fetch(url,{method:'POST',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
-  return r.json();
-}
-async function putJSON(url, data){
-  const r = await fetch(url,{method:'PUT',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
-  return r.json();
-}
-async function delJSON(url, data){
-  const r = await fetch(url,{method:'DELETE',headers:{'content-type':'application/json',...auth()},body:JSON.stringify(data)});
-  return r.json();
-}
-async function getJSON(url){
-  const r = await fetch(url,{headers:{...auth()}});
-  return r.json();
-}
-
-// Login / Logout
-document.getElementById('loginBtn').onclick = async () => {
-  const out = await postJSON(API.login, { password: document.getElementById('pwd').value });
-  if (out.token) { localStorage.setItem('kk_token', out.token); await init(); }
-  else alert(out.error || 'Login failed');
+// Login flow
+document.getElementById('loginBtn').onclick = async ()=>{
+  const pw = document.getElementById('pw').value.trim();
+  if (!pw) { loginStatus.textContent = 'Enter password'; return; }
+  loginStatus.textContent = 'Signing in…';
+  try {
+    const r = await fetch(API.login, { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ password: pw }) });
+    const out = await r.json();
+    if (out.token) {
+      localStorage.setItem(tokenKey, out.token);
+      document.getElementById('pw').value = '';
+      loginStatus.textContent = '';
+      showDash(true);
+      loadStats();
+    } else {
+      loginStatus.textContent = out.error || 'Login failed';
+    }
+  } catch(e){ loginStatus.textContent = 'Network error.'; }
 };
-document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('kk_token'); location.reload(); };
+document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(tokenKey); showDash(false); };
 
-// Services
-async function loadServices(){
-  const out = await getJSON(API.services); // GET is public
-  const tb = document.querySelector('#svcTbl tbody');
-  tb.innerHTML = (out.services||[]).map(s => `
-    <tr>
-      <td>${s.id}</td>
-      <td><input value="${s.name}" data-id="${s.id}" data-field="name"/></td>
-      <td>
-        <select data-id="${s.id}" data-field="vehicle_type">
-          ${['Bike','Car','SUV'].map(v=>`<option ${s.vehicle_type===v?'selected':''}>${v}</option>`).join('')}
-        </select>
-      </td>
-      <td><input type="number" value="${s.price}" data-id="${s.id}" data-field="price"/></td>
-      <td>
-        <select data-id="${s.id}" data-field="active">
-          <option value="true" ${s.active?'selected':''}>Active</option>
-          <option value="false" ${!s.active?'selected':''}>Inactive</option>
-        </select>
-      </td>
-      <td class="flex">
-        <button onclick="saveRow(${s.id})">Save</button>
-        <button class="secondary" onclick="delRow(${s.id})">Delete</button>
-      </td>
-    </tr>`).join('');
+// Initial state
+if (token()) showDash(true);
+
+// Nav buttons
+document.getElementById('btnStats').onclick = loadStats;
+document.getElementById('btnBookings').onclick = loadBookings;
+document.getElementById('btnServices').onclick = loadServices;
+
+// Panels
+async function loadStats(){
+  pane.innerHTML = '<div class="muted">Loading stats…</div>';
+  try{
+    const r = await fetch(API.stats, { headers: auth() });
+    const s = await r.json();
+    if (s.error) { pane.textContent = s.error; return; }
+    pane.innerHTML = `
+      <div><b>Year:</b> ${s.year}</div>
+      <div><b>YTD:</b> ₹${s.ytd.revenue} from ${s.ytd.orders} orders — Profit ₹${s.ytd.profit}</div>
+      <div><b>Last 30:</b> ₹${s.last30.revenue} — Avg/day ₹${s.last30.avg_daily_revenue}</div>
+      <div><b>Projection:</b> Revenue ₹${s.projection.revenue}, Profit ₹${s.projection.profit} (cost ratio ${Math.round(s.projection.cost_ratio*100)}%)</div>
+    `;
+  } catch(e){ pane.textContent = 'Failed to load stats.'; }
 }
+
+async function loadBookings(){
+  pane.innerHTML = '<div class="muted">Loading bookings…</div>';
+  try{
+    const r = await fetch(API.bookings + '?limit=500', { headers: auth() });
+    const out = await r.json();
+    if (out.error) { pane.textContent = out.error; return; }
+    const rows = out.bookings.map(b=>`
+      <tr>
+        <td>${b.id}</td><td>${b.name}</td>
+        <td><a href="https://wa.me/${b.phone}" target="_blank">${b.phone}</a></td>
+        <td>${b.service}</td><td>${b.vehicle}</td>
+        <td>${new Date(b.datetime).toLocaleString()}</td>
+      </tr>`).join('');
+    pane.innerHTML = `
+      <div class="flex" style="margin-bottom:8px">
+        <a class="secondary" href="${API.bookings}?csv=1" target="_blank" style="padding:8px 12px;border-radius:8px;text-decoration:none">⬇️ Export CSV</a>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Service</th><th>Vehicle</th><th>Date/Time</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e){ pane.textContent = 'Failed to load bookings.'; }
+}
+
+async function loadServices(){
+  pane.innerHTML = '<div class="muted">Loading services…</div>';
+  try{
+    // GET (public) to list
+    const r = await fetch(API.services);
+    const out = await r.json();
+    if (out.error) { pane.textContent = out.error; return; }
+
+    // Render table with inline editing
+    const rows = out.services.map(s=>`
+      <tr>
+        <td>${s.id}</td>
+        <td><input value="${s.name}" data-id="${s.id}" data-f="name"/></td>
+        <td>
+          <select data-id="${s.id}" data-f="vehicle_type">
+            ${['Bike','Car','SUV'].map(v=>`<option ${s.vehicle_type===v?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </td>
+        <td><input type="number" value="${s.price}" data-id="${s.id}" data-f="price"/></td>
+        <td>
+          <select data-id="${s.id}" data-f="active">
+            <option value="true" ${s.active?'selected':''}>Active</option>
+            <option value="false" ${!s.active?'selected':''}>Inactive</option>
+          </select>
+        </td>
+        <td class="flex"><button onclick="saveRow(${s.id})">Save</button><button class="secondary" onclick="delRow(${s.id})">Delete</button></td>
+      </tr>`).join('');
+
+    pane.innerHTML = `
+      <div class="card" style="margin:0 0 10px">
+        <div class="flex">
+          <input id="svcName" placeholder="Service name" style="flex:2"/>
+          <select id="svcVehicle"><option>Bike</option><option selected>Car</option><option>SUV</option></select>
+          <input id="svcPrice" type="number" placeholder="Price (₹)" style="max-width:140px"/>
+          <select id="svcActive"><option value="true" selected>Active</option><option value="false">Inactive</option></select>
+          <button id="addSvc">Add</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Vehicle</th><th>Price</th><th>Active</th><th>Actions</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    document.getElementById('addSvc').onclick = async ()=>{
+      const name = document.getElementById('svcName').value.trim();
+      const vehicle_type = document.getElementById('svcVehicle').value;
+      const price = Number(document.getElementById('svcPrice').value);
+      const active = document.getElementById('svcActive').value === 'true';
+      if (!name || !price) return alert('Fill name & price');
+      const res = await fetch(API.services, { method:'POST', headers:{'content-type':'application/json', ...auth()}, body: JSON.stringify({ name, vehicle_type, price, active }) });
+      const out = await res.json();
+      if (out.error) alert(out.error); else loadServices();
+    };
+
+  } catch(e){ pane.textContent = 'Failed to load services.'; }
+}
+
+// Save/Delete handlers (need global)
 window.saveRow = async function(id){
-  const sel = (f) => document.querySelector(`[data-id="${id}"][data-field="${f}"]`);
+  const sel = (f)=>document.querySelector(`[data-id="${id}"][data-f="${f}"]`);
   const payload = {
     id,
     name: sel('name').value,
@@ -143,52 +212,16 @@ window.saveRow = async function(id){
     price: Number(sel('price').value),
     active: sel('active').value === 'true'
   };
-  const out = await putJSON(API.services, payload);
+  const r = await fetch(API.services, { method:'PUT', headers:{'content-type':'application/json', ...auth()}, body: JSON.stringify(payload) });
+  const out = await r.json();
   if (out.error) alert(out.error); else alert('Saved');
-  await loadServices();
 };
 window.delRow = async function(id){
   if (!confirm('Delete this service?')) return;
-  const out = await delJSON(API.services, { id });
-  if (out.error) alert(out.error); else await loadServices();
+  const r = await fetch(API.services, { method:'DELETE', headers:{'content-type':'application/json', ...auth()}, body: JSON.stringify({ id }) });
+  const out = await r.json();
+  if (out.error) alert(out.error); else loadServices();
 };
-document.getElementById('addSvc').onclick = async () => {
-  const name = document.getElementById('svcName').value.trim();
-  const vehicle_type = document.getElementById('svcVehicle').value;
-  const price = Number(document.getElementById('svcPrice').value);
-  const active = document.getElementById('svcActive').value === 'true';
-  if (!name || !price) return alert('Fill name and price');
-  const out = await postJSON(API.services, { name, vehicle_type, price, active });
-  if (out.error) alert(out.error); else {
-    document.getElementById('svcName').value = '';
-    document.getElementById('svcPrice').value = '';
-    await loadServices();
-  }
-};
-
-// Bookings
-async function loadBookings(){
-  const out = await getJSON(API.bookings + '?limit=200');
-  if (out.error) { alert(out.error); return; }
-  const tb = document.querySelector('#bookingsTbl tbody');
-  tb.innerHTML = (out.bookings||[]).map(b => `
-    <tr>
-      <td>${b.id}</td><td>${b.name}</td>
-      <td><a href="https://wa.me/${b.phone}" target="_blank">${b.phone}</a></td>
-      <td>${b.service}</td><td>${b.vehicle}</td>
-      <td>${new Date(b.datetime).toLocaleString()}</td>
-    </tr>`).join('');
-  document.getElementById('exportCsv').href = API.bookings + '?csv=1';
-}
-document.getElementById('refreshBookings').onclick = loadBookings;
-
-// Init
-async function init(){
-  if (!token()) { show('loginCard', true); show('dash', false); return; }
-  show('loginCard', false); show('dash', true);
-  await Promise.all([loadServices(), loadBookings()]);
-}
-init();
 </script>
 </body>
 </html>
