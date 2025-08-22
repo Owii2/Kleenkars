@@ -24,12 +24,10 @@
     button { margin-top:18px; padding:14px; width:100%; background:var(--brand); color:#fff; border:none; border-radius:10px; font-size:17px; cursor:pointer; }
     button:hover { filter:brightness(0.95); }
     small.help { color:#666; display:block; margin-top:4px; }
-    /* Popup */
     #previewBox { display:none; position:fixed; inset:auto 0 0 0; margin:auto; top:12%; width:min(92%,420px); background:#fff; color:#111; border:2px solid var(--brand); border-radius:12px; padding:16px; z-index:10; }
     #previewBox h3 { margin:0 0 8px; }
     #previewBox pre { white-space:pre-wrap; font-size:14px; background:#fafafa; padding:10px; border-radius:8px; border:1px solid #eee; }
     #closePreview { margin-top:10px; background:#dc3545; }
-    /* Dark mode */
     body.dark { background:var(--darkbg); color:#eee; }
     body.dark header { background:var(--darkpanel); }
     body.dark input, body.dark select { background:var(--darkpanel); color:#fff; border:1px solid #555; }
@@ -94,17 +92,17 @@
   <script>
     // ====== EDIT THESE TWO LINES (digits only, no +) ======
     const ADMIN_WHATSAPP   = "91XXXXXXXXXX"; // admin receives new booking alert
-    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // optional, not required
+    const BUSINESS_WHATSAPP = "91XXXXXXXXXX"; // optional
     // ======================================================
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
     let selectedVehicle = "Car";
-    let priceList = { Bike: [], Car: [], SUV: [] }; // will be filled from DB
+    let priceList = { Bike: [], Car: [], SUV: [] }; // filled from DB
 
     function toggleTheme(){ document.body.classList.toggle('dark'); }
 
-    // Keep iPhone picker sensible
+    // Set min datetime to now (iPhone-friendly)
     (function setMinDate() {
       const dt = document.getElementById('datetime');
       const now = new Date();
@@ -164,7 +162,7 @@
         }
       } catch (e){
         console.error('Failed to load services', e);
-        // fallback (so page still works if function down)
+        // fallback so page still works if function down
         priceList = {
           Bike: [{ name: "Basic Car Wash", price: 50 }],
           Car: [
@@ -183,7 +181,6 @@
       }
     }
 
-    // Submit handler
     document.getElementById('bookingForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -227,13 +224,11 @@ See you soon ✨`;
         const result = await res.json();
 
         if (result.success) {
-          // Preview & WhatsApp
           document.getElementById('adminMsg').textContent = "📩 Admin WhatsApp:\n\n" + adminMsg;
           document.getElementById('custMsg').textContent  = "📲 Customer WhatsApp:\n\n" + custMsg;
           document.getElementById('previewBox').style.display = 'block';
           alert("✅ Booking saved!");
 
-          // Open WhatsApp chats on iPhone
           if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`, '_blank');
           if (phone)         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`, '_blank');
         } else {
@@ -245,7 +240,6 @@ See you soon ✨`;
       }
     });
 
-    // Init
     (async function init(){
       await loadServicesForPublic();
       selectVehicle("Car");
