@@ -1,210 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kleenkars — Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kleenkars Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:1200px;margin:auto;padding:20px}
-  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  input,select,button{
-    padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0f0f16;color:var(--ink);outline:none
-  }
-  button{cursor:pointer;font-weight:600}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),#13131b;border:1px solid var(--border);border-radius:14px}
-  table{width:100%;border-collapse:collapse}
-  th,td{border-bottom:1px solid #1f1f2b;padding:10px 12px;vertical-align:top}
-  th{position:sticky;top:0;background:#141420;z-index:1}
-  tbody tr:nth-child(even){background:#101018}
-  .muted{color:var(--muted)}
-  .badge{border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:.8rem;color:var(--muted)}
-  .status{margin-left:8px}
-  .scroll{max-height:70vh;overflow:auto;border-radius:14px}
-  .right{display:flex;gap:8px;align-items:center}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b0b12;color:#e9e9ef}
+  header{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#13131b;border-bottom:1px solid #242433}
+  .title{font-size:1.3rem;font-weight:800}
+  .btn{background:#7a3cff;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn:hover{background:#692fe0}
+  .container{padding:20px;max-width:1000px;margin:auto}
+  table{width:100%;border-collapse:collapse;margin-top:20px}
+  th,td{padding:10px;border:1px solid #242433;text-align:left}
+  th{background:#1d1d29}
+  .muted{color:#b8b8c6;font-size:.9rem}
+  .login{max-width:400px;margin:80px auto;padding:24px;background:#13131b;border:1px solid #242433;border-radius:12px}
+  .login h2{margin-top:0;font-size:1.2rem}
+  .login input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #242433;background:#0f0f16;color:#fff}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1 style="margin:0">Kleenkars — Admin</h1>
-        <div class="muted">Live bookings from Neon (latest 500)</div>
-      </div>
-      <div class="controls">
-        <input id="q" placeholder="Search name/phone/vehicle/service" />
-        <select id="vehicle">
-          <option value="">All vehicles</option>
-          <option>Bike</option>
-          <option>Hatch/Sedan</option>
-          <option>SUV</option>
-        </select>
-        <select id="service">
-          <option value="">All services</option>
-          <option>Basic</option>
-          <option>Premium</option>
-          <option>Detailing</option>
-        </select>
-        <button id="export">Export CSV</button>
-        <span class="badge" id="status">Loading…</span>
-      </div>
-    </header>
+  <header>
+    <div class="title">Kleenkars Admin</div>
+    <button id="logout" class="btn" style="display:none;">Logout</button>
+  </header>
 
-    <div class="card scroll">
-      <table id="t">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Created</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Vehicle</th>
-            <th>Service</th>
-            <th>Visit</th>
-            <th>Date/Time</th>
-            <th>Price</th>
-            <th>Address</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <div id="loginWrap" class="login">
+    <h2>Admin Login</h2>
+    <input id="user" type="text" placeholder="Username" required>
+    <input id="pass" type="password" placeholder="Password" required>
+    <button id="loginBtn" class="btn">Login</button>
+    <p class="muted">Only for authorized staff.</p>
+  </div>
 
-    <div class="right" style="margin-top:10px">
-      <span class="muted" id="count"></span>
-      <span class="status muted" id="updated"></span>
-    </div>
+  <div id="adminWrap" class="container" style="display:none;">
+    <h2>Bookings</h2>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>Service</th><th>Date/Time</th><th>Visit</th><th>Price</th></tr>
+      </thead>
+      <tbody id="bookings"></tbody>
+    </table>
   </div>
 
 <script>
-const API = '/.netlify/functions/admin-bookings';
-let DATA = [];
+  const els = {
+    loginWrap: document.getElementById('loginWrap'),
+    adminWrap: document.getElementById('adminWrap'),
+    loginBtn: document.getElementById('loginBtn'),
+    logout: document.getElementById('logout'),
+    user: document.getElementById('user'),
+    pass: document.getElementById('pass'),
+    bookings: document.getElementById('bookings')
+  };
 
-function rs(amount){
-  try {
-    return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(amount);
-  } catch { return '₹'+amount; }
-}
+  // Save token
+  function saveToken(t){ localStorage.setItem("kleenkars_token", t); }
+  function getToken(){ return localStorage.getItem("kleenkars_token"); }
+  function clearToken(){ localStorage.removeItem("kleenkars_token"); }
 
-function fmtDateTime(iso){
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-  } catch { return iso; }
-}
-
-function render(rows){
-  const tb = document.querySelector('#t tbody');
-  tb.innerHTML = '';
-  rows.forEach(b=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${b.id}</td>
-      <td class="muted">${fmtDateTime(b.created_at)}</td>
-      <td>${escapeHtml(b.name)}</td>
-      <td>+91 ${escapeHtml(b.phone)}</td>
-      <td>${escapeHtml(b.vehicle)}</td>
-      <td>${escapeHtml(b.service)}</td>
-      <td>${escapeHtml(b.visit)}</td>
-      <td>${b.date_on} ${b.time_at}</td>
-      <td>${rs(b.price)}</td>
-      <td>${escapeHtml(b.address || '')}</td>
-    `;
-    tb.appendChild(tr);
-  });
-  document.getElementById('count').textContent = `${rows.length} shown`;
-  document.getElementById('updated').textContent = `Updated: ${fmtDateTime(new Date().toISOString())}`;
-}
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-function applyFilters(){
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const veh = document.getElementById('vehicle').value;
-  const svc = document.getElementById('service').value;
-  let rows = DATA.slice();
-
-  if (q) {
-    rows = rows.filter(b =>
-      (b.name||'').toLowerCase().includes(q) ||
-      (b.phone||'').toLowerCase().includes(q) ||
-      (b.vehicle||'').toLowerCase().includes(q) ||
-      (b.service||'').toLowerCase().includes(q) ||
-      (b.address||'').toLowerCase().includes(q)
-    );
-  }
-  if (veh) rows = rows.filter(b => b.vehicle === veh);
-  if (svc) rows = rows.filter(b => b.service === svc);
-
-  render(rows);
-}
-
-async function load(){
-  const status = document.getElementById('status');
-  status.textContent = 'Loading…';
-  try{
-    const r = await fetch(API, { cache: 'no-store' });
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error || 'Failed');
-    DATA = d.bookings || [];
-    applyFilters();
-    status.textContent = 'Live';
-  }catch(e){
-    console.error(e);
-    status.textContent = 'Error';
-  }
-}
-
-function toCSV(rows){
-  const cols = ['id','created_at','name','phone','vehicle','service','visit','date_on','time_at','price','address'];
-  const header = cols.join(',');
-  const lines = rows.map(b => cols.map(k => csvCell(b[k])).join(','));
-  return [header, ...lines].join('\n');
-}
-function csvCell(v){
-  if (v == null) return '';
-  const s = String(v).replace(/"/g,'""');
-  return `"${s}"`;
-}
-function downloadCSV(){
-  const rows = document.querySelector('#t tbody').children;
-  // reconstruct from rendered table to match filters
-  let filtered = [];
-  for (const tr of rows) {
-    const cells = tr.children;
-    filtered.push({
-      id: cells[0].textContent,
-      created_at: cells[1].textContent,
-      name: cells[2].textContent,
-      phone: cells[3].textContent.replace('+91 ',''),
-      vehicle: cells[4].textContent,
-      service: cells[5].textContent,
-      visit: cells[6].textContent,
-      date_on: cells[7].textContent.split(' ')[0],
-      time_at: cells[7].textContent.split(' ')[1],
-      price: cells[8].textContent.replace(/[^\d]/g,''),
-      address: cells[9].textContent
+  async function login(){
+    const r = await fetch("/.netlify/functions/admin-login",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({user:els.user.value,pass:els.pass.value})
     });
+    const d = await r.json();
+    if(r.ok && d.token){ saveToken(d.token); showAdmin(); }
+    else alert(d.error||"Login failed");
   }
-  const csv = toCSV(filtered);
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `kleenkars-bookings-${Date.now()}.csv`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
 
-document.getElementById('q').addEventListener('input', applyFilters);
-document.getElementById('vehicle').addEventListener('change', applyFilters);
-document.getElementById('service').addEventListener('change', applyFilters);
-document.getElementById('export').addEventListener('click', downloadCSV);
+  async function loadBookings(){
+    const token = getToken();
+    const r = await fetch("/.netlify/functions/admin-bookings",{ headers:{ Authorization:`Bearer ${token}` }});
+    const d = await r.json();
+    els.bookings.innerHTML="";
+    if(d.ok){
+      d.rows.forEach(b=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML = `<td>${b.name}</td><td>${b.phone}</td><td>${b.vehicle}</td><td>${b.service}</td><td>${b.date} ${b.time}</td><td>${b.visit}</td><td>₹${b.price}</td>`;
+        els.bookings.appendChild(tr);
+      });
+    } else {
+      alert(d.error||"Failed to load bookings");
+    }
+  }
 
-load();
-setInterval(load, 7000); // auto-refresh every 7s
+  function showAdmin(){
+    els.loginWrap.style.display="none";
+    els.adminWrap.style.display="block";
+    els.logout.style.display="inline-block";
+    loadBookings();
+  }
+
+  els.loginBtn.addEventListener('click', login);
+  els.logout.addEventListener('click', ()=>{ clearToken(); location.reload(); });
+
+  // Auto-login if token exists
+  if(getToken()){ showAdmin(); }
 </script>
 </body>
 </html>
