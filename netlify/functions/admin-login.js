@@ -1,12 +1,5 @@
 // netlify/functions/admin-login.js
-import jwt from "jsonwebtoken";
-
-// Use env vars instead of hardcoded
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASS = process.env.ADMIN_PASS;
-
-// Use a separate secret key for signing tokens
-const JWT_SECRET = process.env.JWT_SECRET || "kleenkars-secret";
+// Simple, dependency-free admin login using env vars and a base64 token.
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
@@ -14,39 +7,37 @@ export async function handler(event) {
   }
 
   try {
-    const { username, password } = JSON.parse(event.body || "{}");
+    const body = JSON.parse(event.body || "{}");
+
+    // Accept either {user, pass} or {username, password}
+    const username = body.user ?? body.username ?? "";
+    const password = body.pass ?? body.password ?? "";
+
+    const ADMIN_USER = process.env.ADMIN_USER || "admin";
+    const ADMIN_PASS = process.env.ADMIN_PASS || "kleenkars123";
 
     if (!username || !password) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ ok: false, error: "Missing credentials" })
-      };
+      return json(400, { ok: false, error: "Missing credentials" });
     }
 
-    // Compare with env vars
     if (username === ADMIN_USER && password === ADMIN_PASS) {
-      // issue token
-      const token = jwt.sign(
-        { role: "admin", user: username },
-        JWT_SECRET,
-        { expiresIn: "2h" }
-      );
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ ok: true, token })
-      };
+      // Create a simple token (base64 of user + timestamp + random)
+      const raw = `${username}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+      const token = Buffer.from(raw).toString("base64");
+      return json(200, { ok: true, token });
     }
 
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ ok: false, error: "Invalid credentials" })
-    };
+    return json(401, { ok: false, error: "Invalid credentials" });
   } catch (err) {
     console.error("admin-login error:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ ok: false, error: "Server error" })
-    };
+    return json(500, { ok: false, error: "Server error" });
   }
+}
+
+function json(statusCode, obj) {
+  return {
+    statusCode,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(obj),
+  };
 }
