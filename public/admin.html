@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kleenkars — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:1200px;margin:auto;padding:20px}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input,select,button{padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0f0f16;color:var(--ink);outline:none}
+  button{cursor:pointer;font-weight:600}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),#13131b;border:1px solid var(--border);border-radius:14px}
+  table{width:100%;border-collapse:collapse}
+  th,td{border-bottom:1px solid #1f1f2b;padding:10px 12px;vertical-align:top}
+  th{position:sticky;top:0;background:#141420;z-index:1}
+  tbody tr:nth-child(even){background:#101018}
+  .muted{color:var(--muted)}
+  .badge{border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:.8rem;color:var(--muted)}
+  .status{margin-left:8px}
+  .scroll{max-height:70vh;overflow:auto;border-radius:14px}
+  .right{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 style="margin:0">Kleenkars — Admin</h1>
+        <div class="muted">Live bookings from Neon (latest 500)</div>
+      </div>
+      <div class="controls">
+        <input id="q" placeholder="Search name/phone/vehicle/service" />
+        <select id="vehicle">
+          <option value="">All vehicles</option>
+          <option>Bike</option>
+          <option>Hatch/Sedan</option>
+          <option>SUV</option>
+        </select>
+        <select id="service">
+          <option value="">All services</option>
+          <option>Basic</option>
+          <option>Premium</option>
+          <option>Detailing</option>
+        </select>
+        <button id="export">Export CSV</button>
+        <button id="logout" title="Sign out">Logout</button>
+        <span class="badge" id="status">Loading…</span>
+      </div>
+    </header>
+
+    <div class="card scroll">
+      <table id="t">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Created</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Vehicle</th>
+            <th>Service</th>
+            <th>Visit</th>
+            <th>Date/Time</th>
+            <th>Price</th>
+            <th>Address</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="right" style="margin-top:10px">
+      <span class="muted" id="count"></span>
+      <span class="status muted" id="updated"></span>
+    </div>
+  </div>
+
+<script>
+const API = '/.netlify/functions/admin-bookings';
+let DATA = [];
+
+document.getElementById('logout').addEventListener('click', async ()=>{
+  try{ await fetch('/.netlify/functions/admin-logout', { method:'POST' }); }
+  finally{ window.location.href = '/login.html'; }
+});
+
+function rs(amount){
+  try { return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(amount); }
+  catch { return '₹'+amount; }
+}
+function fmtDateTime(iso){
+  try { return new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); }
+  catch { return iso; }
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function render(rows){
+  const tb = document.querySelector('#t tbody'); tb.innerHTML = '';
+  rows.forEach(b=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${b.id}</td>
+      <td class="muted">${fmtDateTime(b.created_at)}</td>
+      <td>${escapeHtml(b.name)}</td>
+      <td>+91 ${escapeHtml(b.phone)}</td>
+      <td>${escapeHtml(b.vehicle)}</td>
+      <td>${escapeHtml(b.service)}</td>
+      <td>${escapeHtml(b.visit)}</td>
+      <td>${b.date_on} ${b.time_at}</td>
+      <td>${rs(b.price)}</td>
+      <td>${escapeHtml(b.address || '')}</td>
+    `;
+    tb.appendChild(tr);
+  });
+  document.getElementById('count').textContent = `${rows.length} shown`;
+  document.getElementById('updated').textContent = `Updated: ${fmtDateTime(new Date().toISOString())}`;
+}
+
+function applyFilters(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const veh = document.getElementById('vehicle').value;
+  const svc = document.getElementById('service').value;
+  let rows = DATA.slice();
+
+  if (q) {
+    rows = rows.filter(b =>
+      (b.name||'').toLowerCase().includes(q) ||
+      (b.phone||'').toLowerCase().includes(q) ||
+      (b.vehicle||'').toLowerCase().includes(q) ||
+      (b.service||'').toLowerCase().includes(q) ||
+      (b.address||'').toLowerCase().includes(q)
+    );
+  }
+  if (veh) rows = rows.filter(b => b.vehicle === veh);
+  if (svc) rows = rows.filter(b => b.service === svc);
+
+  render(rows);
+}
+
+async function load(){
+  const status = document.getElementById('status');
+  status.textContent = 'Loading…';
+  try{
+    const r = await fetch(API, { cache: 'no-store' });
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error || 'Failed');
+    DATA = d.bookings || [];
+    applyFilters();
+    status.textContent = 'Live';
+  }catch(e){
+    console.error(e);
+    status.textContent = 'Error';
+  }
+}
+
+function toCSV(rows){
+  const cols = ['id','created_at','name','phone','vehicle','service','visit','date_on','time_at','price','address'];
+  const header = cols.join(',');
+  const lines = rows.map(b => cols.map(k => csvCell(b[k])).join(','));
+  return [header, ...lines].join('\n');
+}
+function csvCell(v){ if (v == null) return ''; const s = String(v).replace(/"/g,'""'); return `"${s}"`; }
+function downloadCSV(){
+  // Use DATA filtered by current UI
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const veh = document.getElementById('vehicle').value;
+  const svc = document.getElementById('service').value;
+  let rows = DATA.slice();
+  if (q) rows = rows.filter(b =>
+    (b.name||'').toLowerCase().includes(q) ||
+    (b.phone||'').toLowerCase().includes(q) ||
+    (b.vehicle||'').toLowerCase().includes(q) ||
+    (b.service||'').toLowerCase().includes(q) ||
+    (b.address||'').toLowerCase().includes(q)
+  );
+  if (veh) rows = rows.filter(b => b.vehicle === veh);
+  if (svc) rows = rows.filter(b => b.service === svc);
+
+  const csv = toCSV(rows);
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `kleenkars-bookings-${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+document.getElementById('q').addEventListener('input', applyFilters);
+document.getElementById('vehicle').addEventListener('change', applyFilters);
+document.getElementById('service').addEventListener('change', applyFilters);
+document.getElementById('export').addEventListener('click', downloadCSV);
+
+load();
+setInterval(load, 7000);
+</script>
+</body>
+</html>
