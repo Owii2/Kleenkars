@@ -7,6 +7,6 @@
     "node": ">=18 <=22"
   },
   "dependencies": {
-    "@netlify/neon": "latest"
+    "@neondatabase/serverless": "^0.9.0"
   }
 }
