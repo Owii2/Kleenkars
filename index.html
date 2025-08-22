@@ -135,6 +135,7 @@
   <div class="toast" id="toast">✅ Booking confirmed!</div>
 
 <script>
+/* ---------- Elements ---------- */
 const els = {
   vehicle: document.getElementById('vehicle'),
   service: document.getElementById('service'),
@@ -152,51 +153,83 @@ const els = {
 };
 document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
+els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
-// store services pricing from admin DB
-let SERVICES = []; 
-async function loadServices(){
-  try{
-    const r = await fetch("/.netlify/functions/admin-services");
-    const d = await r.json();
-    if(d.ok){ SERVICES = d.rows || []; }
-  }catch(e){ console.error("Service load failed", e); }
+/* ---------- Public services fetch with graceful fallback ---------- */
+/* expected row shape: { name: string, bike: number|null, sedan: number|null, suv: number|null } */
+let SERVICES = [];
+const FALLBACK = [
+  { name:"Basic",     bike:50,  sedan:150,  suv:200 },
+  { name:"Premium",   bike:null,sedan:200,  suv:250 },
+  { name:"Detailing", bike:null,sedan:1500, suv:2500 }
+];
+
+async function tryFetch(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const d = await r.json();
+  // support both {ok:true, rows:[...]} and plain arrays
+  if(Array.isArray(d)) return d;
+  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
+  throw new Error("Unexpected response");
 }
-loadServices();
 
+async function loadServices(){
+  const candidates = [
+    "/.netlify/functions/admin-services?public=1", // if you allow GET public in your function
+    "/.netlify/functions/site-settings?fn=services", // if you expose via site-settings
+    "/.netlify/functions/services" // optional dedicated public endpoint if you add later
+  ];
+  for(const url of candidates){
+    try{
+      const rows = await tryFetch(url);
+      if(rows && rows.length){ SERVICES = rows; return; }
+    }catch(e){ /* continue to next */ }
+  }
+  // fallback to built-in prices if no public API available
+  SERVICES = FALLBACK;
+}
+await loadServices();
+
+/* ---------- Helpers ---------- */
 function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
+
+function servicesForVehicle(v){
+  if(!v) return [];
+  const key = v==="Bike" ? "bike" : (v==="SUV" ? "suv" : "sedan");
+  return SERVICES.filter(s => s && s.name && s[key]!=null).map(s => ({
+    name:s.name, price:s[key]
+  }));
+}
 
 function populateServices(){
   const v = els.vehicle.value;
-  els.service.innerHTML = `<option value="" disabled selected>Select</option>`;
-  if(!v){ els.serviceHelp.textContent="Choose a vehicle to see pricing."; return; }
-  const matches = SERVICES.filter(s=> s.name );
-  matches.forEach(s=>{
-    let price = null;
-    if(v==="Bike") price = s.bike;
-    if(v==="Hatch/Sedan") price = s.sedan;
-    if(v==="SUV") price = s.suv;
-    if(price!=null){
-      const opt = document.createElement("option");
-      opt.value = s.name;
-      opt.textContent = `${s.name} — ₹${price}`;
-      opt.dataset.price = price;
-      els.service.appendChild(opt);
-    }
+  els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
+  const list = servicesForVehicle(v);
+  if(list.length===0){
+    els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
+    updatePriceUI();
+    return;
+  }
+  list.forEach(item=>{
+    const opt = document.createElement("option");
+    opt.value = item.name;
+    opt.textContent = `${item.name} — ₹${item.price}`;
+    opt.dataset.price = item.price;
+    els.service.appendChild(opt);
   });
-  els.serviceHelp.textContent = matches.length ? "Select a service" : "No services available.";
+  // build dynamic help line with all prices for the chosen vehicle
+  els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
+  updatePriceUI();
 }
 
 function computePrice(){
   const v = els.vehicle.value, s = els.service.value;
   if(!v || !s) return null;
-  const svc = SERVICES.find(x=>x.name===s);
-  if(!svc) return null;
-  let p = null;
-  if(v==="Bike") p = svc.bike;
-  if(v==="Hatch/Sedan") p = svc.sedan;
-  if(v==="SUV") p = svc.suv;
-  if(p==null) return null;
+  const list = servicesForVehicle(v);
+  const item = list.find(x=>x.name===s);
+  if(!item) return null;
+  let p = Number(item.price);
   if(getVisit()==="Home Visit") p += 50;
   return p;
 }
@@ -216,14 +249,16 @@ function visitChanged(){
   if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
+/* ---------- Bind ---------- */
 ['change','input'].forEach(ev=>{
-  els.vehicle.addEventListener(ev, ()=>{ populateServices(); updatePriceUI(); });
+  els.vehicle.addEventListener(ev, populateServices);
   els.service.addEventListener(ev, updatePriceUI);
   els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
 });
 visitChanged();
+populateServices(); // initial render in case a default vehicle is preselected
 
-// Submit booking
+/* ---------- Booking submit ---------- */
 els.confirm.addEventListener('click', async ()=>{
   const raw = els.phone.value.replace(/\D/g,'');
   if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
@@ -240,8 +275,11 @@ els.confirm.addEventListener('click', async ()=>{
     price: computePrice()
   };
 
-  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
+  if(!payload.vehicle){ alert("Select a vehicle."); return; }
+  if(!payload.service){ alert("Select a service."); return; }
+  if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
 
+  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
   try{
     const r = await fetch("/.netlify/functions/saveBooking", {
       method:"POST", headers:{ "Content-Type":"application/json" },
@@ -249,11 +287,20 @@ els.confirm.addEventListener('click', async ()=>{
     });
     const data = await r.json();
     if(!data.ok) throw new Error(data.error||"Save failed");
-    els.toast.textContent="✅ Booking confirmed!"; els.toast.style.display="block"; setTimeout(()=>els.toast.style.display="none",2500);
+
+    els.toast.textContent="✅ Booking confirmed!";
+    els.toast.style.display="block";
+    setTimeout(()=>els.toast.style.display="none",2500);
+
     const text = `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
     if(data.admin) window.open(`https://api.whatsapp.com/send?phone=${data.admin}&text=${encodeURIComponent(text)}`, "_blank");
-  }catch(e){ alert(e.message); }
-  finally{ els.confirm.disabled=false; els.confirm.textContent="Confirm Booking"; }
+    if(data.manager) window.open(`https://api.whatsapp.com/send?phone=${data.manager}&text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
+
+  }catch(e){
+    alert(e.message);
+  }finally{
+    els.confirm.disabled=false; els.confirm.textContent="Confirm Booking";
+  }
 });
 </script>
 </body>
