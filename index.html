@@ -42,7 +42,26 @@
   footer{opacity:.9;padding:28px 8px;text-align:center;color:var(--muted)}
   @media (max-width:780px){.hero{grid-template-columns:1fr}.hero-media{aspect-ratio:3/2}}
   .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f0f16;border:1px solid #2a2a3a;padding:12px 16px;border-radius:12px;display:none;z-index:99}
+  .debug{position:fixed;right:10px;bottom:10px;font-size:12px;color:#ffb3b3}
 </style>
+
+<script>
+// --- iOS Safari: nuke native validation everywhere (before DOM paints)
+(function killNativeValidation(){
+  const yes = ()=>true;
+  const stop = e => { e.preventDefault(); e.stopImmediatePropagation(); return false; };
+  // Kill form/field validity functions
+  ['checkValidity','reportValidity'].forEach(fn=>{
+    try{ if(HTMLFormElement.prototype[fn]) HTMLFormElement.prototype[fn]=yes; }catch{}
+    try{ if(HTMLInputElement.prototype[fn]) HTMLInputElement.prototype[fn]=yes; }catch{}
+    try{ if(HTMLSelectElement.prototype[fn]) HTMLSelectElement.prototype[fn]=yes; }catch{}
+    try{ if(HTMLTextAreaElement.prototype[fn]) HTMLTextAreaElement.prototype[fn]=yes; }catch{}
+  });
+  // Block any 'invalid' or implicit submit
+  window.addEventListener('invalid', stop, true);
+  window.addEventListener('submit', stop, true);
+})();
+</script>
 </head>
 <body>
   <div class="wrap">
@@ -71,7 +90,8 @@
             </div>
             <div>
               <label for="phone">Phone number</label>
-              <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
+              <!-- type=text avoids any iOS auto-validation on tel -->
+              <input id="phone" name="phone" type="text" inputmode="numeric" autocomplete="tel"
                      placeholder="10-digit mobile" maxlength="10">
             </div>
           </div>
@@ -147,13 +167,19 @@
   </div>
 
   <div class="toast" id="toast">✅ Booking confirmed!</div>
+  <div id="dbg" class="debug"></div>
 
 <script>
-  // Prevent ANY native validation popups & native submits
-  window.addEventListener('invalid', e => e.preventDefault(), true);
-  window.addEventListener('submit', e => e.preventDefault(), true);
-  // Remove ANY stray pattern attributes if an old cached DOM injects them
-  document.querySelectorAll('[pattern]').forEach(el => el.removeAttribute('pattern'));
+  // Scrub ANY leftover constraints that might appear from cached HTML
+  (function scrub(){
+    const kill = el => { el.removeAttribute('pattern'); el.removeAttribute('min'); el.removeAttribute('max'); el.removeAttribute('step'); el.removeAttribute('required'); };
+    document.querySelectorAll('[pattern],[min],[max],[step],[required]').forEach(kill);
+    // show small debug note so we know it's the latest file
+    const d = document.getElementById('dbg');
+    const cnt = document.querySelectorAll('[pattern],[min],[max],[step],[required]').length;
+    d.textContent = `validation scrubbed (leftovers found: ${cnt})`;
+    setTimeout(()=> d.remove(), 4000);
+  })();
 
   // --- Pricing & rules
   const PRICES = {
