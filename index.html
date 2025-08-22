@@ -4,22 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kleenkars — Premium Wash & Detailing</title>
-<meta name="description" content="Kleenkars premium car wash & detailing. Book on WhatsApp. Bike • Hatch/Sedan • SUV.">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="description" content="Book Kleenkars: Bike • Hatch/Sedan • SUV. Premium car care, doorstep or in-shop.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0b12;
-    --card:#13131b;
-    --ink:#e9e9ef;
-    --muted:#b8b8c6;
-    --accent:#7a3cff; /* dark purple */
-    --accent-2:#111016;
-    --ok:#2ecc71;
-    --bad:#ff6b6b;
-    --border:#242433;
-    --shadow:0 10px 30px rgba(0,0,0,.35);
-    --radius:16px;
+    --bg:#0b0b12; --card:#13131b; --ink:#e9e9ef; --muted:#b8b8c6;
+    --accent:#7a3cff; --accent-2:#111016; --border:#242433;
+    --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box}
   body{
@@ -31,92 +22,67 @@
   }
   a{color:var(--ink); text-decoration:none}
   .wrap{max-width:1100px; margin:auto; padding:20px}
-  header{
-    display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 20px;
-  }
+  header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 20px}
   .brand{display:flex; align-items:center; gap:12px}
-  .brand img{
-    width:48px; height:48px; object-fit:contain; border-radius:10px; background:#0f0f16; border:1px solid var(--border);
-  }
-  .brand .title{font-weight:800; letter-spacing:.3px}
-  .badge{font-size:.8rem; padding:4px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
-  .hero{
-    display:grid; grid-template-columns: 1.1fr .9fr; gap:24px; align-items:stretch;
-  }
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--card);
-    border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
-  }
-  .p24{padding:24px}
-  .hero h1{margin:0 0 10px; font-size:clamp(26px, 3.5vw, 44px); line-height:1.1}
-  .sub{color:var(--muted); margin:4px 0 18px}
-  .cta-row{display:flex; gap:10px; flex-wrap:wrap}
-  .btn{
-    appearance:none; border:1px solid var(--border); background:var(--accent-2);
-    color:#fff; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer;
-    transition:.2s transform ease, .2s opacity ease;
-  }
+  .brand img{width:48px; height:48px; object-fit:contain; border-radius:10px; background:#0f0f16; border:1px solid var(--border)}
+  .title{font-weight:800; letter-spacing:.3px}
+  .pill{display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:.85rem}
+  .btn{appearance:none; border:1px solid var(--border); background:var(--accent-2); color:#fff; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; transition:.2s transform ease}
   .btn:hover{transform:translateY(-1px)}
   .btn.primary{background:linear-gradient(0deg, rgba(122,60,255,.2), rgba(122,60,255,.2)), var(--accent); border-color:#5c29ef}
-  .btn.ghost{background:transparent}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+  .p24{padding:24px}
+  .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:stretch}
+  .hero h1{margin:0 0 10px; font-size:clamp(26px,3.5vw,44px); line-height:1.1}
+  .sub{color:var(--muted); margin:4px 0 18px}
   .grid{display:grid; gap:12px}
   .two{grid-template-columns:1fr 1fr}
   label{font-weight:600; font-size:.92rem}
   input, select, textarea{
-    width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border);
-    background:#0f0f16; color:var(--ink); outline:none;
+    width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
+    background:#0f0f16; color:var(--ink); outline:none
   }
   input::placeholder, textarea::placeholder{color:#6f6f84}
-  .price{
-    margin-top:10px; font-weight:800; font-size:1.2rem;
-    background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px
-  }
-  .muted{color:var(--muted)}
-  .illus{
-    display:block; height:100%; min-height:320px; background:
-      radial-gradient(500px 300px at 70% 20%, rgba(122,60,255,.25), transparent 55%),
-      url('assets/hero.jpg') center/cover no-repeat, 
-      linear-gradient(180deg, #151520, #0f0f16);
-    border-radius:var(--radius); border:1px solid var(--border);
-    position:relative; overflow:hidden;
-  }
-  .illus::after{
-    content:""; position:absolute; inset:0; background:repeating-linear-gradient( 60deg, rgba(255,255,255,.02), rgba(255,255,255,.02) 2px, transparent 2px, transparent 6px);
-    mix-blend-mode:overlay; pointer-events:none;
-  }
   .help{font-size:.85rem; color:var(--muted)}
-  .pill{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:.8rem}
+  .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
+  .radio-row{display:flex; gap:10px; flex-wrap:wrap}
+  .radio{display:flex; align-items:center; gap:8px; border:1px solid var(--border); padding:8px 10px; border-radius:10px; background:#0f0f16}
+  .hero-media{display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
+  .hero-media img{width:100%; height:100%; object-fit:cover; display:block}
   footer{opacity:.9; padding:28px 8px; text-align:center; color:var(--muted)}
-  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  @media (max-width:780px){ .hero{grid-template-columns:1fr} .hero-media{aspect-ratio:3/2} }
+
+  /* Toast */
+  .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+    background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="brand">
-        <!-- Drop your logo file at /assets/logo.png -->
-        <img src="assets/logo.png" alt="Kleenkars logo" onerror="this.src='data:image/svg+xml;utf8,<?xml version=&quot;1.0&quot;?><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;96&quot; height=&quot;96&quot;><rect width=&quot;100%&quot; height=&quot;100%&quot; rx=&quot;12&quot; fill=&quot;%23101018&quot;/><text x=&quot;50%&quot; y=&quot;52%&quot; text-anchor=&quot;middle&quot; fill=&quot;white&quot; font-family=&quot;Arial&quot; font-size=&quot;14&quot;>KLEENKARS</text></svg>';">
+        <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
         <div>
           <div class="title">Kleenkars</div>
           <div class="pill">Premium • Wash • Detailing</div>
         </div>
       </div>
-      <div class="badge">WhatsApp support: 24×7</div>
+      <a class="pill" href="/admin.html">Admin login</a>
     </header>
 
     <section class="hero">
       <div class="card p24">
-        <h1>More than a wash — it’s a Kleenkars experience.</h1>
-        <p class="sub">Doorstep cleaning with gentle products & meticulous care. Book in 30 seconds, confirm on WhatsApp.</p>
+        <h1>Premium car care.</h1>
+        <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
 
         <form id="booking" class="grid" autocomplete="on">
           <div class="grid two">
             <div>
-              <label for="name">Your name</label>
+              <label for="name">Customer name</label>
               <input id="name" name="name" placeholder="Full name" required>
             </div>
             <div>
-              <label for="phone">Your WhatsApp number</label>
+              <label for="phone">WhatsApp number</label>
               <input id="phone" name="phone" placeholder="10-digit mobile (no +91)" pattern="\\d{10}" required>
             </div>
           </div>
@@ -130,19 +96,21 @@
                 <option value="Hatch/Sedan">Hatchback / Sedan</option>
                 <option value="SUV">SUV</option>
               </select>
-              <div class="help">Bike supports <b>Basic</b> wash only (others disabled).</div>
+              <div class="help">Bike supports <b>Basic</b> only.</div>
             </div>
             <div>
               <label for="service">Service</label>
               <select id="service" name="service" required>
                 <option value="" disabled selected>Select</option>
                 <option value="Basic">Basic Wash</option>
-                <option value="Foam">Foam Wash</option>
-                <option value="Interior">Interior Detailing</option>
-                <option value="Polish">Exterior Polish</option>
-                <option value="Ceramic/PPF">Ceramic / PPF</option>
+                <option value="Premium">Premium Car Wash</option>
+                <option value="Detailing">Detailing</option>
               </select>
-              <div class="help">Non-Basic services are price-on-inspection for cars.</div>
+              <div class="help">
+                Basic: Bike ₹50 • Hatch/Sedan ₹150 • SUV ₹200<br>
+                Premium: Hatch/Sedan ₹200 • SUV ₹250<br>
+                Detailing: Hatch/Sedan ₹1500 • SUV ₹2500
+              </div>
             </div>
           </div>
 
@@ -152,161 +120,187 @@
               <input type="date" id="date" name="date" required>
             </div>
             <div>
-              <label for="time">Preferred time</label>
-              <input type="time" id="time" name="time" required>
+              <label for="time">Preferred time (10:00–20:00)</label>
+              <input type="time" id="time" name="time" required min="10:00" max="20:00" step="900">
             </div>
           </div>
 
           <div>
-            <label for="address">Service address</label>
+            <label>Visit type</label>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="visit" value="In-Shop" checked> In-Shop</label>
+              <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
+            </div>
+          </div>
+
+          <div id="addressWrap" style="display:none;">
+            <label for="address">Address (for Home Visit)</label>
             <textarea id="address" name="address" rows="2" placeholder="House/Flat, Street, Area, City"></textarea>
           </div>
 
           <div class="price" id="priceBox">Estimated price: —</div>
-          <div class="help">Basic wash pricing: <b>Bike ₹50</b> • <b>Hatch/Sedan ₹150</b> • <b>SUV ₹200</b>. Other services will be confirmed on chat.</div>
 
-          <div class="cta-row">
-            <button type="button" class="btn primary" id="sendAdmin">Send to Admin WhatsApp</button>
-            <button type="button" class="btn ghost" id="sendCustomer">Send confirmation to Customer</button>
-          </div>
-          <div class="help">Tapping a button opens WhatsApp with your message pre-filled. Press <b>Send</b> to deliver.</div>
+          <button class="btn primary" type="button" id="confirm">Confirm Booking</button>
+          <div class="help">Confirm saves your booking and opens WhatsApp confirmation.</div>
         </form>
       </div>
 
-      <!-- Hero image (shows placeholder if file missing) -->
-      <div class="illus" role="img" aria-label="Shiny detailed car — Kleenkars"
-           title="Drop a real photo at /assets/hero.jpg">
-      </div>
+      <picture class="hero-media" aria-label="Kleenkars foam wash in action">
+        <source srcset="/assets/hero.webp" type="image/webp">
+        <img src="/assets/hero.jpg" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
+      </picture>
     </section>
 
-    <footer>
-      © <span id="yr"></span> Kleenkars • Aligarh • <a href="https://wa.me/919910578378" target="_blank" rel="noopener">WhatsApp Admin</a>
-    </footer>
+    <footer>© <span id="yr"></span> Kleenkars • Aligarh • Open 10:00–20:00 Daily</footer>
   </div>
 
+  <div class="toast" id="toast">✅ Booking confirmed!</div>
+
 <script>
-  // --- Basic dynamic pricing
+  // --- Pricing & rules
   const PRICES = {
-    "Bike": {"Basic": 50},
-    "Hatch/Sedan": {"Basic": 150},
-    "SUV": {"Basic": 200}
+    "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
+    "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
+    "SUV":         { "Basic": 200, "Premium": 250,  "Detailing": 2500 }
   };
+  const HOME_SURCHARGE = 50;
 
-  const ADMIN_NUMBER = "919910578378";       // admin (with country code, no +)
-  // To send back to the customer, we'll read their input number from the form.
-
+  // --- Elements
   const els = {
     vehicle: document.getElementById('vehicle'),
     service: document.getElementById('service'),
-    priceBox: document.getElementById('priceBox'),
     name: document.getElementById('name'),
     phone: document.getElementById('phone'),
     date: document.getElementById('date'),
     time: document.getElementById('time'),
+    visitRadios: document.querySelectorAll('input[name="visit"]'),
+    addressWrap: document.getElementById('addressWrap'),
     address: document.getElementById('address'),
-    sendAdmin: document.getElementById('sendAdmin'),
-    sendCustomer: document.getElementById('sendCustomer')
+    priceBox: document.getElementById('priceBox'),
+    confirm: document.getElementById('confirm'),
+    toast: document.getElementById('toast')
   };
 
-  // Set min date = today (India time okay)
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('date').setAttribute('min', today);
+  // --- Init
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 
-  function updateServiceLock(){
+  function getVisit(){ return [...els.visitRadios].find(r=>r.checked)?.value || "In-Shop"; }
+  function applyServiceRules(){
     const v = els.vehicle.value;
-    const isBike = v === "Bike";
-    [...els.service.options].forEach(opt=>{
-      if(!opt.value) return;
-      if(isBike && opt.value !== "Basic"){
-        opt.disabled = true;
-      } else {
-        opt.disabled = false;
-      }
-    });
-    if(isBike){ els.service.value = "Basic"; }
+    [...els.service.options].forEach(o => { if(!o.value) return; o.disabled = (PRICES[v]?.[o.value] == null); });
+    if(v==="Bike") els.service.value = "Basic";
   }
-
-  function estimate(){
+  function computePrice(){
     const v = els.vehicle.value, s = els.service.value;
-    let price = PRICES?.[v]?.[s];
-    if(price){
-      els.priceBox.innerHTML = `Estimated price: <b>₹${price}</b> <span class="muted">(Basic • ${v})</span>`;
+    let p = PRICES?.[v]?.[s] ?? null;
+    if(p == null) return null;
+    if(getVisit()==="Home Visit") p += HOME_SURCHARGE;
+    return p;
+  }
+  function updatePriceUI(){
+    const v = els.vehicle.value, s = els.service.value;
+    const p = computePrice();
+    if(p!=null){
+      const extra = getVisit()==="Home Visit" ? ` (+₹${HOME_SURCHARGE} home visit)` : "";
+      els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${extra})</span>`;
     } else if(v && s){
-      els.priceBox.innerHTML = `Estimated price: <span class="muted">to be confirmed on chat for ${s} — ${v}</span>`;
-    } else {
-      els.priceBox.textContent = "Estimated price: —";
-    }
+      els.priceBox.innerHTML = `Estimated price: <span class="help">Not available for ${v} — choose another service.</span>`;
+    } else els.priceBox.textContent = "Estimated price: —";
+  }
+  function visitChanged(){
+    const v = getVisit();
+    els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
+    if(v==="Home Visit"){ els.address?.setAttribute('required','required'); } else { els.address?.removeAttribute('required'); els.address.value=""; }
+  }
+  function validTime(){
+    const t = els.time.value; if(!t) return false;
+    const [h,m] = t.split(':').map(Number); const mins = h*60+m;
+    return mins>=600 && mins<=1200; // 10:00–20:00
   }
 
-  function makeSummary(){
-    const v = els.vehicle.value || "—";
-    const s = els.service.value || "—";
-    const date = els.date.value || "—";
-    const time = els.time.value || "—";
-    const price = PRICES?.[v]?.[s] ? `₹${PRICES[v][s]}` : "TBC";
-    const addr = (els.address.value || "").trim() || "—";
-    const nm = (els.name.value || "—").trim();
-    const ph = (els.phone.value || "—").trim();
-
+  function buildSummary(){
+    const v = els.vehicle.value, s = els.service.value, visit = getVisit();
+    const extraAddr = visit==="Home Visit" && els.address?.value.trim() ? ` — ${els.address.value.trim()}` : "";
+    const price = computePrice();
     return `KLEENKARS BOOKING
-Name: ${nm}
-Customer WhatsApp: +91 ${ph}
+
+Name: ${els.name.value.trim()}
+Customer WhatsApp: +91 ${els.phone.value.trim()}
 Vehicle: ${v}
 Service: ${s}
-Preferred: ${date} at ${time}
-Address: ${addr}
-Estimated Price: ${price}
+Visit: ${visit}${extraAddr}
+Preferred: ${els.date.value} at ${els.time.value}
+Estimated Price: ${price!=null ? "₹"+price : "TBC"}
 
 Notes:
-• Bike allows Basic only.
-• Non-Basic pricing is confirmed after inspection.
-
-Please confirm availability and send payment link.`;
+• Bike supports Basic only.
+• Open hours: 10:00 to 20:00.`;
   }
 
-  function openWhatsApp(number, text){
-    const url = `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank', 'noopener');
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.style.display = 'block';
+    setTimeout(()=> els.toast.style.display = 'none', 3000);
   }
 
-  function validate(){
-    const form = document.getElementById('booking');
-    return form.reportValidity();
-  }
-
-  // Wire up
+  // --- Bind dynamic behavior
   ['change','input'].forEach(ev=>{
-    els.vehicle.addEventListener(ev, ()=>{ updateServiceLock(); estimate(); });
-    els.service.addEventListener(ev, estimate);
+    els.vehicle.addEventListener(ev, ()=>{ applyServiceRules(); updatePriceUI(); });
+    els.service.addEventListener(ev, updatePriceUI);
+    els.date.addEventListener(ev, updatePriceUI);
+    els.time.addEventListener(ev, updatePriceUI);
+    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+    els.address?.addEventListener(ev, updatePriceUI);
   });
-  ['input','change'].forEach(ev=>{
-    els.date.addEventListener(ev, estimate);
-    els.time.addEventListener(ev, estimate);
-  });
-  updateServiceLock(); estimate();
+  applyServiceRules(); visitChanged(); updatePriceUI();
 
-  els.sendAdmin.addEventListener('click', ()=>{
-    if(!validate()) return;
-    const text = makeSummary();
-    openWhatsApp(ADMIN_NUMBER, text);
-  });
+  // --- Submit
+  els.confirm.addEventListener('click', async ()=>{
+    if(!document.getElementById('booking').reportValidity()) return;
 
-  els.sendCustomer.addEventListener('click', ()=>{
-    if(!validate()) return;
-    const text = `Hi ${els.name.value.trim()}, thanks for choosing Kleenkars! 👋
-
-Your request summary:
-• ${els.vehicle.value} — ${els.service.value}
-• Preferred: ${els.date.value} at ${els.time.value}
-• Est. price: ${PRICES?.[els.vehicle.value]?.[els.service.value] ? '₹'+PRICES[els.vehicle.value][els.service.value] : 'TBC'}
-
-We’ll confirm shortly on WhatsApp. You can reply here if you need any change.`;
     const raw = (els.phone.value || '').replace(/\D/g,'');
-    if(raw.length !== 10){ alert('Enter a valid 10-digit customer number'); return; }
-    openWhatsApp('91'+raw, text);
-  });
+    if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
 
-  document.getElementById('yr').textContent = new Date().getFullYear();
+    if(!validTime()){ alert("Choose a time between 10:00 and 20:00."); return; }
+
+    if(PRICES?.[els.vehicle.value]?.[els.service.value] == null){
+      alert(`${els.service.value} is not available for ${els.vehicle.value}.`);
+      return;
+    }
+
+    const payload = {
+      name: els.name.value.trim(),
+      phone: raw,
+      vehicle: els.vehicle.value,
+      service: els.service.value,
+      date: els.date.value,
+      time: els.time.value,
+      visit: getVisit(),
+      address: (els.address?.value || "").trim(),
+      price: computePrice()
+    };
+
+    try{
+      const r = await fetch("/.netlify/functions/saveBooking", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await r.json();
+      if(!data.ok) throw new Error(data.error || "Failed to save");
+
+      showToast("✅ Booking confirmed!");
+
+      const text = buildSummary();
+      if(data.admin)   window.open(`https://wa.me/${data.admin}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+      if(data.manager) window.open(`https://wa.me/${data.manager}?text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank", "noopener");
+
+    }catch(err){
+      console.error(err);
+      alert("Could not save booking. Please try again.");
+    }
+  });
 </script>
 </body>
 </html>
