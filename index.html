@@ -14,6 +14,7 @@
   .nav a{color:var(--text);text-decoration:none;opacity:.9}
   .nav a:hover{opacity:1}
   .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+  .logo img{height:34px; width:auto; display:block}
   .pill{margin-left:auto;display:flex;gap:10px}
   .btn{padding:10px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff}
   .btn.primary{background:var(--primary);color:#fff;border:none}
@@ -32,18 +33,15 @@
   .gallery img{width:100%;height:200px;object-fit:cover;border-radius:12px}
   .section{max-width:1100px;margin:20px auto;padding:0 16px}
   .footer{border-top:1px solid #e5e7eb;color:#64748b;text-align:center;padding:18px}
-  #previewBox{display:none;position:fixed;inset:0;place-items:center;background:rgba(0,0,0,.35)}
-  #previewCard{background:#fff;max-width:420px;width:92%;border-radius:14px;padding:16px}
-  #previewCard pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;white-space:pre-wrap}
+  .bottom-links{max-width:1100px;margin:10px auto 0;padding:0 16px;display:flex;justify-content:center;gap:20px}
+  .bottom-links a{color:#475569;text-decoration:none}
   @media (max-width:860px){ .hero{grid-template-columns:1fr;}.pill{display:none}}
 </style>
 </head>
 <body>
 <header>
   <nav class="nav">
-    <a class="logo" href="/"><img src="/logo.svg" alt="Kleenkars" style="height:34px"/>Kleenkars</a>
-    <a href="#services">Services</a>
-    <a href="#contact">Contact</a>
+    <a class="logo" href="/"><img src="/images/logo.png" alt="Kleenkars"/>Kleenkars</a>
     <div class="pill">
       <a class="btn" href="/admin.html">🔐 Admin</a>
       <a class="btn primary" href="#book">Book now</a>
@@ -69,7 +67,7 @@
         <label>Vehicle Type</label>
         <div style="display:flex;gap:8px">
           <button type="button" class="btn" onclick="selectVehicle('Bike')" id="btnBike">🏍 Bike</button>
-          <button type="button" class="btn" onclick="selectVehicle('Car')"  id="btnCar">🚗 Car</button>
+          <button type="button" class="btn" onclick="selectVehicle('Car')"  id="btnCar">🚗 Hatchback/Sedan</button>
           <button type="button" class="btn" onclick="selectVehicle('SUV')"  id="btnSuv">🚘 SUV</button>
         </div>
 
@@ -103,17 +101,17 @@
   <p class="muted">WhatsApp us anytime for priority support.</p>
 </section>
 
-<div id="previewBox"><div id="previewCard">
-  <h3>WhatsApp Preview</h3>
-  <pre id="adminMsg"></pre>
-  <pre id="custMsg"></pre>
-  <button class="btn" onclick="document.getElementById('previewBox').style.display='none'">Close</button>
-</div></div>
+<div class="bottom-links">
+  <a href="#services">Services</a>
+  <span>•</span>
+  <a href="#contact">Contact</a>
+</div>
 
 <footer class="footer">© <span id="year"></span> Kleenkars</footer>
 
 <script>
-  const ADMIN_WHATSAPP = "919910578378"; // <-- put your admin number (digits only)
+  const ADMIN_WHATSAPP = "919910578378"; // your admin number (digits only)
+  const DEFAULT_HERO = 'https://images.unsplash.com/photo-1617983312824-fc4437f8ff63?auto=format&fit=crop&w=1600&q=80';
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -125,14 +123,24 @@
     document.documentElement.style.setProperty('--primary', s.primary_color || '#0f172a');
     document.documentElement.style.setProperty('--accent',  s.accent_color  || '#21c8f6');
     document.documentElement.style.setProperty('--text',    s.text_color    || '#111111');
-    document.getElementById('heroImg').src = s.hero_image;
-    document.getElementById('tagline').textContent = s.tagline || 'Premium doorstep car care.';
+
+    // Robust hero with fallback
+    const hero = document.getElementById('heroImg');
+    const chosen = (s.hero_image || '').trim() || DEFAULT_HERO;
+    hero.onerror = () => { if (hero.src !== DEFAULT_HERO) hero.src = DEFAULT_HERO; };
+    hero.src = chosen;
+
+    // Tagline defaults to Premium car care.
+    document.getElementById('tagline').textContent = s.tagline || 'Premium car care.';
+
+    // Gallery (bad links auto-remove)
     const g = document.getElementById('gallery');
     g.innerHTML = '';
     try {
       const arr = JSON.parse(s.gallery_json || '[]');
       (arr || []).slice(0,6).forEach(url=>{
         const img = document.createElement('img'); img.src=url; img.alt='Gallery';
+        img.onerror = ()=> img.remove();
         g.appendChild(img);
       });
     } catch {}
@@ -215,20 +223,22 @@ Date/Time: ${datetime}
 See you soon ✨`;
 
     try{
+      // Save to DB
       const res = await fetch('/.netlify/functions/saveBooking', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ name, phone, service, vehicle: selectedVehicle, datetime })
       });
       const out = await res.json();
       if (out.success){
-        document.getElementById('adminMsg').textContent = adminMsg;
-        document.getElementById('custMsg').textContent  = custMsg;
-        document.getElementById('previewBox').style.display='grid';
-        alert('✅ Booking saved!');
+        // Open WhatsApp chats directly (no preview)
         if (ADMIN_WHATSAPP) window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`,'_blank');
-        if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`,'_blank');
-      } else alert('❌ Failed: ' + (out.error || 'Server error'));
-    } catch(err){ alert('❌ Network/Server error'); }
+        if (phone)        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(custMsg)}`,'_blank');
+      } else {
+        alert('❌ Failed: ' + (out.error || 'Server error'));
+      }
+    } catch(err){
+      alert('❌ Network/Server error');
+    }
   });
 
   (async function init(){
