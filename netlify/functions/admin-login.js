@@ -1,32 +1,52 @@
 // netlify/functions/admin-login.js
+import jwt from "jsonwebtoken";
+
+// Use env vars instead of hardcoded
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
+
+// Use a separate secret key for signing tokens
+const JWT_SECRET = process.env.JWT_SECRET || "kleenkars-secret";
+
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return { statusCode: 405, body: "Method not allowed" };
   }
 
   try {
-    const { user, pass } = JSON.parse(event.body || "{}");
+    const { username, password } = JSON.parse(event.body || "{}");
 
-    const ADMIN_USER = process.env.ADMIN_USER || "admin";
-    const ADMIN_PASS = process.env.ADMIN_PASS || "password";
+    if (!username || !password) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ ok: false, error: "Missing credentials" })
+      };
+    }
 
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      // Create a simple token (base64 encoded user + timestamp)
-      const token = Buffer.from(`${user}:${Date.now()}`).toString("base64");
+    // Compare with env vars
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+      // issue token
+      const token = jwt.sign(
+        { role: "admin", user: username },
+        JWT_SECRET,
+        { expiresIn: "2h" }
+      );
+
       return {
         statusCode: 200,
         body: JSON.stringify({ ok: true, token })
       };
-    } else {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({ ok: false, error: "Invalid credentials" })
-      };
     }
+
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ ok: false, error: "Invalid credentials" })
+    };
   } catch (err) {
+    console.error("admin-login error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ ok: false, error: err.message })
+      body: JSON.stringify({ ok: false, error: "Server error" })
     };
   }
 }
