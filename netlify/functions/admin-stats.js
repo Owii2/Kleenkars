@@ -1,46 +1,59 @@
-import { neon } from "@netlify/neon";
-import { json, requireAdmin } from "./_auth.js";
-const sql = neon(process.env.NETLIFY_DATABASE_URL_UNPOOLED);
+// netlify/functions/admin-stats.js
+import { neon, neonConfig } from "@neondatabase/serverless";
+neonConfig.fetchConnectionCache = true;
 
-// Adjust to your real costs
-const COST_RATIO = 0.35;
+const ok = (obj) => ({
+  statusCode: 200,
+  headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" },
+  body: JSON.stringify(obj),
+});
+const err = (code, msg) => ({
+  statusCode: code,
+  headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" },
+  body: JSON.stringify({ ok:false, error: msg }),
+});
 
-export default async (request) => {
-  const gate = await requireAdmin(request);
-  if (!gate.ok) return gate.res;
+export async function handler(event){
+  if (event.httpMethod !== "GET") return err(405, "Method Not Allowed");
+  const auth = event.headers.authorization || "";
+  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
-  const extractPrice = (t) => {
-    const m = /₹?\s*([0-9]+)/.exec(t || "");
-    return m ? Number(m[1]) : 0;
-  };
+  try{
+    const { group="month", from="", to="" } = event.queryStringParameters || {};
+    const sql = neon(process.env.DATABASE_URL);
 
-  const rows = await sql`SELECT service, datetime FROM bookings;`;
-  const now = new Date();
-  const yr = now.getUTCFullYear();
+    await sql`
+      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
+        id SERIAL PRIMARY KEY,
+        order_id INT UNIQUE,
+        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
+        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
 
-  let revYTD = 0, cntYTD = 0, rev30 = 0, cnt30 = 0;
-  for (const r of rows) {
-    const p = extractPrice(r.service);
-    const d = new Date(r.datetime);
-    if (d.getUTCFullYear() === yr) { revYTD += p; cntYTD++; }
-    if ((now - d) / 86400000 <= 30) { rev30 += p; cnt30++; }
+    // date filter as ::date comparisons (date stored as TEXT YYYY-MM-DD)
+    const where = [];
+    if (from) where.push(`(NULLIF(date,'')::date >= ${sql(from)}::date)`);
+    if (to) where.push(`(NULLIF(date,'')::date <= ${sql(to)}::date)`);
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+    // grouping label
+    let labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY-MM')`;
+    if (group === "year") labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY')`;
+    if (group === "day")  labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY-MM-DD')`;
+
+    const rows = await sql(`
+      SELECT ${labelExpr} AS label, COALESCE(SUM(price),0)::int AS total
+      FROM kleenkars_bookings
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY 1
+    `);
+
+    return ok({ ok:true, points: rows });
+  }catch(e){
+    console.error("admin-stats", e);
+    return err(500, e.message);
   }
-
-  const avgDay30 = rev30 / 30;
-  const startNext = Date.UTC(yr + 1, 0, 1);
-  const todayUTC = Date.UTC(yr, now.getUTCMonth(), now.getUTCDate());
-  const daysRemain = Math.ceil((startNext - todayUTC) / 86400000);
-  const projRevenue = Math.round(revYTD + avgDay30 * Math.max(0, daysRemain));
-
-  const costsYTD = Math.round(revYTD * COST_RATIO);
-  const profitYTD = revYTD - costsYTD;
-  const projCosts = Math.round(projRevenue * COST_RATIO);
-  const projProfit = projRevenue - projCosts;
-
-  return json({
-    year: yr,
-    ytd: { orders: cntYTD, revenue: revYTD, costs: costsYTD, profit: profitYTD },
-    last30: { orders: cnt30, revenue: rev30, avg_daily_revenue: Math.round(avgDay30) },
-    projection: { revenue: projRevenue, costs: projCosts, profit: projProfit, cost_ratio: COST_RATIO }
-  });
-};
+}
