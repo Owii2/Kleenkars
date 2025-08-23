@@ -4,11 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kleenkars — Premium Wash & Detailing</title>
+<meta name="description" content="Book Kleenkars: Bike • Hatch/Sedan • SUV. Premium car care, doorstep or in-shop.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--accent:#7a3cff;--accent-2:#111016;--border:#242433;--radius:16px;--shadow:0 10px 30px rgba(0,0,0,.35)}
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,sans-serif;background:
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:
     radial-gradient(1000px 600px at 80% -10%, rgba(122,60,255,.15), transparent 60%),
     radial-gradient(900px 500px at -10% 20%, rgba(122,60,255,.12), transparent 60%), var(--bg);
     color:var(--ink);line-height:1.6}
@@ -28,14 +29,20 @@
   .hero h1{margin:0 0 10px;font-size:clamp(26px,3.5vw,44px);line-height:1.1}
   .sub{color:var(--muted);margin:4px 0 18px}
   .grid{display:grid;gap:12px}
-  .two{grid-template-columns:1fr 1fr}
-  label{font-weight:600;font-size:.92rem}
-  input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0f0f16;color:var(--ink);outline:none}
+  /* FIX: responsive two-column rows so inputs don’t overlap */
+  .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  label{font-weight:600;font-size:.92rem;min-width:0}
+  input,select,textarea{
+    width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);
+    background:#0f0f16;color:var(--ink);outline:none;min-width:0;
+  }
+  input[type="date"],input[type="time"],select{min-width:0}
   input::placeholder,textarea::placeholder{color:#6f6f84}
   .help{font-size:.85rem;color:var(--muted)}
   .price{margin-top:10px;font-weight:800;font-size:1.1rem;background:#101018;border:1px dashed #2a2a3a;padding:10px 12px;border-radius:12px}
-  .radio-row{display:flex;gap:10px;flex-wrap:wrap}
-  .radio{display:flex;align-items:center;gap:8px;border:1px solid var(--border);padding:8px 10px;border-radius:10px;background:#0f0f16}
+  .radio-row{display:flex;gap:8px;flex-wrap:wrap}
+  /* Smaller radio pills */
+  .radio{display:flex;align-items:center;gap:6px;border:1px solid var(--border);padding:6px 8px;border-radius:8px;background:#0f0f16;font-size:.9rem}
   .hero-media{display:block;position:relative;border-radius:16px;border:1px solid var(--border);overflow:hidden;aspect-ratio:16/9;background:#0f0f16}
   .hero-media img{width:100%;height:100%;object-fit:cover;display:block}
   footer{opacity:.9;padding:28px 8px;text-align:center;color:var(--muted)}
@@ -106,7 +113,8 @@
           <div>
             <label>Visit type</label>
             <div class="radio-row">
-              <label class="radio"><input type="radio" name="visit" value="In-Shop" checked> In-Shop</label>
+              <!-- CHANGED: In-Shop -> Wash Center -->
+              <label class="radio"><input type="radio" name="visit" value="Wash Center" checked> Wash Center</label>
               <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
             </div>
           </div>
@@ -119,7 +127,7 @@
           <div class="price" id="priceBox">Estimated price: —</div>
 
           <button class="btn primary" type="button" id="confirm">Confirm Booking</button>
-          <div class="help">Confirm saves your booking and opens WhatsApp confirmation.</div>
+          <!-- REMOVED the help line under the confirm button -->
         </form>
       </div>
 
@@ -156,14 +164,12 @@ els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
 /* ---------- Public services fetch with graceful fallback ---------- */
-/* expected row shape: { name: string, bike: number|null, sedan: number|null, suv: number|null } */
 let SERVICES = [];
 const FALLBACK = [
   { name:"Basic",     bike:50,  sedan:150,  suv:200 },
   { name:"Premium",   bike:null,sedan:200,  suv:250 },
   { name:"Detailing", bike:null,sedan:1500, suv:2500 }
 ];
-
 async function tryFetch(url){
   const r = await fetch(url);
   if(!r.ok) throw new Error("HTTP "+r.status);
@@ -172,7 +178,6 @@ async function tryFetch(url){
   if(d && d.ok && Array.isArray(d.rows)) return d.rows;
   throw new Error("Unexpected response");
 }
-
 async function loadServices(){
   const candidates = [
     "/.netlify/functions/admin-services?public=1",
@@ -191,9 +196,8 @@ async function loadServices(){
 /* ---------- Helpers ---------- */
 function getVisit(){
   const r = Array.from(els.visitRadios).find(r=>r.checked);
-  return r ? r.value : "In-Shop";
+  return r ? r.value : "Wash Center";
 }
-
 function servicesForVehicle(v){
   if(!v) return [];
   const key = v==="Bike" ? "bike" : (v==="SUV" ? "suv" : "sedan");
@@ -201,15 +205,13 @@ function servicesForVehicle(v){
     .filter(s => s && s.name && s[key] != null)
     .map(s => ({ name: String(s.name), price: Number(s[key]) }));
 }
-
 function populateServices(){
   const v = (els.vehicle.value || "").trim();
   els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
   const list = servicesForVehicle(v);
   if(list.length===0){
     els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
-    updatePriceUI();
-    return;
+    updatePriceUI(); return;
   }
   for(const item of list){
     const opt = document.createElement("option");
@@ -221,7 +223,6 @@ function populateServices(){
   els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
   updatePriceUI();
 }
-
 function computePrice(){
   const v = (els.vehicle.value || "").trim();
   const s = (els.service.value || "").trim();
@@ -233,7 +234,6 @@ function computePrice(){
   if(getVisit()==="Home Visit") p += 50;
   return p;
 }
-
 function updatePriceUI(){
   const v = (els.vehicle.value || "").trim();
   const s = (els.service.value || "").trim();
@@ -244,7 +244,6 @@ function updatePriceUI(){
     els.priceBox.textContent = "Estimated price: —";
   }
 }
-
 function visitChanged(){
   const v = getVisit();
   els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
@@ -252,18 +251,16 @@ function visitChanged(){
   else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
-/* ---------- Init & bindings (no top-level await) ---------- */
+/* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
-
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, populateServices);
     els.service.addEventListener(ev, updatePriceUI);
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
-
   visitChanged();
-  populateServices(); // initial render
+  populateServices();
 }
 init();
 
