@@ -4,22 +4,24 @@ import jwt from "jsonwebtoken";
 
 const REQUIRED_ENV = ["DATABASE_URL", "ADMIN_JWT_SECRET"];
 
-function json(status, body) {
-  return {
-    statusCode: status,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  };
-}
+// small helpers
+const json = (status, body) => ({
+  statusCode: status,
+  headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+  },
+  body: JSON.stringify(body),
+});
 
-function assertEnv() {
+const assertEnv = () => {
   const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
-  if (missing.length) {
-    throw new Error(`Missing env: ${missing.join(", ")}`);
-  }
-}
+  if (missing.length) throw new Error(`Missing env: ${missing.join(", ")}`);
+};
 
-function authz(event) {
+const authz = (event) => {
   const hdr = event.headers?.authorization || event.headers?.Authorization || "";
   const m = hdr.match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
@@ -28,15 +30,18 @@ function authz(event) {
   } catch {
     return null;
   }
-}
+};
 
 export const handler = async (event) => {
+  // Preflight
+  if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+
   try {
     assertEnv();
 
-    // Auth (admin only)
+    // Admin auth required
     const claims = authz(event);
-    if (!claims) return json(401, { ok: false, error: "Unauthorized" });
+    if (!claims) return json(401, { ok: false, error: "Unauthorized (missing/invalid token)" });
 
     const sql = neon(process.env.DATABASE_URL);
 
@@ -50,22 +55,25 @@ export const handler = async (event) => {
     const where = [];
     const params = [];
 
+    // Quote identifiers that are also type names in Postgres
+    // Our table has: order_id, name, phone, vehicle, service, "date", "time", visit, address, price, created_at
+
     if (from) {
       params.push(from);
-      where.push(`date >= $${params.length}::date`);
+      where.push(`"date" >= $${params.length}::date`);
     }
     if (to) {
       params.push(to);
-      where.push(`date <= $${params.length}::date`);
+      where.push(`"date" <= $${params.length}::date`);
     }
     if (service) {
       params.push(service);
       where.push(`service = $${params.length}`);
     }
     if (search) {
+      // search both name and phone
       params.push(`%${search}%`);
       params.push(`%${search}%`);
-      // phone kept as text compare; name ILIKE
       where.push(`(name ILIKE $${params.length - 1} OR phone ILIKE $${params.length})`);
     }
 
@@ -73,8 +81,8 @@ export const handler = async (event) => {
 
     const q = `
       SELECT
-        order_id, name, phone, vehicle, service, date, time, visit, address, price,
-        created_at
+        order_id, name, phone, vehicle, service,
+        "date", "time", visit, address, price, created_at
       FROM bookings
       ${whereSql}
       ORDER BY created_at DESC
@@ -83,9 +91,9 @@ export const handler = async (event) => {
     params.push(limit);
 
     const rows = await sql(q, params);
-
     return json(200, { ok: true, rows });
   } catch (err) {
-    return json(500, { ok: false, error: err.message });
+    // Return the actual message so the UI shows it
+    return json(500, { ok: false, error: err.message || String(err) });
   }
 };
