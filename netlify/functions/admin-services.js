@@ -41,7 +41,6 @@ async function ensureSchema(sql) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  // Add column if older table exists without it
   await sql(`
     DO $$
     BEGIN
@@ -57,10 +56,8 @@ async function ensureSchema(sql) {
   `);
 }
 
-/** Assign positions where missing, and compact to 1..N keeping current order */
 async function ensurePositions(sql) {
   await sql`UPDATE kleenkars_services SET position = NULL WHERE position IS NOT NULL AND position <= 0`;
-
   const rows = await sql`
     SELECT name, position
     FROM kleenkars_services
@@ -76,7 +73,6 @@ async function ensurePositions(sql) {
 async function seedDefaultsIfEmpty(sql) {
   const { n } = (await sql`SELECT COUNT(*)::int AS n FROM kleenkars_services`)[0];
   if (n > 0) return;
-
   await sql`
     INSERT INTO kleenkars_services (name, bike, sedan, suv, position)
     VALUES
@@ -112,12 +108,11 @@ async function tryImportLegacy(sql) {
   }
 }
 
-/** Ordered list; include position so admin sees serials; public GET also gets it but you only render name/prices there */
 async function list(sql, includePosition = true) {
   await ensureSchema(sql);
   await seedDefaultsIfEmpty(sql);
   await ensurePositions(sql);
-  const cols = includePosition ? 'name, bike, sedan, suv, position' : 'name, bike, sedan, suv';
+  const cols = includePosition ? "name, bike, sedan, suv, position" : "name, bike, sedan, suv";
   const rows = await sql(`SELECT ${cols} FROM kleenkars_services ORDER BY position ASC, name ASC`);
   return rows;
 }
@@ -139,7 +134,7 @@ export async function handler(event) {
       return ok({ ok: true, rows });
     }
 
-    // Admin-only for write operations
+    // Admin-only below
     const auth = event.headers.authorization || event.headers.Authorization || "";
     if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
@@ -191,15 +186,23 @@ export async function handler(event) {
 
       const cur = (await sql`SELECT name, position FROM kleenkars_services WHERE name=${name}`)[0];
       if (!cur) return err(404, "Service not found");
-      const neighbor = (await sql`
-        SELECT name, position
-        FROM kleenkars_services
-        WHERE position ${direction === "up" ? "<" : ">"} ${cur.position}
-        ORDER BY position ${direction === "up" ? "DESC" : "ASC"}
-        LIMIT 1
-      `)[0];
+
+      const op = direction === "up" ? "<" : ">";
+      const order = direction === "up" ? "DESC" : "ASC";
+
+      // IMPORTANT: build with $1 param, not template interpolation, to avoid "syntax error near $1"
+      const neighborRows = await sql(
+        `SELECT name, position
+           FROM kleenkars_services
+          WHERE position ${op} $1
+          ORDER BY position ${order}
+          LIMIT 1`,
+        [cur.position]
+      );
+      const neighbor = neighborRows[0];
       if (!neighbor) return ok({ ok: true, rows: await list(sql, true) });
 
+      // swap positions safely
       await sql`UPDATE kleenkars_services SET position = -1 WHERE name = ${name}`;
       await sql`UPDATE kleenkars_services SET position = ${cur.position} WHERE name = ${neighbor.name}`;
       await sql`UPDATE kleenkars_services SET position = ${neighbor.position} WHERE name = ${name}`;
