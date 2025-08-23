@@ -1,3 +1,4 @@
+const CACHE_NAME = "kleenkars-v2";  // ⬅️ change v1 → v2
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => self.clients.matchAll({ type: "window" }).then(clients => {
   clients.forEach(client => client.navigate(client.url));
