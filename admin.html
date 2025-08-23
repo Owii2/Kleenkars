@@ -457,36 +457,194 @@ async function adminDelete(row){
   }catch(e){ alert(e.message); }
 }
 
-/* ===================== Statistics ===================== */
-const s = { sGroup: document.getElementById('sGroup'), sFrom: document.getElementById('sFrom'), sTo: document.getElementById('sTo'),
-            sApply: document.getElementById('sApply'), sTotal: document.getElementById('sTotal'), chart: document.getElementById('chart') };
-s.sApply.addEventListener('click', loadStats);
+<script>
+// ===================== Statistics =====================
+const s = {
+  group: document.getElementById('sGroup'),
+  fromDay: document.getElementById('sFromDay'),
+  toDay: document.getElementById('sToDay'),
+  fromMonth: document.getElementById('sFromMonth'),
+  toMonth: document.getElementById('sToMonth'),
+  fromYear: document.getElementById('sFromYear'),
+  toYear: document.getElementById('sToYear'),
+  fltDay: document.getElementById('fltDay'),
+  fltMonth: document.getElementById('fltMonth'),
+  fltYear: document.getElementById('fltYear'),
+
+  apply: document.getElementById('sApply'),
+  currentYear: document.getElementById('sCurrentYear'),
+
+  kTotal: document.getElementById('kpiTotal'),
+  kBookings: document.getElementById('kpiBookings'),
+  kAvg: document.getElementById('kpiAvg'),
+
+  chTrend: document.getElementById('chTrend'),
+  chService: document.getElementById('chService'),
+  chVehicle: document.getElementById('chVehicle'),
+  chHour: document.getElementById('chHour'),
+  chDow: document.getElementById('chDow'),
+
+  msg: document.getElementById('sMsg')
+};
+
+function setGroupUI() {
+  const g = s.group.value;
+  s.fltDay.style.display   = g === 'day'   ? 'flex' : 'none';
+  s.fltMonth.style.display = g === 'month' ? 'flex' : 'none';
+  s.fltYear.style.display  = g === 'year'  ? 'flex' : 'none';
+}
+s.group.addEventListener('change', setGroupUI);
+
+function qs(o){
+  return Object.entries(o)
+    .filter(([,v]) => v != null && v !== "")
+    .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+}
+
 async function loadStats(){
-  if(!token()){ showLogin(); return; }
-  const url = "/.netlify/functions/admin-stats?" + new URLSearchParams({ group:s.sGroup.value, from:s.sFrom.value, to:s.sTo.value }).toString();
+  s.msg.textContent = "";
+  const g = s.group.value;
+  let from = "", to = "";
+
+  if (g === 'day')   { from = s.fromDay.value;   to = s.toDay.value; }
+  if (g === 'month') { from = s.fromMonth.value; to = s.toMonth.value; }
+  if (g === 'year')  { from = s.fromYear.value;  to = s.toYear.value; }
+
+  const url = "/.netlify/functions/admin-stats?" + qs({ group:g, from, to });
+
   try{
     const r = await fetch(url, { headers:{ Authorization:`Bearer ${token()}` }});
     const d = await r.json();
-    if(!r.ok || !d.ok) throw new Error(d.error||"Failed to load stats");
-    const pts = d.points || [];
-    const total = pts.reduce((a,p)=>a + Number(p.total||0), 0);
-    s.sTotal.textContent = "Total: ₹" + total;
-
-    const cv = s.chart, ctx = cv.getContext('2d');
-    const W = cv.width = cv.clientWidth, H = cv.height = cv.clientHeight;
-    ctx.clearRect(0,0,W,H);
-    const max = Math.max(1, ...pts.map(p=>Number(p.total||0)));
-    const pad = 30, barW = Math.max(10, (W - pad*2) / Math.max(pts.length,1) - 8);
-    ctx.font = "12px Inter";
-    pts.forEach((p,i)=>{
-      const x = pad + i*(barW+8);
-      const h = (Number(p.total||0)/max) * (H - pad*2);
-      const y = H - pad - h;
-      ctx.fillRect(x, y, barW, h);
-      ctx.fillText(String(p.label), x, H - pad + 14);
-    });
-  }catch(e){ alert(e.message); }
+    if(!r.ok || !d.ok) throw new Error(d.error || "Failed to load stats");
+    renderKPIs(d.totals);
+    drawTrend(d.points || []);
+    drawBars(s.chService, (d.byService||[]).map(x=>({label:x.label||'—', value:+x.total||0})), "₹");
+    drawBars(s.chVehicle, (d.byVehicle||[]).map(x=>({label:x.label||'—', value:+x.total||0})), "₹");
+    drawBars(s.chHour,    fillSeries(24, d.byHour||[], 'hour'), "");
+    drawBars(s.chDow,     mapDowSeries(d.byDow||[]), "");
+  }catch(e){
+    s.msg.textContent = e.message;
+    renderKPIs({ total:0, count:0, avg_ticket:0 });
+    drawTrend([]);
+    drawBars(s.chService, [], "₹");
+    drawBars(s.chVehicle, [], "₹");
+    drawBars(s.chHour, [], "");
+    drawBars(s.chDow, [], "");
+  }
 }
+
+function renderKPIs(t){
+  s.kTotal.textContent    = `Total: ₹${Number(t.total||0)}`;
+  s.kBookings.textContent = `Bookings: ${Number(t.count||0)}`;
+  s.kAvg.textContent      = `Avg Ticket: ₹${Number(t.avg_ticket||0)}`;
+}
+
+// ---------- Charts (vanilla canvas) ----------
+function drawTrend(points){
+  const cv = s.chTrend, ctx = cv.getContext('2d');
+  const W = cv.width = cv.clientWidth, H = cv.height = 320;
+  ctx.clearRect(0,0,W,H);
+
+  if(points.length===0){
+    ctx.font = "14px Inter"; ctx.fillText("No data for selected range.", 12, 24); return;
+  }
+
+  const padL=40,padR=10,padT=20,padB=40;
+  const innerW = W-padL-padR, innerH = H-padT-padB;
+  const maxY = Math.max(1, ...points.map(p=>+p.total||0));
+
+  // axes
+  ctx.strokeStyle="rgba(255,255,255,.2)";
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+
+  // polyline
+  ctx.beginPath();
+  points.forEach((p,i)=>{
+    const x = padL + (innerW*(i/(points.length-1||1)));
+    const y = H - padB - (innerH*((+p.total||0)/maxY));
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // points + labels
+  ctx.font="12px Inter"; ctx.textAlign="center"; ctx.textBaseline="top";
+  points.forEach((p,i)=>{
+    const x = padL + (innerW*(i/(points.length-1||1)));
+    const y = H - padB - (innerH*((+p.total||0)/maxY));
+    ctx.fillRect(x-2,y-2,4,4);
+    ctx.fillText(String(p.label), x, H-padB+6);
+  });
+}
+
+function drawBars(canvas, items, prefix){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.clientWidth, H = canvas.height = parseInt((canvas.getAttribute('height')||240),10);
+  ctx.clearRect(0,0,W,H);
+
+  if(!items.length){ ctx.font="14px Inter"; ctx.fillText("No data.", 12, 24); return; }
+
+  const padL=40,padR=10,padT=20,padB=40;
+  const innerW = W-padL-padR, innerH = H-padT-padB;
+  const maxV = Math.max(1, ...items.map(i=>i.value||0));
+  const barGap = 10, barW = Math.max(8, (innerW/items.length)-barGap);
+
+  // axes
+  ctx.strokeStyle="rgba(255,255,255,.2)";
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+
+  // y ticks
+  ctx.font="12px Inter"; ctx.textAlign="right"; ctx.textBaseline="middle";
+  const ticks=4;
+  for(let i=0;i<=ticks;i++){
+    const v = Math.round((maxV*i)/ticks);
+    const y = H-padB - (innerH*i/ticks);
+    ctx.fillText(String(v), padL-6, y);
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+  }
+
+  // bars
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  items.forEach((it, idx)=>{
+    const x = padL + idx*(barW+barGap) + barGap/2;
+    const val = it.value||0;
+    const h = (val/maxV)*innerH;
+    const y = H-padB - h;
+    ctx.fillRect(x, y, barW, h);
+    const lbl = it.label?.toString().slice(0,12) || "—";
+    ctx.fillText(lbl, x+barW/2, H-padB+6);
+  });
+}
+
+function fillSeries(N, rows, key){
+  const map = new Map(rows.map(r=>[Number(r[key]), Number(r.total)||0]));
+  const out = [];
+  for(let i=0;i<N;i++){ out.push({ label: String(i), value: map.get(i)||0 }); }
+  return out;
+}
+function mapDowSeries(rows){
+  const NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const map = new Map(rows.map(r=>[Number(r.dow), Number(r.total)||0]));
+  return NAMES.map((n,i)=>({ label:n, value: map.get(i)||0 }));
+}
+
+// Quick: Current Year (sets group=month and range Jan..Dec of current year)
+s.currentYear.addEventListener('click', ()=>{
+  const now = new Date(); const y = now.getFullYear();
+  s.group.value = 'month'; setGroupUI();
+  s.fromMonth.value = `${y}-01`; s.toMonth.value = `${y}-12`;
+  loadStats();
+});
+
+s.apply.addEventListener('click', loadStats);
+
+// Boot defaults: current year by month (ensures a non-blank graph)
+(function boot(){
+  const now = new Date(); const y = now.getFullYear();
+  s.group.value = 'month'; setGroupUI();
+  s.fromMonth.value = `${y}-01`; s.toMonth.value = `${y}-12`;
+  loadStats();
+})();
 
 /* ===================== Services ===================== */
 const svc = {
