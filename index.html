@@ -226,21 +226,26 @@ async function loadServices(){
     "/.netlify/functions/site-settings?fn=services",
     "/.netlify/functions/services"
   ];
-  for(const url of candidates){
-    try{
+
+  for (const url of candidates) {
+    try {
       const rows = await tryFetch(url);
-      if(rows && rows.length){
-        // Sort rows by position/ordinal/sort_order before saving
+      if (rows && rows.length) {
+        // Strictly respect admin's position for ordering.
         SERVICES = rows.slice().sort((a,b)=>{
-          const pa = a.position ?? a.ordinal ?? a.sort_order ?? 1e9;
-          const pb = b.position ?? b.ordinal ?? b.sort_order ?? 1e9;
-          if(pa !== pb) return pa - pb;
+          const pa = (a.position ?? 1e9);
+          const pb = (b.position ?? 1e9);
+          if (pa !== pb) return pa - pb;
           return String(a.name||"").localeCompare(String(b.name||""));
         });
         return;
       }
-    }catch(e){ /* try next */ }
+    } catch (e) {
+      // try next candidate
+    }
   }
+
+  // Fallback (if no endpoint returned data)
   SERVICES = FALLBACK.slice();
 }
 
