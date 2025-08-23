@@ -1,121 +1,134 @@
 // netlify/functions/saveBooking.js
-import { neon } from "@netlify/neon";
+import { neon, neonConfig } from "@neondatabase/serverless";
+neonConfig.fetchConnectionCache = true;
 
-const json = (s, b) => ({
-  statusCode: s,
+const ok = (obj) => ({
+  statusCode: 200,
   headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-  body: JSON.stringify(b),
+  body: JSON.stringify(obj),
 });
-const need = (k) => { const v = process.env[k]; if (!v) throw new Error(`${k} missing`); return v; };
+const err = (code, message) => ({
+  statusCode: code,
+  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+  body: JSON.stringify({ ok: false, error: message }),
+});
 
-// same rules as UI
-const PRICES = {
-  "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
-  "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
-  "SUV":         { "Basic": 200, "Premium": 250,  "Detailing": 2500 }
-};
 const HOME_SURCHARGE = 50;
-function computeServerPrice(vehicle, service, visit){
-  let p = PRICES?.[vehicle]?.[service] ?? null;
-  if (p == null) return null;
-  if (String(visit||"").toLowerCase().includes("home")) p += HOME_SURCHARGE;
-  return p;
+
+function normText(v, max = 500) { return String(v ?? "").trim().slice(0, max); }
+function normPhone(v) { return String(v || "").replace(/\D/g, "").slice(0, 15); }
+function normDate(v) {
+  try { return new Date(v).toISOString().split("T")[0]; } catch { return ""; }
+}
+function normTime(v) {
+  try {
+    const d = new Date(`1970-01-01T${v}`);
+    const hh = String(d.getUTCHours()).padStart(2, "0");
+    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  } catch { return ""; }
 }
 
-export const handler = async (event) => {
-  if (event.httpMethod !== "POST") {
-    return json(405, { ok:false, error:"Method not allowed" });
+// Reuse gaps: 1,2,3… find smallest missing order_id
+async function nextOrderId(sql) {
+  const rows = await sql`SELECT order_id FROM kleenkars_bookings WHERE order_id IS NOT NULL ORDER BY order_id ASC`;
+  let expected = 1;
+  for (const r of rows) {
+    const id = Number(r.order_id);
+    if (id > expected) break;
+    if (id === expected) expected++;
   }
+  return expected;
+}
+
+function keyForVehicle(vehicle) {
+  if (vehicle === "Bike") return "bike";
+  if (vehicle === "SUV") return "suv";
+  return "sedan"; // Hatch/Sedan
+}
+
+export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: "",
+    };
+  }
+  if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
 
   try {
-    const DBURL = need("DATABASE_URL");
-    let b = {};
-    try { b = JSON.parse(event.body || "{}"); } catch {}
+    const body = JSON.parse(event.body || "{}");
 
-    const name    = String(b.name || "").trim();
-    const phone   = String(b.phone || "").replace(/\D/g, "");
-    const vehicle = String(b.vehicle || "").trim();
-    const service = String(b.service || "").trim();
-    const date    = String(b.date || "").trim();   // YYYY-MM-DD
-    const time    = String(b.time || "").trim();   // HH:MM (24h)
-    const visit   = String(b.visit || "Wash Center").trim();
-    const address = String(b.address || "").trim();
-    // price from client (optional)
-    const priceFromClient = Number.isFinite(+b.price) ? (+b.price) : null;
+    const name = normText(body.name, 200);
+    const phone = normPhone(body.phone);
+    const vehicle = normText(body.vehicle, 40);
+    const service = normText(body.service, 120);
+    const date = normDate(body.date);
+    const time = normTime(body.time);
+    const visit = normText(body.visit || "Wash Center", 40);
+    const address = normText(body.address, 500);
 
-    if (!name) return json(400, { ok:false, error:"Missing name" });
-    if (!/^\d{10}$/.test(phone)) return json(400, { ok:false, error:"Phone must be 10 digits" });
-    if (!vehicle) return json(400, { ok:false, error:"Missing vehicle" });
-    if (!service) return json(400, { ok:false, error:"Missing service" });
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json(400, { ok:false, error:"Invalid date" });
-    if (!/^\d{2}:\d{2}$/.test(time)) return json(400, { ok:false, error:"Invalid time" });
+    if (!name || !phone || !vehicle || !service || !date || !time) {
+      return err(400, "Missing required fields");
+    }
 
-    // verify/compute price server-side (trust but verify)
-    const priceComputed = computeServerPrice(vehicle, service, visit);
-    if (priceComputed == null) return json(400, { ok:false, error:`${service} not available for ${vehicle}` });
+    const sql = neon(process.env.DATABASE_URL);
 
-    const price = Number.isFinite(priceFromClient) ? priceFromClient : priceComputed;
-
-    const dt = `${date} ${time}`; // "YYYY-MM-DD HH:MM"
-
-    const sql = neon(DBURL);
-
-    // Ensure the columns exist (safe to run every time)
-    await sql(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = current_schema() AND table_name = 'bookings' AND column_name = 'price'
-        ) THEN
-          ALTER TABLE bookings ADD COLUMN price INT;
-        END IF;
-
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = current_schema() AND table_name = 'bookings' AND column_name = 'visit'
-        ) THEN
-          ALTER TABLE bookings ADD COLUMN visit TEXT;
-        END IF;
-
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = current_schema() AND table_name = 'bookings' AND column_name = 'address'
-        ) THEN
-          ALTER TABLE bookings ADD COLUMN address TEXT;
-        END IF;
-      END$$;
-    `);
-
-    // Insert into your real table
-    const rows = await sql(
-      `
-      INSERT INTO bookings (name, phone, service, vehicle, datetime, price, visit, address, created_at)
-      VALUES (
-        $1, $2, $3, $4,
-        make_timestamptz(
-          substr($5,1,4)::int,
-          substr($5,6,2)::int,
-          substr($5,9,2)::int,
-          substr($5,12,2)::int,
-          substr($5,15,2)::int,
-          0,
-          'Asia/Kolkata'
-        ),
-        $6, $7, $8, now()
+    // Ensure bookings table exists
+    await sql`
+      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
+        id SERIAL PRIMARY KEY,
+        order_id INT UNIQUE,
+        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
+        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-      RETURNING id;
-      `,
-      [name, phone, service, vehicle, dt, price, visit, address]
-    );
+    `;
 
-    const order_id = rows[0]?.id;
+    // Dynamic price from kleenkars_services
+    const key = keyForVehicle(vehicle); // bike | sedan | suv
+    const svcRows = await sql`
+      SELECT name, bike, sedan, suv, visible
+      FROM kleenkars_services
+      WHERE name = ${service}
+      LIMIT 1
+    `;
+    if (svcRows.length === 0) {
+      return err(400, `${service} not available for ${vehicle}`);
+    }
+    const svc = svcRows[0];
+    if (svc.visible === false) {
+      return err(400, `${service} not available for ${vehicle}`);
+    }
+    let base = svc[key]; // null if not offered for that vehicle
+    if (base == null) {
+      return err(400, `${service} not available for ${vehicle}`);
+    }
+    let price = Number(base) || 0;
+    if (visit === "Home Visit") price += HOME_SURCHARGE;
 
-    const admin   = (process.env.ADMIN_WHATSAPP   || process.env.ADMIN_PHONE   || "").replace(/\D/g, "") || null;
-    const manager = (process.env.MANAGER_WHATSAPP || process.env.MANAGER_PHONE || "").replace(/\D/g, "") || null;
+    // Allocate reusable order_id
+    const order_id = await nextOrderId(sql);
 
-    return json(200, { ok:true, order_id, admin, manager });
+    // Insert booking
+    await sql`
+      INSERT INTO kleenkars_bookings
+      (order_id, name, phone, vehicle, service, date, time, visit, address, price)
+      VALUES (${order_id}, ${name}, ${phone}, ${vehicle}, ${service}, ${date}, ${time}, ${visit}, ${address}, ${price})
+    `;
+
+    // Optional WhatsApp numbers
+    const admin   = (process.env.ADMIN_PHONE || "").replace(/\D/g, "") || null;
+    const manager = (process.env.MANAGER_PHONE || "").replace(/\D/g, "") || null;
+
+    return ok({ ok: true, order_id, admin, manager });
   } catch (e) {
-    return json(500, { ok:false, error: e.message });
+    console.error("saveBooking error:", e);
+    return err(500, e.message || "Server error");
   }
-};
+}
