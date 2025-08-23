@@ -24,16 +24,10 @@ function authz(event) {
   const hdr = event.headers?.authorization || event.headers?.Authorization || "";
   const m = hdr.match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
-  try {
-    return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET);
-  } catch {
-    return null;
-  }
+  try { return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET); } catch { return null; }
 }
 
-function qsVal(qs, k) {
-  return (qs?.[k] ?? "").toString().trim();
-}
+const qsVal = (qs, k) => (qs?.[k] ?? "").toString().trim();
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
@@ -48,45 +42,62 @@ export const handler = async (event) => {
     const sql = neon(process.env.DATABASE_URL);
 
     // --- detect actual columns on the bookings table
-    const cols = await sql(
-      `SELECT column_name
-         FROM information_schema.columns
-        WHERE table_schema = current_schema()
-          AND table_name = 'bookings'`
-    );
-    const set = new Set(cols.map((r) => r.column_name));
+    const cols = await sql(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_name = 'bookings'
+    `);
+    const set = new Set(cols.map(r => r.column_name));
+    const has = (c) => set.has(c);
 
     // helper: pick first existing column from candidates
-    const pick = (...cands) => cands.find((c) => set.has(c));
+    const pick = (...cands) => cands.find(c => set.has(c));
 
     // canonical fields (nullable if absent)
     const col = {
       order_id: pick("order_id", "id"),
-      name: pick("name"),
-      phone: pick("phone"),
-      vehicle: pick("vehicle"),
-      service: pick("service"),
-      date: pick("date", "booking_date"),
-      time: pick("time", "booking_time"),
-      visit: pick("visit", "visit_type"),
-      address: pick("address"),
-      price: pick("price", "amount"),
-      created_at: pick("created_at", "created", "inserted_at"),
+      name:     pick("name"),
+      phone:    pick("phone"),
+      vehicle:  pick("vehicle","vehicle_type"),
+      service:  pick("service","service_name"),
+      date:     pick("date","booking_date"),
+      time:     pick("time","booking_time"),
+      datetime: pick("datetime"), // you have this
+      visit:    pick("visit","visit_type"),
+      address:  pick("address","location"),
+      price:    pick("price","amount","total"),
+      created_at: pick("created_at","created","inserted_at")
     };
 
     // --- build SELECT list dynamically (alias to the frontend keys)
     const selectParts = [];
-    const pushSel = (db, alias) => {
-      if (db) selectParts.push(`${db} AS ${alias}`);
-      else selectParts.push(`NULL::text AS ${alias}`); // keep shape stable
+    const pushSel = (db, alias, cast=null) => {
+      if (db) selectParts.push(`${db}${cast?`::${cast}`:""} AS ${alias}`);
+      else selectParts.push(`NULL AS ${alias}`); // keep shape stable
     };
-    pushSel(col.order_id, "order_id");
+
+    // Always expose order_id
+    if (col.order_id) selectParts.push(`${col.order_id} AS order_id`);
+    else selectParts.push(`NULL AS order_id`);
+
     pushSel(col.name, "name");
     pushSel(col.phone, "phone");
     pushSel(col.vehicle, "vehicle");
     pushSel(col.service, "service");
-    pushSel(col.date, "date");
-    pushSel(col.time, "time");
+
+    // date/time: derive from datetime if separate columns don't exist
+    if (!col.date && col.datetime) {
+      selectParts.push(`to_char(${col.datetime} AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS date`);
+    } else {
+      pushSel(col.date, "date");
+    }
+    if (!col.time && col.datetime) {
+      selectParts.push(`to_char(${col.datetime} AT TIME ZONE 'Asia/Kolkata','HH24:MI') AS time`);
+    } else {
+      pushSel(col.time, "time");
+    }
+
     pushSel(col.visit, "visit");
     pushSel(col.address, "address");
     pushSel(col.price, "price");
@@ -95,30 +106,30 @@ export const handler = async (event) => {
     // --- filters from querystring
     const qs = event.queryStringParameters || {};
     const from = qsVal(qs, "from");   // YYYY-MM-DD
-    const to = qsVal(qs, "to");       // YYYY-MM-DD
-    const service = qsVal(qs, "service");
+    const to   = qsVal(qs, "to");     // YYYY-MM-DD
+    const svc  = qsVal(qs, "service");
     const search = qsVal(qs, "search");
     const limit = Math.min(1000, Math.max(1, parseInt(qsVal(qs, "limit") || "500", 10)));
 
     const where = [];
     const params = [];
 
-    if (from && col.date) {
-      params.push(from);
-      where.push(`${col.date} >= $${params.length}::date`);
+    // Use date column if present; otherwise filter on datetime
+    if (from) {
+      if (col.date) { params.push(from); where.push(`${col.date} >= $${params.length}::date`); }
+      else if (col.datetime) { params.push(from); where.push(`${col.datetime} >= $${params.length}::date`); }
     }
-    if (to && col.date) {
-      params.push(to);
-      where.push(`${col.date} <= $${params.length}::date`);
+    if (to) {
+      if (col.date) { params.push(to); where.push(`${col.date} <= $${params.length}::date`); }
+      else if (col.datetime) { params.push(to); where.push(`${col.datetime} < ($${params.length}::date + INTERVAL '1 day')`); }
     }
-    if (service && col.service) {
-      params.push(service);
-      where.push(`${col.service} = $${params.length}`);
-    }
+
+    if (svc && col.service) { params.push(svc); where.push(`${col.service} = $${params.length}`); }
+
     if (search && (col.name || col.phone)) {
       const parts = [];
-      if (col.name)  { params.push(`%${search}%`);  parts.push(`${col.name} ILIKE $${params.length}`); }
-      if (col.phone) { params.push(`%${search}%`);  parts.push(`${col.phone} ILIKE $${params.length}`); }
+      if (col.name)  { params.push(`%${search}%`); parts.push(`${col.name} ILIKE $${params.length}`); }
+      if (col.phone) { params.push(`%${search}%`); parts.push(`${col.phone} ILIKE $${params.length}`); }
       if (parts.length) where.push(`(${parts.join(" OR ")})`);
     }
 
@@ -127,16 +138,17 @@ export const handler = async (event) => {
     // order preference
     const orderBy =
       col.created_at ? `${col.created_at} DESC`
-      : col.date ? `${col.date} DESC`
-      : col.order_id ? `${col.order_id} DESC`
+      : col.datetime  ? `${col.datetime} DESC`
+      : col.date      ? `${col.date} DESC`
+      : col.order_id  ? `${col.order_id} DESC`
       : "1";
 
     const query = `
       SELECT ${selectParts.join(", ")}
-        FROM bookings
-        ${whereSql}
-        ORDER BY ${orderBy}
-        LIMIT $${params.length + 1};
+      FROM bookings
+      ${whereSql}
+      ORDER BY ${orderBy}
+      LIMIT $${params.length + 1};
     `;
     params.push(limit);
 
