@@ -673,18 +673,32 @@ async function loadServices(){
   if(!token()){ showLogin(); return; }
   svc.rows.innerHTML = `<tr><td colspan="7" class="muted">Loading…</td></tr>`;
   try{
-    const r = await fetch("/.netlify/functions/admin-services", { headers:{ Authorization:`Bearer ${token()}` }});
+    const r = await fetch("/.netlify/functions/admin-services", {
+      headers:{ Authorization:`Bearer ${token()}` }
+    });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed");
-    const rows = d.rows || [];
-    if(rows.length===0){ svc.rows.innerHTML = `<tr><td colspan="7" class="muted">No services.</td></tr>`; return; }
+
+    // Server should already send ordered rows; still, sort defensively
+    const rows = (d.rows || []).slice().sort((a,b)=>{
+      const pa = a.position ?? a.ordinal ?? a.sort_order ?? 1e9;
+      const pb = b.position ?? b.ordinal ?? b.sort_order ?? 1e9;
+      if (pa !== pb) return pa - pb;
+      return String(a.name||"").localeCompare(String(b.name||""));
+    });
+
+    if(rows.length===0){
+      svc.rows.innerHTML = `<tr><td colspan="7" class="muted">No services.</td></tr>`;
+      return;
+    }
 
     svc.rows.innerHTML = "";
     rows.forEach((s, idx)=>{
       const tr = document.createElement('tr');
       const fmt = v=> v==null ? "<span class='muted'>—</span>" : "₹"+Number(v);
+      const pos = (s.position ?? s.ordinal ?? s.sort_order ?? idx) + 1; // 1-based display
       tr.innerHTML = `
-        <td>${idx+1}</td>
+        <td>${pos}</td>
         <td>${esc(s.name)}</td>
         <td>${fmt(s.bike)}</td>
         <td>${fmt(s.sedan)}</td>
@@ -698,9 +712,27 @@ async function loadServices(){
           <button class="btn danger" data-act="del">Delete</button>
         </td>`;
       tr.dataset.service = JSON.stringify(s);
+      tr.dataset.index = String(idx);
       svc.rows.appendChild(tr);
     });
-  }catch(e){ alert(e.message); }
+
+    // Disable ↑ for first, ↓ for last
+    setMoveDisabled();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+function setMoveDisabled(){
+  const trs = [...svc.rows.querySelectorAll('tr')];
+  trs.forEach(tr=>{
+    const up = tr.querySelector('button[data-act="up"]');
+    const dn = tr.querySelector('button[data-act="down"]');
+    if(!up || !dn) return;
+    const idx = Number(tr.dataset.index||"0");
+    up.disabled = (idx === 0);
+    dn.disabled = (idx === trs.length - 1);
+  });
 }
 
 document.getElementById('svcRows').addEventListener('click', async (e)=>{
@@ -714,6 +746,7 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
     svc.sedan.value = s.sedan ?? "";
     svc.suv.value = s.suv ?? "";
     svc.msg.textContent = "Loaded into form. Edit and click Save service.";
+    return;
   }
 
   if(btn.dataset.act==='del'){
@@ -726,13 +759,22 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
       });
       const d = await r.json();
       if(!r.ok || !d.ok) throw new Error(d.error||"Delete failed");
-      svc.originalName = null;
-      svc.name.value = ""; svc.bike.value = ""; svc.sedan.value = ""; svc.suv.value = "";
-      loadServices();
+      // clear edit form if it was the same service
+      if (svc.originalName === s.name){
+        svc.originalName = null;
+        svc.name.value = ""; svc.bike.value = ""; svc.sedan.value = ""; svc.suv.value = "";
+      }
+      await loadServices();
     }catch(err){ alert(err.message); }
+    return;
   }
 
   if(btn.dataset.act==='up' || btn.dataset.act==='down'){
+    const allMoveButtons = svc.rows.querySelectorAll('button[data-act="up"], button[data-act="down"]');
+    // Show saving state & freeze move buttons
+    const oldLabel = btn.textContent;
+    btn.textContent = "…";
+    allMoveButtons.forEach(b=> b.disabled = true);
     try{
       const r = await fetch("/.netlify/functions/admin-services", {
         method:"PATCH",
@@ -741,20 +783,28 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
       });
       const d = await r.json();
       if(!r.ok || !d.ok) throw new Error(d.error||"Reorder failed");
-      loadServices();
-    }catch(err){ alert(err.message); }
+      await loadServices();
+    }catch(err){
+      alert(err.message);
+    }finally{
+      btn.textContent = oldLabel;
+      // buttons will be re-created by loadServices(); no need to unfreeze here
+    }
   }
 });
 
 async function saveService(){
   const payload = {
-    originalName: svc.originalName || svc.name.value.trim(), // allow rename if edited
+    originalName: (svc.originalName || "").trim() || null, // allow rename
     name: svc.name.value.trim(),
     bike: toIntOrNull(svc.bike.value),
     sedan: toIntOrNull(svc.sedan.value),
     suv: toIntOrNull(svc.suv.value)
   };
-  if(!payload.name){ svc.msg.textContent = "Enter service name."; return; }
+  if(!payload.name){
+    svc.msg.textContent = "Enter service name.";
+    return;
+  }
   try{
     const r = await fetch("/.netlify/functions/admin-services", {
       method:"POST",
@@ -764,12 +814,22 @@ async function saveService(){
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Save failed");
     svc.msg.textContent = "Saved.";
-    svc.originalName = payload.name; // next save treats it as same row
-    loadServices();
-  }catch(e){ svc.msg.textContent = e.message; }
+    // keep track of the row’s canonical name (post-rename)
+    svc.originalName = payload.name;
+    await loadServices();
+  }catch(e){
+    svc.msg.textContent = e.message;
+  }
 }
-function toIntOrNull(v){ v=String(v||"").trim(); if(v==="") return null; const n=parseInt(v,10); return Number.isFinite(n)?n:null; }
-  
+
+function toIntOrNull(v){
+  v=String(v||"").trim();
+  if(v==="") return null;
+  const m = v.match(/\d+/);
+  if(!m) return null;
+  const n = parseInt(m[0],10);
+  return Number.isFinite(n)?n:null;
+}  
 /* ===================== Boot ===================== */
 if(token()){ showApp(); tabTo('bookings'); loadBookings(); } else showLogin();
 </script>
