@@ -858,5 +858,12 @@ function toIntOrNull(v){
 /* ===================== Boot ===================== */
 if(token()){ showApp(); tabTo('bookings'); loadBookings(); } else showLogin();
 </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+</script>
 </body>
 </html>
