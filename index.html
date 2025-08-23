@@ -204,31 +204,21 @@ els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.repl
 /* expected row: { name, bike, sedan, suv } */
 let SERVICES = [];
 const FALLBACK = [
-  { name:"Basic",     bike:50,   sedan:150,  suv:200  },
-  { name:"Premium",   bike:null, sedan:200,  suv:250  },
-  { name:"Detailing", bike:null, sedan:1500, suv:2500 }
+  { name:"Basic Wash",     bike:50,   sedan:150,  suv:200  },
+  { name:"Premium Car Wash",   bike:null, sedan:200,  suv:250  },
+  { name:"Detailing",      bike:null, sedan:1500, suv:2500 }
 ];
-async function tryFetch(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  const d = await r.json();
-  if(Array.isArray(d)) return d;
-  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
-  throw new Error("Unexpected response");
-}
+
 async function loadServices(){
-  const candidates = [
-    "/.netlify/functions/admin-services?public=1",
-    "/.netlify/functions/site-settings?fn=services",
-    "/.netlify/functions/services"
-  ];
-  for(const url of candidates){
-    try{
-      const rows = await tryFetch(url);
-      if(rows && rows.length){ SERVICES = rows; return; }
-    }catch(e){ /* try next */ }
+  try{
+    const r = await fetch("/.netlify/functions/public-services");
+    const d = await r.json();
+    if(!r.ok || !d.ok) throw new Error(d.error || "Failed to load services");
+    const rows = Array.isArray(d.services) ? d.services : (Array.isArray(d.rows) ? d.rows : []);
+    SERVICES = rows.length ? rows : FALLBACK;
+  }catch(e){
+    SERVICES = FALLBACK;
   }
-  SERVICES = FALLBACK;
 }
 
 /* ---------- Helpers ---------- */
