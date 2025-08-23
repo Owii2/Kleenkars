@@ -25,13 +25,13 @@ const err = (code, msg) => ({
 
 function normInt(v){
   if (v === null || v === undefined || v === "") return null;
-  const m = String(v).match(/\d+/); // pulls 150 from "₹150" etc.
+  const m = String(v).match(/\d+/);
   if (!m) return null;
   const n = parseInt(m[0], 10);
   return Number.isFinite(n) ? n : null;
 }
 function normBool(v){
-  if (v === null || v === undefined || v === "") return true; // default visible
+  if (v === null || v === undefined || v === "") return true;
   const s = String(v).trim().toLowerCase();
   if (["true","1","yes","y"].includes(s)) return true;
   if (["false","0","no","n"].includes(s)) return false;
@@ -42,8 +42,7 @@ function trimOrNull(v, max=500){
   return s ? s.slice(0,max) : null;
 }
 
-async function ensureSchemaAndMigrate(sql){
-  // Create table if missing
+async function ensureSchema(sql){
   await sql`
     CREATE TABLE IF NOT EXISTS kleenkars_services (
       name TEXT PRIMARY KEY,
@@ -53,38 +52,37 @@ async function ensureSchemaAndMigrate(sql){
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  // Add new columns if they don't exist
   await sql`ALTER TABLE kleenkars_services ADD COLUMN IF NOT EXISTS visible BOOLEAN`;
   await sql`ALTER TABLE kleenkars_services ADD COLUMN IF NOT EXISTS description TEXT`;
   await sql`ALTER TABLE kleenkars_services ADD COLUMN IF NOT EXISTS position INT`;
-
-  // Default/backfill: visible -> true where null
   await sql`UPDATE kleenkars_services SET visible = true WHERE visible IS NULL`;
-
-  // Ensure unique index on position but allow many NULLs
-  await sql`
-    CREATE UNIQUE INDEX IF NOT EXISTS kleenkars_services_position_key
-    ON kleenkars_services(position) WHERE position IS NOT NULL
-  `;
-
-  // Assign unique positions to rows where position is NULL, after current MAX(position)
-  const maxRow = (await sql`SELECT COALESCE(MAX(position),0)::int AS m FROM kleenkars_services`)[0];
-  const maxPos = maxRow?.m || 0;
-  await sql`
-    WITH toset AS (
-      SELECT name, ROW_NUMBER() OVER (ORDER BY name) AS rn
-      FROM kleenkars_services
-      WHERE position IS NULL
-    )
-    UPDATE kleenkars_services s
-    SET position = ${maxPos} + t.rn,
-        updated_at = NOW()
-    FROM toset t
-    WHERE s.name = t.name
-  `;
 }
 
-// Optional: import legacy `services` table once
+async function normalizePositions(sql){
+  // Re-number to 1..N deterministically, avoiding unique-conflict mid-flight.
+  await sql`BEGIN`;
+  try{
+    await sql`CREATE TEMP TABLE _rank AS
+              SELECT name, ROW_NUMBER() OVER (ORDER BY position NULLS LAST, name) AS pos
+              FROM kleenkars_services`;
+    await sql`UPDATE kleenkars_services SET position = NULL WHERE position IS NOT NULL`;
+    await sql`UPDATE kleenkars_services s
+              SET position = r.pos, updated_at = NOW()
+              FROM _rank r
+              WHERE s.name = r.name`;
+    await sql`DROP TABLE _rank`;
+    // Ensure partial unique index exists after positions are normalized
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS kleenkars_services_position_key
+      ON kleenkars_services(position) WHERE position IS NOT NULL
+    `;
+    await sql`COMMIT`;
+  }catch(e){
+    await sql`ROLLBACK`;
+    throw e;
+  }
+}
+
 async function tryImportLegacy(sql){
   const legacy = await sql`
     SELECT 1
@@ -137,26 +135,27 @@ async function seedDefaultsIfEmpty(sql){
 }
 
 async function list(sql, { publicOnly = false } = {}){
-  await ensureSchemaAndMigrate(sql);
+  await ensureSchema(sql);
   await tryImportLegacy(sql);
   await seedDefaultsIfEmpty(sql);
+  await normalizePositions(sql);
+
   if (publicOnly){
     return await sql`
       SELECT name, bike, sedan, suv, description, position
       FROM kleenkars_services
       WHERE visible = true
-      ORDER BY position NULLS LAST, name
+      ORDER BY position, name
     `;
   }
   return await sql`
     SELECT name, bike, sedan, suv, visible, description, position
     FROM kleenkars_services
-    ORDER BY position NULLS LAST, name
+    ORDER BY position, name
   `;
 }
 
 function parseCsvLoose(text){
-  // Small CSV helper with quoted cells support
   const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l=>l.trim()!=="");
   if (!lines.length) return { header:[], rows:[] };
   const parseLine = (line) => {
@@ -187,7 +186,7 @@ export async function handler(event){
 
   const sql = neon(process.env.DATABASE_URL);
 
-  // ---- PUBLIC: allow index.html to fetch without auth ----
+  // PUBLIC (no auth): for index.html
   if (event.httpMethod === "GET" && (event.queryStringParameters?.public === "1")){
     try{
       const rows = await list(sql, { publicOnly: true });
@@ -198,7 +197,7 @@ export async function handler(event){
     }
   }
 
-  // ---- ADMIN (requires token) ----
+  // ADMIN (auth required)
   const auth = event.headers.authorization || event.headers.Authorization || "";
   if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
@@ -209,7 +208,7 @@ export async function handler(event){
     }
 
     if (event.httpMethod === "POST") {
-      await ensureSchemaAndMigrate(sql);
+      await ensureSchema(sql);
       const body = JSON.parse(event.body || "{}");
       const originalName = trimOrNull(body.originalName, 100);
       const name  = trimOrNull(body.name, 100);
@@ -221,7 +220,7 @@ export async function handler(event){
 
       if (!name) return err(400, "Missing service name");
 
-      // If renaming: change PK but keep position
+      // Rename preserves position
       if (originalName && originalName !== name){
         await sql`UPDATE kleenkars_services SET name=${name}, updated_at=NOW() WHERE name=${originalName}`;
       }
@@ -239,64 +238,81 @@ export async function handler(event){
           updated_at  = NOW()
       `;
 
-      // After upsert, ensure schema/index/backfill are satisfied
-      await ensureSchemaAndMigrate(sql);
+      // Clean positions
+      await normalizePositions(sql);
 
       const rows = await list(sql);
       return ok({ ok:true, rows });
     }
 
     if (event.httpMethod === "DELETE") {
-      await ensureSchemaAndMigrate(sql);
+      await ensureSchema(sql);
       const body = JSON.parse(event.body || "{}");
       const name = trimOrNull(body.name, 100);
       if (!name) return err(400, "Missing service name");
       const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING name`;
       if (r.length === 0) return err(404, "Service not found");
+
+      await normalizePositions(sql);
+
       const rows = await list(sql);
       return ok({ ok:true, rows });
     }
 
     if (event.httpMethod === "PATCH") {
-      await ensureSchemaAndMigrate(sql);
+      await ensureSchema(sql);
       const body = JSON.parse(event.body || "{}");
       const name = trimOrNull(body.name, 100);
       const direction = String(body.direction||"");
       if(!name || !["up","down"].includes(direction)) return err(400, "Bad request");
 
-      const row = (await sql`SELECT name, position FROM kleenkars_services WHERE name=${name}`)[0];
-      if (!row) return err(404, "Not found");
+      await sql`BEGIN`;
+      try{
+        const rows = await sql`
+          SELECT name, position
+          FROM kleenkars_services
+          ORDER BY position NULLS LAST, name
+        `;
+        const idx = rows.findIndex(r=>r.name===name);
+        if (idx === -1){
+          await sql`ROLLBACK`;
+          return err(404, "Not found");
+        }
 
-      // Current ordered list
-      const rows = await sql`
-        SELECT name, position
-        FROM kleenkars_services
-        ORDER BY position NULLS LAST, name
-      `;
-      const idx = rows.findIndex(r=>r.name===name);
-      if (idx === -1) return err(404, "Not found");
+        const swapWith = direction === "up" ? idx-1 : idx+1;
+        if (swapWith < 0 || swapWith >= rows.length){
+          await sql`ROLLBACK`;
+          return ok({ ok:true, rows: await list(sql) });
+        }
 
-      const swapWith = direction === "up" ? idx-1 : idx+1;
-      if (swapWith < 0 || swapWith >= rows.length) return ok({ ok:true, rows: await list(sql) });
+        const a = rows[idx], b = rows[swapWith];
 
-      const a = rows[idx], b = rows[swapWith];
+        // Make sure both have concrete positions
+        const maxRow = (await sql`SELECT COALESCE(MAX(position),0)::int AS m FROM kleenkars_services`)[0];
+        let curMax = maxRow?.m || 0;
 
-      // Assign missing positions if any
-      const maxRow = (await sql`SELECT COALESCE(MAX(position),0)::int AS m FROM kleenkars_services`)[0];
-      const maxPos = maxRow?.m || 0;
-      const posA = a.position ?? (maxPos + 1);
-      const posB = b.position ?? (maxPos + 2);
+        const posA = a.position ?? (++curMax);
+        const posB = b.position ?? (++curMax);
 
-      await sql`UPDATE kleenkars_services SET position=${posB}, updated_at=NOW() WHERE name=${a.name}`;
-      await sql`UPDATE kleenkars_services SET position=${posA}, updated_at=NOW() WHERE name=${b.name}`;
+        // Perform swap
+        await sql`UPDATE kleenkars_services SET position=${posB}, updated_at=NOW() WHERE name=${a.name}`;
+        await sql`UPDATE kleenkars_services SET position=${posA}, updated_at=NOW() WHERE name=${b.name}`;
+
+        await sql`COMMIT`;
+      }catch(e){
+        await sql`ROLLBACK`;
+        throw e;
+      }
+
+      await normalizePositions(sql);
 
       const out = await list(sql);
       return ok({ ok:true, rows: out });
     }
 
     if (event.httpMethod === "PUT") {
-      // CSV import: { csv: string, mode: "upsert" | "replace" }
-      await ensureSchemaAndMigrate(sql);
+      // CSV import
+      await ensureSchema(sql);
       const body = JSON.parse(event.body || "{}");
       const csv = String(body.csv || "");
       const mode = (body.mode || "upsert").toLowerCase();
@@ -319,10 +335,7 @@ export async function handler(event){
         await sql`DELETE FROM kleenkars_services`;
       }
 
-      // Next free position (append)
-      let posCursor = (await sql`SELECT COALESCE(MAX(position),0)::int AS m FROM kleenkars_services`)[0].m || 0;
       let imported = 0;
-
       for (const r of rows){
         const name = trimOrNull(r[ix.name], 100);
         if (!name) continue;
@@ -331,12 +344,7 @@ export async function handler(event){
         const suv = ix.suv >= 0 ? normInt(r[ix.suv]) : null;
         const visible = ix.visible >= 0 ? normBool(r[ix.visible]) : true;
         const description = ix.description >= 0 ? trimOrNull(r[ix.description], 500) : null;
-        let position = ix.position >= 0 ? normInt(r[ix.position]) : null;
-
-        if (mode === "replace"){
-          // In replace mode, assign sequential positions if not provided
-          if (position == null) position = ++posCursor;
-        }
+        const position = ix.position >= 0 ? normInt(r[ix.position]) : null;
 
         await sql`
           INSERT INTO kleenkars_services (name, bike, sedan, suv, visible, description, position, updated_at)
@@ -351,20 +359,10 @@ export async function handler(event){
             position    = COALESCE(EXCLUDED.position, kleenkars_services.position),
             updated_at  = NOW()
         `;
-
-        // If upsert and no position provided/new row had NULL, give it the next slot
-        if (mode === "upsert" && position == null){
-          const cur = (await sql`SELECT position FROM kleenkars_services WHERE name=${name}`)[0].position;
-          if (cur == null){
-            posCursor++;
-            await sql`UPDATE kleenkars_services SET position=${posCursor}, updated_at=NOW() WHERE name=${name}`;
-          }
-        }
         imported++;
       }
 
-      // Final pass to ensure schema + unique positions
-      await ensureSchemaAndMigrate(sql);
+      await normalizePositions(sql);
 
       const out = await list(sql);
       return ok({ ok:true, imported, rows: out });
