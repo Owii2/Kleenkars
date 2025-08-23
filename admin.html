@@ -246,7 +246,15 @@
         <div style="overflow:auto;margin-top:10px;">
           <table>
             <thead>
-              <tr><th>Service</th><th>Bike</th><th>Hatch/Sedan</th><th>SUV</th><th>Actions</th></tr>
+             <tr>
+              <th style="width:56px;">#</th>
+              <th>Service</th>
+              <th>Bike</th>
+              <th>Hatch/Sedan</th>
+              <th>SUV</th>
+              <th style="width:160px;">Order</th>
+              <th>Actions</th>
+             </tr>
             </thead>
             <tbody id="svcRows"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
           </table>
@@ -655,34 +663,39 @@ const svc = {
   save: document.getElementById('svSave'),
   msg: document.getElementById('svMsg'),
   refresh: document.getElementById('svcRefresh'),
-  originalName: null   // <-- track which service we are editing
+  originalName: null
 };
-const norm = s => String(s||"").trim().replace(/\s+/g," ");
 
 svc.refresh.addEventListener('click', loadServices);
 svc.save.addEventListener('click', saveService);
 
 async function loadServices(){
   if(!token()){ showLogin(); return; }
-  svc.rows.innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
+  svc.rows.innerHTML = `<tr><td colspan="7" class="muted">Loading…</td></tr>`;
   try{
     const r = await fetch("/.netlify/functions/admin-services", { headers:{ Authorization:`Bearer ${token()}` }});
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed");
     const rows = d.rows || [];
-    if(rows.length===0){ svc.rows.innerHTML = `<tr><td colspan="5" class="muted">No services.</td></tr>`; return; }
-    svc.rows.innerHTML="";
-    rows.forEach(s=>{
+    if(rows.length===0){ svc.rows.innerHTML = `<tr><td colspan="7" class="muted">No services.</td></tr>`; return; }
+
+    svc.rows.innerHTML = "";
+    rows.forEach((s, idx)=>{
       const tr = document.createElement('tr');
       const fmt = v=> v==null ? "<span class='muted'>—</span>" : "₹"+Number(v);
       tr.innerHTML = `
+        <td>${idx+1}</td>
         <td>${esc(s.name)}</td>
         <td>${fmt(s.bike)}</td>
         <td>${fmt(s.sedan)}</td>
         <td>${fmt(s.suv)}</td>
         <td>
-          <button class='btn secondary' data-act='edit'>Edit</button>
-          <button class='btn danger' data-act='del'>Delete</button>
+          <button class="btn secondary" data-act="up">↑</button>
+          <button class="btn secondary" data-act="down">↓</button>
+        </td>
+        <td>
+          <button class="btn secondary" data-act="edit">Edit</button>
+          <button class="btn danger" data-act="del">Delete</button>
         </td>`;
       tr.dataset.service = JSON.stringify(s);
       svc.rows.appendChild(tr);
@@ -695,12 +708,12 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
   const tr = e.target.closest('tr'); const s = JSON.parse(tr.dataset.service||"{}");
 
   if(btn.dataset.act==='edit'){
-    svc.originalName = s.name;               // <-- remember original
+    svc.originalName = s.name;
     svc.name.value = s.name;
     svc.bike.value = s.bike ?? "";
     svc.sedan.value = s.sedan ?? "";
     svc.suv.value = s.suv ?? "";
-    svc.msg.textContent = `Editing: ${s.name}. Change fields and click Save service.`;
+    svc.msg.textContent = "Loaded into form. Edit and click Save service.";
   }
 
   if(btn.dataset.act==='del'){
@@ -713,11 +726,21 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
       });
       const d = await r.json();
       if(!r.ok || !d.ok) throw new Error(d.error||"Delete failed");
-      // clear form if we were editing this one
-      if (svc.originalName && norm(svc.originalName) === norm(s.name)) {
-        svc.originalName = null;
-        svc.name.value = ""; svc.bike.value=""; svc.sedan.value=""; svc.suv.value="";
-      }
+      svc.originalName = null;
+      svc.name.value = ""; svc.bike.value = ""; svc.sedan.value = ""; svc.suv.value = "";
+      loadServices();
+    }catch(err){ alert(err.message); }
+  }
+
+  if(btn.dataset.act==='up' || btn.dataset.act==='down'){
+    try{
+      const r = await fetch("/.netlify/functions/admin-services", {
+        method:"PATCH",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
+        body: JSON.stringify({ name: s.name, direction: btn.dataset.act })
+      });
+      const d = await r.json();
+      if(!r.ok || !d.ok) throw new Error(d.error||"Reorder failed");
       loadServices();
     }catch(err){ alert(err.message); }
   }
@@ -725,14 +748,13 @@ document.getElementById('svcRows').addEventListener('click', async (e)=>{
 
 async function saveService(){
   const payload = {
-    originalName: svc.originalName || null,     // <-- send original for rename
-    name: norm(svc.name.value),
+    originalName: svc.originalName || svc.name.value.trim(), // allow rename if edited
+    name: svc.name.value.trim(),
     bike: toIntOrNull(svc.bike.value),
     sedan: toIntOrNull(svc.sedan.value),
     suv: toIntOrNull(svc.suv.value)
   };
   if(!payload.name){ svc.msg.textContent = "Enter service name."; return; }
-
   try{
     const r = await fetch("/.netlify/functions/admin-services", {
       method:"POST",
@@ -741,14 +763,11 @@ async function saveService(){
     });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Save failed");
-
     svc.msg.textContent = "Saved.";
-    // After save, treat the new name as the current original (so further edits keep updating)
-    svc.originalName = payload.name;
+    svc.originalName = payload.name; // next save treats it as same row
     loadServices();
   }catch(e){ svc.msg.textContent = e.message; }
 }
-
 function toIntOrNull(v){ v=String(v||"").trim(); if(v==="") return null; const n=parseInt(v,10); return Number.isFinite(n)?n:null; }
   
 /* ===================== Boot ===================== */
