@@ -241,11 +241,10 @@ function getVisit(){
 }
 function servicesForVehicle(v){
   if(!v) return [];
-  const key = v==="Bike" ? "bike" : (v==="SUV" ? "suv" : "sedan");
-  // Do NOT sort here; we already sorted SERVICES once in loadServices()
+  // keep the order already sorted in loadServices()
   return SERVICES
-    .filter(s => s && s.name && s[key] != null)
-    .map(s => ({ name: String(s.name), price: Number(s[key]) }));
+    .map(row => ({ name: String(row.name||""), price: priceFor(row, v) }))
+    .filter(x => x.name && x.price != null);
 }
 function populateServices(){
   const v = (els.vehicle.value || "").trim();
@@ -291,6 +290,17 @@ function visitChanged(){
   els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
   if(v==="Home Visit"){ els.address?.setAttribute('required','required'); }
   else { els.address?.removeAttribute('required'); els.address.value=""; }
+}
+  function parseIntLike(v){
+  if (v == null) return null;
+  const m = String(v).match(/\d+/);   // pulls 250 from "₹250", "250", "250 rs"
+  if (!m) return null;
+  const n = parseInt(m[0], 10);
+  return Number.isFinite(n) ? n : null;
+}
+function priceFor(row, vehicle){
+  const key = vehicle === "Bike" ? "bike" : (vehicle === "SUV" ? "suv" : "sedan");
+  return parseIntLike(row?.[key]);
 }
 
 /* ---------- Init & bindings ---------- */
