@@ -28,7 +28,6 @@ function requireAuth(event) {
   const a = event.headers.authorization || event.headers.Authorization || "";
   return a.startsWith("Bearer ") && a.slice(7).trim();
 }
-
 function normInt(v) {
   if (v === null || v === undefined || v === "") return null;
   const m = String(v).match(/\d+/);
@@ -50,43 +49,13 @@ async function ensureSchema(sql) {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  // Unique index on non-null positions
   await sql`
     CREATE UNIQUE INDEX IF NOT EXISTS kleenkars_services_position_key
     ON kleenkars_services(position) WHERE position IS NOT NULL
   `;
 }
 
-/**
- * Renumber positions densely to 1..N using a single CTE — no temp tables.
- * This avoids transient UNIQUE conflicts on the partial unique index.
- */
-async function normalizePositions(sql) {
-  await sql`BEGIN`;
-  try {
-    // Clear positions first so nothing conflicts mid-update
-    await sql`UPDATE kleenkars_services SET position = NULL WHERE position IS NOT NULL`;
-
-    // Reassign dense positions ordered by old position then name
-    await sql`
-      WITH ranked AS (
-        SELECT name, ROW_NUMBER() OVER (ORDER BY position NULLS LAST, name) AS rn
-        FROM kleenkars_services
-      )
-      UPDATE kleenkars_services s
-      SET position = r.rn, updated_at = NOW()
-      FROM ranked r
-      WHERE s.name = r.name
-    `;
-
-    await sql`COMMIT`;
-  } catch (e) {
-    await sql`ROLLBACK`;
-    throw e;
-  }
-}
-
-/* Seed sensible defaults once (only when table is empty) */
+/* Seed once */
 async function seedDefaultsIfEmpty(sql) {
   const { n } = (await sql`SELECT COUNT(*)::int AS n FROM kleenkars_services`)[0];
   if (n > 0) return;
@@ -99,15 +68,27 @@ async function seedDefaultsIfEmpty(sql) {
   `;
 }
 
-/* Ensure new items get a unique position at the end (1..N) */
+/* Dense 1..N positions — single UPDATE avoids unique conflicts */
+async function normalizePositions(sql) {
+  await sql`
+    WITH ranked AS (
+      SELECT name, ROW_NUMBER() OVER (ORDER BY position NULLS LAST, name) AS rn
+      FROM kleenkars_services
+    )
+    UPDATE kleenkars_services s
+    SET position = r.rn, updated_at = NOW()
+    FROM ranked r
+    WHERE s.name = r.name
+  `;
+}
+
+/* Ensure a service sits at the end if it had no position */
 async function ensurePosition(sql, name) {
-  // If already has a position, leave it; else put at end
   const existing = await sql`SELECT position FROM kleenkars_services WHERE name=${name}`;
   if (existing.length && existing[0].position != null) return;
-
   const row = await sql`SELECT COALESCE(MAX(position),0)::int AS maxp FROM kleenkars_services`;
   const next = Number(row[0].maxp || 0) + 1;
-  await sql`UPDATE kleenkars_services SET position=${next} WHERE name=${name}`;
+  await sql`UPDATE kleenkars_services SET position=${next}, updated_at=NOW() WHERE name=${name}`;
 }
 
 /* Ordered list for UI */
@@ -115,29 +96,32 @@ async function list(sql, isPublic) {
   await ensureSchema(sql);
   await seedDefaultsIfEmpty(sql);
 
-  const where = isPublic ? sql`WHERE visible IS TRUE` : sql``;
-  return await sql`
-    SELECT name, bike, sedan, suv, position, visible
-    FROM kleenkars_services
-    ${where}
-    ORDER BY position NULLS LAST, name
-  `;
+  if (isPublic) {
+    return await sql`
+      SELECT name, bike, sedan, suv, position, visible
+      FROM kleenkars_services
+      WHERE visible IS TRUE
+      ORDER BY position NULLS LAST, name
+    `;
+  } else {
+    return await sql`
+      SELECT name, bike, sedan, suv, position, visible
+      FROM kleenkars_services
+      ORDER BY position NULLS LAST, name
+    `;
+  }
 }
 
-/* Move a single service up/down or to a specific target position */
+/* Move up/down or set to a target position — no parameterized operators */
 async function move(sql, name, direction, targetPos = null) {
-  await ensureSchema(sql);
-
   const row = await sql`SELECT name, position FROM kleenkars_services WHERE name=${name}`;
   if (!row.length) throw new Error("Service not found");
-
   const cur = row[0].position;
-  // Determine target
+
   if (direction === "set") {
     const t = Math.max(1, parseInt(targetPos, 10) || 1);
     await sql`BEGIN`;
     try {
-      // Shift everything to make room
       await sql`UPDATE kleenkars_services SET position = position + 1 WHERE position >= ${t}`;
       await sql`UPDATE kleenkars_services SET position = ${t} WHERE name = ${name}`;
       await normalizePositions(sql);
@@ -149,26 +133,39 @@ async function move(sql, name, direction, targetPos = null) {
     return;
   }
 
-  // up/down: find neighbor and swap using a safe triple-step
-  const neighbor = await sql`
-    SELECT name, position
-    FROM kleenkars_services
-    WHERE position ${direction === "up" ? "<" : ">" } ${cur}
-    ORDER BY position ${direction === "up" ? "DESC" : "ASC" }
-    LIMIT 1
-  `;
-  if (!neighbor.length) return; // already at edge
+  // Build two separate queries to avoid "$1" near ASC/DESC or < >
+  let neighbor;
+  if (direction === "up") {
+    neighbor = await sql`
+      SELECT name, position
+      FROM kleenkars_services
+      WHERE position < ${cur}
+      ORDER BY position DESC
+      LIMIT 1
+    `;
+  } else if (direction === "down") {
+    neighbor = await sql`
+      SELECT name, position
+      FROM kleenkars_services
+      WHERE position > ${cur}
+      ORDER BY position ASC
+      LIMIT 1
+    `;
+  } else {
+    throw new Error("Invalid direction");
+  }
+  if (!neighbor.length) return;
 
   const other = neighbor[0];
   await sql`BEGIN`;
   try {
+    // swap positions safely
     await sql`UPDATE kleenkars_services SET position=NULL WHERE name=${name}`;
     await sql`UPDATE kleenkars_services SET position=${cur} WHERE name=${other.name}`;
     await sql`UPDATE kleenkars_services SET position=${other.position} WHERE name=${name}`;
     await sql`COMMIT`;
   } catch (e) {
     await sql`ROLLBACK`;
-    // Last resort: normalize and rethrow
     await normalizePositions(sql);
     throw e;
   }
@@ -181,26 +178,23 @@ export async function handler(event) {
   try {
     const sql = neon(process.env.DATABASE_URL);
 
-    // Public read (no auth) when ?public=1 (used by index.html)
+    // Public read for customer page
     const isPublicGet =
       event.httpMethod === "GET" &&
       (event.queryStringParameters?.public === "1" ||
         event.queryStringParameters?.public === "true");
 
     if (!isPublicGet) {
-      // All non-public calls require auth
       if (!requireAuth(event)) return ERR(401, "Unauthorized");
     }
 
-    /* -------- GET -------- */
+    /* GET */
     if (event.httpMethod === "GET") {
       const rows = await list(sql, isPublicGet);
       return OK({ ok: true, rows });
     }
 
-    /* -------- POST: add/update (supports rename) --------
-       Body: { originalName?, name, bike, sedan, suv, visible? }
-    */
+    /* POST: add/update (supports rename via originalName) */
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
       const originalName = (body.originalName || body.name || "").toString().trim().slice(0, 100);
@@ -214,7 +208,6 @@ export async function handler(event) {
 
       await ensureSchema(sql);
 
-      // Rename if needed (preserve position & visibility)
       if (originalName && originalName !== name) {
         await sql`BEGIN`;
         try {
@@ -224,10 +217,8 @@ export async function handler(event) {
           let pos = null, vis = visible;
           if (old.length) { pos = old[0].position; vis = old[0].visible; }
 
-          // Delete any existing row with target name to avoid PK collision when "renaming over"
           await sql`DELETE FROM kleenkars_services WHERE name=${name}`;
 
-          // Upsert new row
           await sql`
             INSERT INTO kleenkars_services (name, bike, sedan, suv, position, visible, updated_at)
             VALUES (${name}, ${bike}, ${sedan}, ${suv}, ${pos}, ${vis}, NOW())
@@ -235,9 +226,7 @@ export async function handler(event) {
             SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, visible=EXCLUDED.visible, updated_at=NOW()
           `;
 
-          // Remove old name
           await sql`DELETE FROM kleenkars_services WHERE name=${originalName}`;
-          // Ensure it has a position
           await ensurePosition(sql, name);
           await normalizePositions(sql);
           await sql`COMMIT`;
@@ -246,7 +235,6 @@ export async function handler(event) {
           throw e;
         }
       } else {
-        // Regular upsert (add or update)
         await sql`
           INSERT INTO kleenkars_services (name, bike, sedan, suv, visible, updated_at)
           VALUES (${name}, ${bike}, ${sedan}, ${suv}, ${visible}, NOW())
@@ -261,9 +249,7 @@ export async function handler(event) {
       return OK({ ok: true, rows });
     }
 
-    /* -------- PUT: toggle visibility --------
-       Body: { name, visible:boolean }
-    */
+    /* PUT: toggle visibility */
     if (event.httpMethod === "PUT") {
       const body = JSON.parse(event.body || "{}");
       const name = (body.name || "").toString().trim();
@@ -282,9 +268,7 @@ export async function handler(event) {
       return OK({ ok: true, rows });
     }
 
-    /* -------- PATCH: reorder --------
-       Body: { name, direction: "up"|"down"|"set", target? }
-    */
+    /* PATCH: reorder (up|down|set) */
     if (event.httpMethod === "PATCH") {
       const body = JSON.parse(event.body || "{}");
       const name = (body.name || "").toString().trim();
@@ -298,9 +282,7 @@ export async function handler(event) {
       return OK({ ok: true, rows });
     }
 
-    /* -------- DELETE --------
-       Body: { name }
-    */
+    /* DELETE */
     if (event.httpMethod === "DELETE") {
       const body = JSON.parse(event.body || "{}");
       const name = (body.name || "").toString().trim();
