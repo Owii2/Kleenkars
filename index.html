@@ -10,9 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Kleenkars">
 
-<!-- iOS home screen icon (most important to avoid the single letter tile) -->
+<!-- iOS home screen icon -->
 <link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
-<!-- Optional additional sizes (iOS will pick the best) -->
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
@@ -75,7 +74,7 @@
   }
   input::placeholder, textarea::placeholder{color:#6f6f84}
 
-  #service, #date, #time{
+  #service, #date{
     height:var(--control-h);
     min-height:var(--control-h);
     padding:0 12px;
@@ -104,6 +103,21 @@
 
   .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
     background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
+
+  /* Fancy time slot grid */
+  .time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+  .slot{
+    display:flex;align-items:center;justify-content:center;
+    height:44px;border:1px solid var(--border);border-radius:10px;background:#0f0f16;
+    cursor:pointer;font-weight:600;user-select:none;transition:.15s transform ease;
+  }
+  .slot:hover{transform:translateY(-1px)}
+  .slot.selected{outline:2px solid var(--accent);box-shadow:0 0 0 2px rgba(122,60,255,.35) inset}
+  .slot.disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+  .time-legend{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.85rem}
+  .time-dot{width:10px;height:10px;border-radius:50%}
+  .time-dot.avail{background:#4caf50}
+  .time-dot.unavail{background:#a33}
 </style>
 </head>
 <body>
@@ -161,23 +175,16 @@
               <label for="date">Preferred date</label>
               <input type="date" id="date" name="date" required>
             </div>
+
+            <!-- TIME: pretty grid + hidden input (10:00–20:00, 15-min) -->
             <div>
-              <label for="time">Preferred time (10:00–20:00)</label>
-              <!-- STATIC OPTIONS: 10:00 → 20:00 every 15 minutes -->
-              <select id="time" name="time" required>
-                <option value="" disabled selected>Select a time</option>
-                <option value="10:00">10:00</option><option value="10:15">10:15</option><option value="10:30">10:30</option><option value="10:45">10:45</option>
-                <option value="11:00">11:00</option><option value="11:15">11:15</option><option value="11:30">11:30</option><option value="11:45">11:45</option>
-                <option value="12:00">12:00</option><option value="12:15">12:15</option><option value="12:30">12:30</option><option value="12:45">12:45</option>
-                <option value="13:00">13:00</option><option value="13:15">13:15</option><option value="13:30">13:30</option><option value="13:45">13:45</option>
-                <option value="14:00">14:00</option><option value="14:15">14:15</option><option value="14:30">14:30</option><option value="14:45">14:45</option>
-                <option value="15:00">15:00</option><option value="15:15">15:15</option><option value="15:30">15:30</option><option value="15:45">15:45</option>
-                <option value="16:00">16:00</option><option value="16:15">16:15</option><option value="16:30">16:30</option><option value="16:45">16:45</option>
-                <option value="17:00">17:00</option><option value="17:15">17:15</option><option value="17:30">17:30</option><option value="17:45">17:45</option>
-                <option value="18:00">18:00</option><option value="18:15">18:15</option><option value="18:30">18:30</option><option value="18:45">18:45</option>
-                <option value="19:00">19:00</option><option value="19:15">19:15</option><option value="19:30">19:30</option><option value="19:45">19:45</option>
-                <option value="20:00">20:00</option>
-              </select>
+              <label>Preferred time (10:00–20:00)</label>
+              <input type="hidden" id="time" name="time" required>
+              <div id="timeGrid" class="time-grid" role="radiogroup" aria-label="Choose a time"></div>
+              <div class="time-legend" style="margin-top:6px">
+                <span class="time-dot avail"></span> Available
+                <span class="time-dot unavail" style="margin-left:10px"></span> Past / Unavailable
+              </div>
             </div>
           </div>
 
@@ -221,7 +228,7 @@ const els = {
   name: document.getElementById('name'),
   phone: document.getElementById('phone'),
   date: document.getElementById('date'),
-  time: document.getElementById('time'), // <select>
+  time: document.getElementById('time'),          // hidden input
   visitRadios: document.querySelectorAll('input[name="visit"]'),
   addressWrap: document.getElementById('addressWrap'),
   address: document.getElementById('address'),
@@ -260,6 +267,7 @@ async function loadServices(){
     try{
       const rows = await tryFetch(url);
       if(rows && rows.length){
+        // Keep admin order strictly by position ASC then name
         SERVICES = rows.slice().sort((a,b)=>{
           const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
           if (pa !== pb) return pa - pb;
@@ -352,14 +360,81 @@ function visitChanged(){
   else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
+/* ---------- Time grid (10:00–20:00 in 15-min steps) ---------- */
+const OPEN_MINUTES = 10*60;  // 10:00
+const CLOSE_MINUTES = 20*60; // 20:00
+const STEP_MINUTES = 15;
+
+function minutesToHHMM(mins){
+  const hh = String(Math.floor(mins/60)).padStart(2,'0');
+  const mm = String(mins%60).padStart(2,'0');
+  return `${hh}:${mm}`;
+}
+function isTodayISO(yyyy_mm_dd){
+  const t = new Date();
+  const today = t.toISOString().slice(0,10);
+  return yyyy_mm_dd === today;
+}
+function nowMinutesLocal(){
+  const d = new Date();
+  return d.getHours()*60 + d.getMinutes();
+}
+function buildSlotsFor(dateISO){
+  const slots = [];
+  const nowMins = nowMinutesLocal();
+  const pastCutoff = isTodayISO(dateISO) ? nowMins : -1;
+  for(let m=OPEN_MINUTES; m<=CLOSE_MINUTES; m+=STEP_MINUTES){
+    const hhmm = minutesToHHMM(m);
+    const disabled = (isTodayISO(dateISO) && m <= pastCutoff);
+    slots.push({ value: hhmm, disabled });
+  }
+  return slots;
+}
+function renderTimeGrid(){
+  const grid = document.getElementById('timeGrid');
+  const dateISO = els.date.value || new Date().toISOString().slice(0,10);
+  const slots = buildSlotsFor(dateISO);
+  const current = els.time.value;
+
+  grid.innerHTML = "";
+  slots.forEach(s=>{
+    const btn = document.createElement('button');
+    btn.type = "button";
+    btn.className = "slot" + (s.disabled ? " disabled" : "") + (current===s.value ? " selected" : "");
+    btn.setAttribute("role","radio");
+    btn.setAttribute("aria-checked", current===s.value ? "true" : "false");
+    btn.textContent = s.value;
+    if(!s.disabled){
+      btn.addEventListener('click', ()=>{
+        grid.querySelectorAll('.slot.selected').forEach(el=>{
+          el.classList.remove('selected'); el.setAttribute('aria-checked','false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-checked','true');
+        els.time.value = s.value; // sync hidden input
+        updatePriceUI();
+      });
+    }
+    grid.appendChild(btn);
+  });
+
+  // Clear hidden time if it’s no longer valid (e.g., changed date)
+  if(current && !slots.some(s=>s.value===current && !s.disabled)){
+    els.time.value = "";
+  }
+}
+
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
+  renderTimeGrid();                         // render time grid initially
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
     els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
+  els.date.addEventListener('change', renderTimeGrid); // rebuild slots when date changes
+
   visitChanged();
   populateServices();
 }
@@ -384,7 +459,7 @@ els.confirm.addEventListener('click', async ()=>{
 
   if(!payload.vehicle){ alert("Select a vehicle."); return; }
   if(!payload.service){ alert("Select a service."); return; }
-  if(!payload.time){ alert("Select a time."); return; }
+  if(!payload.time){ alert("Please choose a time."); return; }
   if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
 
   els.confirm.disabled = true; els.confirm.textContent = "Saving…";
