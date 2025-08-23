@@ -222,30 +222,25 @@ async function tryFetch(url){
 /* ADD-ON #2: loadServices that respects admin order (position/ordinal/sort_order) */
 async function loadServices(){
   const candidates = [
-    "/.netlify/functions/admin-services?public=1",
+    "/.netlify/functions/admin-services?public=1",          // public, ordered, visible only
     "/.netlify/functions/site-settings?fn=services",
     "/.netlify/functions/services"
   ];
-
-  for (const url of candidates) {
-    try {
+  for(const url of candidates){
+    try{
       const rows = await tryFetch(url);
-      if (rows && rows.length) {
-        // Strictly respect admin's position for ordering.
+      if(rows && rows.length){
+        // Server already filters visible + orders by position,
+        // but we keep a stable secondary sort by name.
         SERVICES = rows.slice().sort((a,b)=>{
-          const pa = (a.position ?? 1e9);
-          const pb = (b.position ?? 1e9);
+          const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
           if (pa !== pb) return pa - pb;
           return String(a.name||"").localeCompare(String(b.name||""));
         });
         return;
       }
-    } catch (e) {
-      // try next candidate
-    }
+    }catch(e){ /* next candidate */ }
   }
-
-  // Fallback (if no endpoint returned data)
   SERVICES = FALLBACK.slice();
 }
 
@@ -285,6 +280,9 @@ function populateServices(){
     opt.value = item.name;
     opt.textContent = `${item.name} — ₹${item.price}`;
     opt.dataset.price = item.price;
+    // find and attach description (if any) for tooltip
+    const row = SERVICES.find(r => String(r.name) === item.name);
+    if (row && row.description) opt.title = String(row.description);
     els.service.appendChild(opt);
   }
   els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
