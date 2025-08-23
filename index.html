@@ -81,7 +81,7 @@
     padding:0 12px;
     line-height:var(--control-h);
   }
-  input[type="date"], input[type="time"], select{ -webkit-appearance:none; appearance:none; }
+  input[type="date"], select{ -webkit-appearance:none; appearance:none; }
 
   .help{font-size:.85rem; color:var(--muted)}
   .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
@@ -162,9 +162,12 @@
               <input type="date" id="date" name="date" required>
             </div>
             <div>
-             <label for="time">Preferred time (10:00–20:00)</label>
-             <select id="time" name="time" required></select>
-          </div>
+              <label for="time">Preferred time (10:00–20:00)</label>
+              <!-- CHANGED: input[type=time] -> select with limited options -->
+              <select id="time" name="time" required>
+                <option value="" disabled selected>Select a time</option>
+              </select>
+            </div>
           </div>
 
           <div>
@@ -207,7 +210,7 @@ const els = {
   name: document.getElementById('name'),
   phone: document.getElementById('phone'),
   date: document.getElementById('date'),
-  time: document.getElementById('time'),
+  time: document.getElementById('time'),       // now a <select>
   visitRadios: document.querySelectorAll('input[name="visit"]'),
   addressWrap: document.getElementById('addressWrap'),
   address: document.getElementById('address'),
@@ -219,42 +222,6 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
- // Build 15-min time options between 10:00 and 20:00
-function buildTimeOptions(start = "10:00", end = "20:00", stepMin = 15) {
-  els.time.innerHTML = "";
-
-  const toMins = (hhmm) => {
-    const [h, m] = hhmm.split(":").map(Number);
-    return h * 60 + m;
-  };
-  const pad2 = (n) => String(n).padStart(2, "0");
-
-  const from = toMins(start);
-  const to = toMins(end);
-
-  for (let t = from; t <= to; t += stepMin) {
-    const hh = Math.floor(t / 60);
-    const mm = t % 60;
-    const value = `${pad2(hh)}:${pad2(mm)}`;
-    const hour12 = ((hh + 11) % 12) + 1;
-    const ampm = hh < 12 ? "AM" : "PM";
-
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = `${hour12}:${pad2(mm)} ${ampm}`;
-    els.time.appendChild(opt);
-  }
-
-  // Default to next available slot today (clamped to window)
-  const now = new Date();
-  const cur = now.getHours() * 60 + now.getMinutes();
-  let sel = Math.ceil(cur / stepMin) * stepMin;
-  if (sel < from) sel = from;
-  if (sel > to) sel = from;
-  const def = `${pad2(Math.floor(sel / 60))}:${pad2(sel % 60)}`;
-  const defOpt = [...els.time.options].find(o => o.value === def);
-  if (defOpt) defOpt.selected = true;
-} 
 /* ---------- Services (public) ---------- */
 let SERVICES = [];
 const FALLBACK = [
@@ -313,6 +280,23 @@ function servicesForVehicle(v){
     .filter(x => x.name && x.price != null);
 }
 
+/* ---------- Time slots (10:00–20:00, every 15 mins) ---------- */
+function buildTimeOptions(){
+  const sel = els.time;
+  sel.innerHTML = '<option value="" disabled selected>Select a time</option>';
+  const start = 10 * 60;  // minutes from midnight
+  const end   = 20 * 60;  // inclusive 20:00
+  for(let m = start; m <= end; m += 15){
+    const hh = String(Math.floor(m/60)).padStart(2,'0');
+    const mm = String(m%60).padStart(2,'0');
+    const v = `${hh}:${mm}`;
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    sel.appendChild(opt);
+  }
+}
+
 /* ---------- UI helpers ---------- */
 function getVisit(){
   const r = Array.from(els.visitRadios).find(r=>r.checked);
@@ -336,7 +320,7 @@ function populateServices(){
     els.service.appendChild(opt);
   }
   els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
-  updateServiceDesc(); // show desc when user picks
+  updateServiceDesc();
   updatePriceUI();
 }
 function updateServiceDesc(){
@@ -375,21 +359,11 @@ function visitChanged(){
   else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
-/* ===== Service hours guard (ADDED) ===== */
-const OPEN_TIME = "10:00";
-const CLOSE_TIME = "20:00";
-function clampToServiceHours(val){
-  if (!val) return "";
-  if (val < OPEN_TIME) return OPEN_TIME;
-  if (val > CLOSE_TIME) return CLOSE_TIME;
-  return val;
-}
-
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
 
-  // ⬅️ NEW: populate the time <select> with allowed slots
+  // NEW: build the allowed time slots into the <select>
   buildTimeOptions();
 
   ['change','input'].forEach(ev=>{
@@ -407,10 +381,6 @@ els.confirm.addEventListener('click', async ()=>{
   const raw = els.phone.value.replace(/\D/g,'');
   if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
 
-  // ADDED: final guard before submit
-  els.time.value = clampToServiceHours(els.time.value);
-  if(!els.time.value){ alert("Please choose a time between 10:00 and 20:00."); return; }
-
   const payload = {
     name: els.name.value.trim(),
     phone: raw,
@@ -425,6 +395,7 @@ els.confirm.addEventListener('click', async ()=>{
 
   if(!payload.vehicle){ alert("Select a vehicle."); return; }
   if(!payload.service){ alert("Select a service."); return; }
+  if(!payload.time){ alert("Select a time."); return; }
   if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
 
   els.confirm.disabled = true; els.confirm.textContent = "Saving…";
@@ -451,7 +422,7 @@ els.confirm.addEventListener('click', async ()=>{
   }
 });
 </script>
-  <script>
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
