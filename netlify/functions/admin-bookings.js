@@ -41,7 +41,7 @@ export const handler = async (event) => {
 
     const sql = neon(process.env.DATABASE_URL);
 
-    // --- detect columns on bookings
+    // --- detect columns
     const cols = await sql(`
       SELECT column_name
       FROM information_schema.columns
@@ -52,71 +52,52 @@ export const handler = async (event) => {
     const has = (c) => set.has(c);
     const pick = (...cands) => cands.find(c => has(c));
 
-    // mapping
     const col = {
-      order_id: pick("order_id","id"),
-      name: pick("name"),
-      phone: pick("phone"),
-      vehicle: pick("vehicle","vehicle_type"),
-      service: pick("service","service_name"),
-      date: pick("date","booking_date"),
-      time: pick("time","booking_time"),
-      datetime: pick("datetime"),
-      visit: pick("visit","visit_type"),
-      address: pick("address","location"),
-      price: pick("price","amount","total"),
-      created_at: pick("created_at","created","inserted_at"),
+      order_id:  pick("order_id","id"),
+      name:      pick("name"),
+      phone:     pick("phone"),
+      vehicle:   pick("vehicle","vehicle_type"),
+      service:   pick("service","service_name"),
+      date:      pick("date","booking_date"),
+      time:      pick("time","booking_time"),
+      datetime:  pick("datetime"),
+      visit:     pick("visit","visit_type"),
+      address:   pick("address","location"),
+      price:     pick("price","amount","total"),
+      created_at:pick("created_at","created","inserted_at")
     };
 
-    // --- build SELECT list with fallbacks:
-    //  - date/time: derive from datetime in Asia/Kolkata if separate cols not present
-    //  - visit: default to 'Wash Center' if absent
-    //  - price: if no price col, extract first integer from service text
+    // SELECT list (alias to UI keys)
     const selectParts = [];
-    const pushSel = (db, alias, cast=null) => {
-      if (db) selectParts.push(`${db}${cast?`::${cast}`:""} AS ${alias}`);
-      else selectParts.push(`NULL AS ${alias}`);
+    const pushSel = (db, alias) => {
+      if (db) selectParts.push(`${db} AS ${alias}`); else selectParts.push(`NULL AS ${alias}`);
     };
 
-    // id → order_id
     if (col.order_id) selectParts.push(`${col.order_id} AS order_id`); else selectParts.push(`NULL AS order_id`);
-
     pushSel(col.name, "name");
     pushSel(col.phone, "phone");
     pushSel(col.vehicle, "vehicle");
     pushSel(col.service, "service");
 
-    // date
+    // derive date/time from datetime if needed (IST)
     if (!col.date && col.datetime) {
       selectParts.push(`to_char(${col.datetime} AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS date`);
-    } else {
-      pushSel(col.date, "date");
-    }
-
-    // time
+    } else { pushSel(col.date, "date"); }
     if (!col.time && col.datetime) {
       selectParts.push(`to_char(${col.datetime} AT TIME ZONE 'Asia/Kolkata','HH24:MI') AS time`);
-    } else {
-      pushSel(col.time, "time");
-    }
+    } else { pushSel(col.time, "time"); }
 
-    // visit: default
-    if (col.visit) {
-      pushSel(col.visit, "visit");
-    } else {
-      selectParts.push(`'Wash Center'::text AS visit`);
-    }
+    // visit (store if present; else default)
+    if (col.visit) selectParts.push(`${col.visit} AS visit`);
+    else selectParts.push(`'Wash Center'::text AS visit`);
 
     // address
     pushSel(col.address, "address");
 
-    // price: use column if present; else parse digits from service
+    // price: prefer stored price; else parse first number from service
     if (col.price) {
-      // normalize to integer if it's stored as text
       selectParts.push(`${col.price}::int AS price`);
     } else if (col.service) {
-      // extract first group of digits from the service string, else NULL
-      // works for "Basic Car Wash - ₹150" or "â‚¹150"
       selectParts.push(`
         CASE
           WHEN ${col.service} ~ '\\\\d'
@@ -130,10 +111,10 @@ export const handler = async (event) => {
 
     pushSel(col.created_at, "created_at");
 
-    // --- filters
+    // filters
     const qs = event.queryStringParameters || {};
-    const from   = qsVal(qs, "from");   // YYYY-MM-DD
-    const to     = qsVal(qs, "to");     // YYYY-MM-DD
+    const from   = qsVal(qs, "from");
+    const to     = qsVal(qs, "to");
     const svc    = qsVal(qs, "service");
     const search = qsVal(qs, "search");
     const limit  = Math.min(1000, Math.max(1, parseInt(qsVal(qs, "limit") || "500", 10)));
@@ -141,7 +122,6 @@ export const handler = async (event) => {
     const where = [];
     const params = [];
 
-    // prefer date column; else use datetime
     if (from) {
       if (col.date)      { params.push(from); where.push(`${col.date} >= $${params.length}::date`); }
       else if (col.datetime) { params.push(from); where.push(`${col.datetime} >= $${params.length}::date`); }
@@ -153,8 +133,8 @@ export const handler = async (event) => {
     if (svc && col.service) { params.push(svc); where.push(`${col.service} = $${params.length}`); }
     if (search && (col.name || col.phone)) {
       const parts = [];
-      if (col.name)  { params.push(`%${search}%`);  parts.push(`${col.name} ILIKE $${params.length}`); }
-      if (col.phone) { params.push(`%${search}%`);  parts.push(`${col.phone} ILIKE $${params.length}`); }
+      if (col.name)  { params.push(`%${search}%`); parts.push(`${col.name} ILIKE $${params.length}`); }
+      if (col.phone) { params.push(`%${search}%`); parts.push(`${col.phone} ILIKE $${params.length}`); }
       if (parts.length) where.push(`(${parts.join(" OR ")})`);
     }
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
