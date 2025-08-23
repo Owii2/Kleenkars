@@ -1,64 +1,91 @@
 // netlify/functions/admin-bookings.js
-import { neon, neonConfig } from "@neondatabase/serverless";
-neonConfig.fetchConnectionCache = true;
+import { neon } from "@netlify/neon";
+import jwt from "jsonwebtoken";
 
-const ok = (obj) => ({
-  statusCode: 200,
-  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-  body: JSON.stringify(obj),
-});
-const err = (code, message) => ({
-  statusCode: code,
-  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-  body: JSON.stringify({ ok: false, error: message }),
-});
+const REQUIRED_ENV = ["DATABASE_URL", "ADMIN_JWT_SECRET"];
 
-export async function handler(event) {
-  if (event.httpMethod !== "GET") return err(405, "Method Not Allowed");
+function json(status, body) {
+  return {
+    statusCode: status,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+}
 
-  // minimal token presence (you can upgrade later)
-  const auth = event.headers.authorization || "";
-  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
-
-  try {
-    const sql = neon(process.env.DATABASE_URL);
-
-    // ensure table
-    await sql`
-      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
-        id SERIAL PRIMARY KEY,
-        order_id INT UNIQUE,
-        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
-        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-
-    const { from = "", to = "", service = "", search = "" } = event.queryStringParameters || {};
-
-    // Build WHERE parts
-    const where = [];
-    if (from) where.push(`(NULLIF(date,'')::date >= ${sql(from)}::date)`);
-    if (to) where.push(`(NULLIF(date,'')::date <= ${sql(to)}::date)`);
-    if (service) where.push(`service = ${sql(service)}`);
-    if (search) {
-      const q = `%${search.toLowerCase()}%`;
-      where.push(`(LOWER(name) LIKE ${sql(q)} OR phone LIKE ${sql('%' + search.replace(/\D/g, '') + '%')})`);
-    }
-    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-    const rows = await sql(
-      `
-      SELECT order_id, name, phone, vehicle, service, date, time, visit, address, price, created_at
-      FROM kleenkars_bookings
-      ${whereSql}
-      ORDER BY created_at DESC
-      `
-    );
-
-    return ok({ ok: true, rows });
-  } catch (e) {
-    console.error("admin-bookings", e);
-    return err(500, e.message);
+function assertEnv() {
+  const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
+  if (missing.length) {
+    throw new Error(`Missing env: ${missing.join(", ")}`);
   }
 }
+
+function authz(event) {
+  const hdr = event.headers?.authorization || event.headers?.Authorization || "";
+  const m = hdr.match(/^Bearer\s+(.+)$/i);
+  if (!m) return null;
+  try {
+    return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
+
+export const handler = async (event) => {
+  try {
+    assertEnv();
+
+    // Auth (admin only)
+    const claims = authz(event);
+    if (!claims) return json(401, { ok: false, error: "Unauthorized" });
+
+    const sql = neon(process.env.DATABASE_URL);
+
+    const qs = event.queryStringParameters || {};
+    const from = (qs.from || "").trim();     // YYYY-MM-DD
+    const to = (qs.to || "").trim();         // YYYY-MM-DD
+    const service = (qs.service || "").trim();
+    const search = (qs.search || "").trim();
+    const limit = Math.min(1000, Math.max(1, parseInt(qs.limit || "500", 10)));
+
+    const where = [];
+    const params = [];
+
+    if (from) {
+      params.push(from);
+      where.push(`date >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      where.push(`date <= $${params.length}::date`);
+    }
+    if (service) {
+      params.push(service);
+      where.push(`service = $${params.length}`);
+    }
+    if (search) {
+      params.push(`%${search}%`);
+      params.push(`%${search}%`);
+      // phone kept as text compare; name ILIKE
+      where.push(`(name ILIKE $${params.length - 1} OR phone ILIKE $${params.length})`);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+    const q = `
+      SELECT
+        order_id, name, phone, vehicle, service, date, time, visit, address, price,
+        created_at
+      FROM bookings
+      ${whereSql}
+      ORDER BY created_at DESC
+      LIMIT $${params.length + 1};
+    `;
+    params.push(limit);
+
+    const rows = await sql(q, params);
+
+    return json(200, { ok: true, rows });
+  } catch (err) {
+    return json(500, { ok: false, error: err.message });
+  }
+};
