@@ -163,7 +163,8 @@
             </div>
             <div>
               <label for="time">Preferred time (10:00–20:00)</label>
-              <input type="time" id="time" name="time" required step="900">
+              <!-- ADDED: min/max to hard-limit the picker -->
+              <input type="time" id="time" name="time" required step="900" min="10:00" max="20:00">
             </div>
           </div>
 
@@ -339,6 +340,16 @@ function visitChanged(){
   else { els.address?.removeAttribute('required'); els.address.value=""; }
 }
 
+/* ===== Service hours guard (ADDED) ===== */
+const OPEN_TIME = "10:00";
+const CLOSE_TIME = "20:00";
+function clampToServiceHours(val){
+  if (!val) return "";
+  if (val < OPEN_TIME) return OPEN_TIME;
+  if (val > CLOSE_TIME) return CLOSE_TIME;
+  return val;
+}
+
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
@@ -347,6 +358,15 @@ async function init(){
     els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
+  // ADDED: clamp picker changes to 10:00–20:00
+  els.time.addEventListener('change', ()=>{
+    const clamped = clampToServiceHours(els.time.value);
+    if (clamped !== els.time.value) {
+      alert("We’re open 10:00–20:00. Time adjusted.");
+      els.time.value = clamped;
+    }
+  });
+
   visitChanged();
   populateServices();
 }
@@ -356,6 +376,10 @@ init();
 els.confirm.addEventListener('click', async ()=>{
   const raw = els.phone.value.replace(/\D/g,'');
   if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
+
+  // ADDED: final guard before submit
+  els.time.value = clampToServiceHours(els.time.value);
+  if(!els.time.value){ alert("Please choose a time between 10:00 and 20:00."); return; }
 
   const payload = {
     name: els.name.value.trim(),
