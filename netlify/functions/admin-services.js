@@ -25,7 +25,7 @@ const err = (code, msg) => ({
 
 function normInt(v){
   if (v === null || v === undefined || v === "") return null;
-  const m = String(v).match(/\d+/); // pulls 150 from "₹150", "150 INR", etc.
+  const m = String(v).match(/\d+/); // pulls 150 from "₹150" etc.
   if (!m) return null;
   const n = parseInt(m[0], 10);
   return Number.isFinite(n) ? n : null;
@@ -44,7 +44,6 @@ async function ensureSchema(sql){
 }
 
 async function tryImportLegacy(sql){
-  // Does legacy "services" table exist?
   const legacy = await sql`
     SELECT 1
     FROM information_schema.tables
@@ -53,7 +52,6 @@ async function tryImportLegacy(sql){
   `;
   if (!legacy.length) return;
 
-  // Probe legacy columns
   const cols = await sql`
     SELECT column_name
     FROM information_schema.columns
@@ -61,14 +59,12 @@ async function tryImportLegacy(sql){
   `;
   const set = new Set(cols.map(c => c.column_name));
 
-  // Column candidates
   const bikeCol   = ["bike","two_wheeler"].find(c => set.has(c));
   const sedanCol  = ["sedan","hatch","hatchback","hatch_sedan","hatchback_sedan","car"].find(c => set.has(c));
   const suvCol    = ["suv"].find(c => set.has(c));
 
   if (!set.has("name")) return;
 
-  // Pull legacy rows (select * so we can parse strings)
   const rows = await sql`SELECT * FROM services`;
   for (const r of rows) {
     const name  = String(r.name || "").trim().slice(0,100);
@@ -93,46 +89,46 @@ async function seedDefaultsIfEmpty(sql){
   if (n > 0) return;
   await sql`
     INSERT INTO kleenkars_services (name, bike, sedan, suv) VALUES
-      ('Basic',     50,   150, 200),
-      ('Premium',   NULL, 200, 250),
+      ('Basic Wash', 50, 150, 200),
+      ('Premium Car Wash', NULL, 200, 250),
       ('Detailing', NULL, 1500, 2500)
   `;
 }
 
-async function repairKnownServices(sql){
-  // If a known service exists but all 3 columns are NULL, fill with defaults
-  await sql`
-    UPDATE kleenkars_services
-    SET bike=50, sedan=150, suv=200, updated_at=NOW()
-    WHERE name='Basic' AND bike IS NULL AND sedan IS NULL AND suv IS NULL
-  `;
-  await sql`
-    UPDATE kleenkars_services
-    SET bike=NULL, sedan=200, suv=250, updated_at=NOW()
-    WHERE name='Premium' AND bike IS NULL AND sedan IS NULL AND suv IS NULL
-  `;
-  await sql`
-    UPDATE kleenkars_services
-    SET bike=NULL, sedan=1500, suv=2500, updated_at=NOW()
-    WHERE name='Detailing' AND bike IS NULL AND sedan IS NULL AND suv IS NULL
-  `;
+/** Fill prices for rows whose name *contains* the expected keywords but prices are null */
+async function repairByKeywords(sql){
+  // Load all rows
+  const rows = await sql`SELECT name, bike, sedan, suv FROM kleenkars_services`;
+  for (const r of rows) {
+    const name = (r.name || "").toLowerCase();
+
+    // Ignore rows that already have any price set
+    const hasAny = [r.bike, r.sedan, r.suv].some(v => v !== null && v !== undefined);
+
+    if (!hasAny) {
+      if (name.includes("detail")) {
+        await sql`UPDATE kleenkars_services SET bike=NULL, sedan=1500, suv=2500, updated_at=NOW() WHERE name=${r.name}`;
+      } else if (name.includes("premium")) {
+        await sql`UPDATE kleenkars_services SET bike=NULL, sedan=200, suv=250, updated_at=NOW() WHERE name=${r.name}`;
+      } else if (name.includes("basic")) {
+        // Basic applies to Bike, Hatch/Sedan, SUV
+        await sql`UPDATE kleenkars_services SET bike=50, sedan=150, suv=200, updated_at=NOW() WHERE name=${r.name}`;
+      }
+    }
+  }
 }
 
 async function list(sql){
   await ensureSchema(sql);
-  // If table is empty, try legacy import; if still empty, seed defaults
   await tryImportLegacy(sql);
   await seedDefaultsIfEmpty(sql);
-  // Repair rows that have names but no prices
-  await repairKnownServices(sql);
-
+  await repairByKeywords(sql);
   return await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
 }
 
 export async function handler(event){
   if (event.httpMethod === "OPTIONS") return ok({ ok:true });
 
-  // Simple auth presence check (same pattern as other admin endpoints)
   const auth = event.headers.authorization || event.headers.Authorization || "";
   if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
