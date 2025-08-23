@@ -70,16 +70,14 @@
   label{font-weight:600; font-size:.92rem; min-width:0}
   input, select, textarea{
     width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
-    background:#0f0f16; color:var(--ink); outline:none; min-width:0;
+    background:#0f0f16; color:#fff; outline:none; min-width:0;
   }
   input::placeholder, textarea::placeholder{color:#6f6f84}
 
   /* match vehicle/service pill height */
-  #service, #date{ height:var(--control-h); min-height:var(--control-h); line-height:var(--control-h) }
-  /* time gets replaced on iOS; select version matches look */
-  #time, #timeSelect{ height:var(--control-h); min-height:var(--control-h); line-height:var(--control-h) }
+  #service, #date, #timeSelect{ height:var(--control-h); min-height:var(--control-h); line-height:var(--control-h) }
 
-  input[type="date"], input[type="time"], select{ -webkit-appearance:none; appearance:none; }
+  input[type="date"], select{ -webkit-appearance:none; appearance:none; }
 
   .help{font-size:.85rem; color:var(--muted)}
   .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
@@ -160,10 +158,9 @@
               <input type="date" id="date" name="date" required>
             </div>
 
-            <!-- TIME: hybrid control -->
-            <div id="timeWrap">
+            <!-- TIME: one select for every device -->
+            <div>
               <label for="timeSelect">Preferred time (10:00–20:00)</label>
-              <!-- default for non‑iOS (nice select with AM/PM labels) -->
               <select id="timeSelect" required>
                 <option value="" disabled selected>Select time</option>
               </select>
@@ -210,8 +207,6 @@ const els = {
   name: document.getElementById('name'),
   phone: document.getElementById('phone'),
   date: document.getElementById('date'),
-  // time control is hybrid; we'll always expose an element with id="time"
-  timeWrap: document.getElementById('timeWrap'),
   timeSelect: document.getElementById('timeSelect'),
   visitRadios: document.querySelectorAll('input[name="visit"]'),
   addressWrap: document.getElementById('addressWrap'),
@@ -281,84 +276,39 @@ function servicesForVehicle(v){
     .filter(x => x.name && x.price != null);
 }
 
-/* ---------- Time control (hybrid) ---------- */
-const OPEN_MIN = 10*60; // 10:00
-const CLOSE_MIN = 20*60; // 20:00
+/* ---------- Time select for all devices ---------- */
+const OPEN_MIN = 10*60;   // 10:00
+const CLOSE_MIN = 20*60;  // 20:00
 const STEP_MIN = 15;
 
-function isIOS(){
-  return /iP(hone|ad|od)/.test(navigator.userAgent) ||
-         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
 function pad(n){ return String(n).padStart(2,'0'); }
 function toHHMM(totalMin){
   const h = Math.floor(totalMin/60), m = totalMin%60;
-  return `${pad(h)}:${pad(m)}`;
+  return `${pad(h)}:${pad(m)}`;       // submission value
 }
 function fmtAMPM(totalMin){
   let h = Math.floor(totalMin/60), m = totalMin%60;
   const ampm = h >= 12 ? "PM" : "AM";
   h = h % 12; if (h === 0) h = 12;
-  return `${h}:${pad(m)} ${ampm}`;
+  return `${h}:${pad(m)} ${ampm}`;    // label shown to user
 }
 function nearestQuarterWithinWindow(d=new Date()){
-  // get today's local minutes
   const mins = d.getHours()*60 + d.getMinutes();
   let slot = Math.ceil(mins / STEP_MIN) * STEP_MIN;
   if (slot < OPEN_MIN) slot = OPEN_MIN;
   if (slot > CLOSE_MIN) slot = OPEN_MIN; // wrap to first slot if past close
   return slot;
 }
-
-// For non‑iOS: fill the <select> with AM/PM labels
 function buildTimeOptions(){
   const sel = els.timeSelect;
   sel.innerHTML = `<option value="" disabled selected>Select time</option>`;
   for(let t = OPEN_MIN; t <= CLOSE_MIN; t += STEP_MIN){
     const opt = document.createElement('option');
-    opt.value = toHHMM(t);       // "HH:MM" used for payload
-    opt.textContent = fmtAMPM(t);// "10:00 AM"
+    opt.value = toHHMM(t);
+    opt.textContent = fmtAMPM(t);
     sel.appendChild(opt);
   }
-  // default to nearest allowed slot
-  const def = toHHMM(nearestQuarterWithinWindow());
-  sel.value = def;
-}
-
-// On iOS: swap the select with native time input for picker wheel + haptics
-function enableIOSPicker(){
-  const input = document.createElement('input');
-  input.type = 'time';
-  input.id = 'time';
-  input.name = 'time';
-  input.required = true;
-  input.min = '10:00';
-  input.max = '20:00';
-  input.step = String(STEP_MIN * 60);
-  input.style.height = 'var(--control-h)';
-
-  // default to nearest allowed slot
-  input.value = toHHMM(nearestQuarterWithinWindow());
-
-  const label = document.createElement('label');
-  label.setAttribute('for', 'time');
-  label.textContent = 'Preferred time (10:00–20:00)';
-
-  // replace content of timeWrap
-  els.timeWrap.innerHTML = '';
-  els.timeWrap.appendChild(label);
-  els.timeWrap.appendChild(input);
-
-  // expose as els.time for submit logic
-  els.time = input;
-}
-
-// For non‑iOS path, expose a proxy "els.time" that reads from the select
-function wireSelectAsTime(){
-  els.time = {
-    get value(){ return els.timeSelect.value; },
-    set value(v){ els.timeSelect.value = v; }
-  };
+  sel.value = toHHMM(nearestQuarterWithinWindow());
 }
 
 /* ---------- UI helpers ---------- */
@@ -426,19 +376,12 @@ function visitChanged(){
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
-
-  // Time control setup
-  if (isIOS()){
-    enableIOSPicker(); // native wheel + haptics
-  }else{
-    buildTimeOptions(); // pretty AM/PM list
-    wireSelectAsTime();
-  }
+  buildTimeOptions(); // one select for all devices
 
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
     els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
-    (isIOS() ? els.time : els.timeSelect).addEventListener('change', ()=>{/* no-op, value already formatted */});
+    els.timeSelect.addEventListener('change', ()=>{ /* value already fine */ });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
   visitChanged();
@@ -457,7 +400,7 @@ els.confirm.addEventListener('click', async ()=>{
     vehicle: (els.vehicle.value||"").trim(),
     service: (els.service.value||"").trim(),
     date: els.date.value,
-    time: (els.time?.value || '').trim(),  // works for both iOS input + select proxy
+    time: (els.timeSelect.value || '').trim(),  // select for all devices
     visit: getVisit(),
     address: els.address?.value.trim(),
     price: computePrice()
