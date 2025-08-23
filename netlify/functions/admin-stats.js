@@ -1,59 +1,86 @@
 // netlify/functions/admin-stats.js
-import { neon, neonConfig } from "@neondatabase/serverless";
-neonConfig.fetchConnectionCache = true;
+import { neon } from "@netlify/neon";
+import jwt from "jsonwebtoken";
 
-const ok = (obj) => ({
-  statusCode: 200,
-  headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" },
-  body: JSON.stringify(obj),
+const json = (s, b) => ({
+  statusCode: s,
+  headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+  },
+  body: JSON.stringify(b),
 });
-const err = (code, msg) => ({
-  statusCode: code,
-  headers: { "Content-Type":"application/json","Access-Control-Allow-Origin":"*" },
-  body: JSON.stringify({ ok:false, error: msg }),
-});
 
-export async function handler(event){
-  if (event.httpMethod !== "GET") return err(405, "Method Not Allowed");
-  const auth = event.headers.authorization || "";
-  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
+const need = (k) => { const v = process.env[k]; if (!v) throw new Error(`${k} missing`); return v; };
+const authz = (event, secret) => {
+  const h = event.headers?.authorization || event.headers?.Authorization || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  if (!m) return null;
+  try { return jwt.verify(m[1], secret); } catch { return null; }
+};
 
-  try{
-    const { group="month", from="", to="" } = event.queryStringParameters || {};
-    const sql = neon(process.env.DATABASE_URL);
+export const handler = async (event) => {
+  if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
+  if (event.httpMethod !== "GET")     return json(405, { ok:false, error:"Method not allowed" });
 
-    await sql`
-      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
-        id SERIAL PRIMARY KEY,
-        order_id INT UNIQUE,
-        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
-        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
+  try {
+    const SECRET = need("ADMIN_JWT_SECRET");
+    const DBURL  = need("DATABASE_URL");
+    if (!authz(event, SECRET)) return json(401, { ok:false, error:"Unauthorized" });
 
-    // date filter as ::date comparisons (date stored as TEXT YYYY-MM-DD)
+    const sql = neon(DBURL);
+
+    // Inputs
+    const qs = event.queryStringParameters || {};
+    const group = (qs.group || "month").toLowerCase();  // day | month | year
+    const from  = (qs.from  || "").trim();              // YYYY-MM-DD
+    const to    = (qs.to    || "").trim();              // YYYY-MM-DD
+
+    const GROUP_FMT = {
+      day:   "YYYY-MM-DD",
+      month: "YYYY-MM",
+      year:  "YYYY",
+    };
+    const fmt = GROUP_FMT[group] || GROUP_FMT.month;
+
     const where = [];
-    if (from) where.push(`(NULLIF(date,'')::date >= ${sql(from)}::date)`);
-    if (to) where.push(`(NULLIF(date,'')::date <= ${sql(to)}::date)`);
+    const p = [];
+
+    // Filter on local date derived from timestamptz
+    if (from) { p.push(from); where.push(`(datetime AT TIME ZONE 'Asia/Kolkata')::date >= $${p.length}::date`); }
+    if (to)   { p.push(to);   where.push(`(datetime AT TIME ZONE 'Asia/Kolkata')::date <= $${p.length}::date`); }
+
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-    // grouping label
-    let labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY-MM')`;
-    if (group === "year") labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY')`;
-    if (group === "day")  labelExpr = `to_char(NULLIF(date,'')::date, 'YYYY-MM-DD')`;
-
-    const rows = await sql(`
-      SELECT ${labelExpr} AS label, COALESCE(SUM(price),0)::int AS total
-      FROM kleenkars_bookings
-      ${whereSql}
+    // price fallback: parse first integer in service when price is NULL
+    const q = `
+      WITH base AS (
+        SELECT
+          (datetime AT TIME ZONE 'Asia/Kolkata') AS dt_local,
+          COALESCE(
+            price,
+            CASE WHEN service ~ '\\d'
+                 THEN NULLIF(regexp_replace(service, '.*?(\\d+).*', '\\1'), '')::int
+                 ELSE 0
+            END
+          ) AS price_int
+        FROM bookings
+        ${whereSql}
+      )
+      SELECT
+        to_char(dt_local, '${fmt}') AS label,
+        SUM(price_int)::int AS total,
+        COUNT(*)::int       AS count
+      FROM base
       GROUP BY 1
       ORDER BY 1
-    `);
+    `;
 
-    return ok({ ok:true, points: rows });
-  }catch(e){
-    console.error("admin-stats", e);
-    return err(500, e.message);
+    const rows = await sql(q, p);
+    return json(200, { ok:true, points: rows });
+  } catch (e) {
+    return json(500, { ok:false, error: e.message });
   }
-}
+};
