@@ -2,47 +2,64 @@
 import { neon } from "@netlify/neon";
 import jwt from "jsonwebtoken";
 
-const json = (s, b) => ({
-  statusCode: s,
+const ok = (obj) => ({
+  statusCode: 200,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   },
-  body: JSON.stringify(b),
+  body: JSON.stringify(obj),
+});
+const err = (code, msg) => ({
+  statusCode: code,
+  headers: {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  },
+  body: JSON.stringify({ ok: false, error: msg }),
 });
 
-const need = (k) => { const v = process.env[k]; if (!v) throw new Error(`${k} missing`); return v; };
-const authz = (event, secret) => {
-  const hdr = event.headers?.authorization || event.headers?.Authorization || "";
-  const m = hdr.match(/^Bearer\s+(.+)$/i);
+function authz(event) {
+  const h = event.headers?.authorization || event.headers?.Authorization || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
-  try { return jwt.verify(m[1], secret); } catch { return null; }
-};
+  try { return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET); }
+  catch { return null; }
+}
 
-export const handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
-  if (event.httpMethod !== "POST")    return json(405, { ok:false, error:"Method not allowed" });
+export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") return ok({ ok: true });
+  if (!authz(event)) return err(401, "Unauthorized");
+  if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
 
   try {
-    const SECRET = need("ADMIN_JWT_SECRET");
-    const DBURL  = need("DATABASE_URL");
-    const claims = authz(event, SECRET);
-    if (!claims) return json(401, { ok:false, error:"Unauthorized" });
+    const { order_id } = JSON.parse(event.body || "{}");
+    const id = Number(order_id);
+    if (!id) return err(400, "Missing order_id");
 
-    let body = {};
-    try { body = JSON.parse(event.body || "{}"); } catch {}
-    const key = (body.order_id ?? body.id ?? "").toString().trim();
-    if (!key) return json(400, { ok:false, error:"Missing order_id" });
+    const sql = neon(process.env.DATABASE_URL);
 
-    const sql = neon(DBURL);
-    // Your schema: table "bookings", primary key column "id"
-    const r = await sql(`DELETE FROM bookings WHERE id = $1 RETURNING id AS deleted_id`, [key]);
+    // Ensure canonical table exists (same schema used by saveBooking)
+    await sql`
+      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
+        id SERIAL PRIMARY KEY,
+        order_id INT UNIQUE,
+        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
+        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
 
-    if (!r.length) return json(404, { ok:false, error:"Booking not found" });
-    return json(200, { ok:true, deleted: r[0].deleted_id });
+    const r = await sql`DELETE FROM kleenkars_bookings WHERE order_id = ${id} RETURNING order_id`;
+    if (r.length === 0) return err(404, "Booking not found");
+
+    return ok({ ok: true, order_id: id });
   } catch (e) {
-    return json(500, { ok:false, error: e.message });
+    console.error("admin-deleteBooking", e);
+    return err(500, e.message || String(e));
   }
-};
+}
