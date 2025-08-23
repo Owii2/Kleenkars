@@ -1,5 +1,6 @@
 // netlify/functions/admin-services.js
-import { neon } from "@netlify/neon";
+import { neon, neonConfig } from "@neondatabase/serverless";
+neonConfig.fetchConnectionCache = true;
 
 const ok = (obj) => ({
   statusCode: 200,
@@ -22,18 +23,14 @@ const err = (code, msg) => ({
   body: JSON.stringify({ ok:false, error: msg })
 });
 
-function requireAuth(event){
-  const h = event.headers?.authorization || event.headers?.Authorization || "";
-  if (!/^Bearer\s+.+/i.test(h)) throw new Error("Unauthorized");
-}
-
 function normInt(v){
   if (v === null || v === undefined || v === "") return null;
-  const m = String(v).match(/\d+/); // pulls 150 from "₹150", etc.
+  const m = String(v).match(/\d+/);
   if (!m) return null;
   const n = parseInt(m[0], 10);
   return Number.isFinite(n) ? n : null;
 }
+const normName = (s) => String(s||"").trim().replace(/\s+/g," ");
 
 async function ensureSchema(sql){
   await sql`
@@ -47,52 +44,82 @@ async function ensureSchema(sql){
   `;
 }
 
-export async function handler(event){
-  try{
-    if (event.httpMethod === "OPTIONS") return ok({ ok:true });
-    requireAuth(event);
+async function list(sql){
+  await ensureSchema(sql);
+  return await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
+}
 
+export async function handler(event){
+  if (event.httpMethod === "OPTIONS") return ok({ ok:true });
+
+  const auth = event.headers.authorization || event.headers.Authorization || "";
+  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
+
+  try{
     const sql = neon(process.env.DATABASE_URL);
-    await ensureSchema(sql);
 
     if (event.httpMethod === "GET") {
-      const rows = await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
+      const rows = await list(sql);
       return ok({ ok:true, rows });
     }
 
     if (event.httpMethod === "POST") {
-      const b = JSON.parse(event.body || "{}");
-      const name  = String(b.name||"").trim().slice(0,100);
-      const bike  = normInt(b.bike);
-      const sedan = normInt(b.sedan);
-      const suv   = normInt(b.suv);
+      // Supports both create/update and rename update
+      const body = JSON.parse(event.body || "{}");
+      const originalName = normName(body.originalName || body.original_name || "");
+      const name  = normName(body.name);
+      const bike  = normInt(body.bike);
+      const sedan = normInt(body.sedan);
+      const suv   = normInt(body.suv);
       if (!name) return err(400, "Missing service name");
 
-      await sql`
-        INSERT INTO kleenkars_services (name, bike, sedan, suv, updated_at)
-        VALUES (${name}, ${bike}, ${sedan}, ${suv}, NOW())
-        ON CONFLICT (name)
-        DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
-      `;
-      const rows = await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
+      await ensureSchema(sql);
+
+      if (originalName && originalName !== name) {
+        // Rename path: update the PK row with new name + prices
+        const upd = await sql`
+          UPDATE kleenkars_services
+          SET name=${name}, bike=${bike}, sedan=${sedan}, suv=${suv}, updated_at=NOW()
+          WHERE name=${originalName}
+          RETURNING name
+        `;
+        if (!upd.length) {
+          // If original not found, fallback to upsert on new name
+          await sql`
+            INSERT INTO kleenkars_services (name, bike, sedan, suv, updated_at)
+            VALUES (${name}, ${bike}, ${sedan}, ${suv}, NOW())
+            ON CONFLICT (name)
+            DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
+          `;
+        }
+      } else {
+        // Normal upsert (create or overwrite same-name)
+        await sql`
+          INSERT INTO kleenkars_services (name, bike, sedan, suv, updated_at)
+          VALUES (${name}, ${bike}, ${sedan}, ${suv}, NOW())
+          ON CONFLICT (name)
+          DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
+        `;
+      }
+
+      const rows = await list(sql);
       return ok({ ok:true, rows });
     }
 
     if (event.httpMethod === "DELETE") {
-      const b = JSON.parse(event.body || "{}");
-      const name = String(b.name||"").trim();
+      const body = JSON.parse(event.body || "{}");
+      const name = normName(body.name);
       if (!name) return err(400, "Missing service name");
-
+      await ensureSchema(sql);
       const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING name`;
-      if (r.length === 0) return err(404, "Service not found");
-
-      const rows = await sql`SELECT name, bike, sedan, suv FROM kleenkars_services ORDER BY name`;
+      if (!r.length) return err(404, "Service not found");
+      const rows = await list(sql);
       return ok({ ok:true, rows });
     }
 
     return err(405, "Method Not Allowed");
   }catch(e){
-    const code = /unauthorized/i.test(e.message) ? 401 : 500;
-    return err(code, e.message || String(e));
+    console.error("admin-services", e);
+    return err(500, e.message || String(e));
   }
 }
