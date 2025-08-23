@@ -1,8 +1,12 @@
+# netlify.toml
+
 [build]
-command = ""          # no site build — just publish the repo root
-publish = "."
+  command = ""                 # no build; serve repo root
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"          # pin Node.js to v20 for Netlify
 
 [functions]
-directory = "netlify/functions"
-node_bundler = "esbuild"
-# DO NOT list external_node_modules here; let esbuild bundle everything.
+  node_bundler = "esbuild"     # bundle all deps; no externals
