@@ -219,19 +219,18 @@ async function loadServices(){
     try{
       const rows = await tryFetch(url);
       if(rows && rows.length){
-        SERVICES = rows.slice();
-        // Respect admin order: position ASC, then name
-        SERVICES.sort((a,b)=>{
-          const pa = (a.position ?? 1e9), pb = (b.position ?? 1e9);
-          if (pa !== pb) return pa - pb;
+        // Sort rows by position/ordinal/sort_order before saving
+        SERVICES = rows.slice().sort((a,b)=>{
+          const pa = a.position ?? a.ordinal ?? a.sort_order ?? 1e9;
+          const pb = b.position ?? b.ordinal ?? b.sort_order ?? 1e9;
+          if(pa !== pb) return pa - pb;
           return String(a.name||"").localeCompare(String(b.name||""));
         });
         return;
       }
     }catch(e){ /* try next */ }
   }
-  // Fallback (keep sensible order)
-  SERVICES = FALLBACK.slice();
+  SERVICES = FALLBACK;
 }
 
 /* ---------- Helpers ---------- */
