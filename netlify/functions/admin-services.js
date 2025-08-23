@@ -2,16 +2,26 @@
 import { neon, neonConfig } from "@neondatabase/serverless";
 neonConfig.fetchConnectionCache = true;
 
-const headersBase = {
-  "Content-Type":"application/json",
-  "Access-Control-Allow-Origin":"*",
-  "Access-Control-Allow-Headers":"authorization, content-type",
-  "Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS",
-  // Important: prevent browser/proxy caching so customer page sees fresh order immediately
-  "Cache-Control":"no-store"
-};
-const ok = (obj) => ({ statusCode:200, headers:headersBase, body:JSON.stringify(obj) });
-const err = (code, msg) => ({ statusCode:code, headers:headersBase, body:JSON.stringify({ ok:false, error:msg }) });
+const ok = (obj) => ({
+  statusCode: 200,
+  headers: {
+    "Content-Type":"application/json",
+    "Access-Control-Allow-Origin":"*",
+    "Access-Control-Allow-Headers":"authorization, content-type",
+    "Access-Control-Allow-Methods":"GET, POST, PATCH, DELETE, OPTIONS"
+  },
+  body: JSON.stringify(obj)
+});
+const err = (code, msg) => ({
+  statusCode: code,
+  headers: {
+    "Content-Type":"application/json",
+    "Access-Control-Allow-Origin":"*",
+    "Access-Control-Allow-Headers":"authorization, content-type",
+    "Access-Control-Allow-Methods":"GET, POST, PATCH, DELETE, OPTIONS"
+  },
+  body: JSON.stringify({ ok:false, error: msg })
+});
 
 function normInt(v){
   if (v === null || v === undefined || v === "") return null;
@@ -32,155 +42,217 @@ async function ensureSchema(sql){
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
+  // Make sure 'position' exists even on legacy tables
   await sql`ALTER TABLE kleenkars_services ADD COLUMN IF NOT EXISTS position INT NULL`;
-  // Unique index for position to make swaps safe (NULL allowed, unique enforced only on non-null)
-  await sql`CREATE UNIQUE INDEX IF NOT EXISTS kleenkars_services_position_idx ON kleenkars_services(position)`;
 
-  // If table is empty, seed defaults
-  const { n } = (await sql`SELECT COUNT(*)::int AS n FROM kleenkars_services`)[0];
-  if (n === 0){
+  // Assign positions where missing (stable by existing position, then name)
+  await sql`
+    WITH ranked AS (
+      SELECT name, COALESCE(position, ROW_NUMBER() OVER (ORDER BY position NULLS LAST, name)) AS rn
+      FROM kleenkars_services
+    )
+    UPDATE kleenkars_services s
+       SET position = r.rn
+      FROM ranked r
+     WHERE s.name = r.name AND s.position IS NULL
+  `;
+}
+
+async function tryImportLegacy(sql){
+  const legacy = await sql`
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = current_schema() AND table_name = 'services'
+    LIMIT 1
+  `;
+  if (!legacy.length) return;
+
+  const cols = await sql`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = current_schema() AND table_name = 'services'
+  `;
+  const set = new Set(cols.map(c => c.column_name));
+  if (!set.has("name")) return;
+
+  const bikeCol   = ["bike","two_wheeler"].find(c => set.has(c));
+  const sedanCol  = ["sedan","hatch","hatchback","hatch_sedan","hatchback_sedan","car"].find(c => set.has(c));
+  const suvCol    = ["suv"].find(c => set.has(c));
+
+  const rows = await sql`SELECT * FROM services`;
+  for (const r of rows) {
+    const name  = String(r.name || "").trim().slice(0,100);
+    const bike  = bikeCol  ? normInt(r[bikeCol])   : null;
+    const sedan = sedanCol ? normInt(r[sedanCol])  : null;
+    const suv   = suvCol   ? normInt(r[suvCol])    : null;
+
     await sql`
-      INSERT INTO kleenkars_services (name, bike, sedan, suv, position) VALUES
-      ('Basic',     50, 150, 200, 1),
-      ('Premium',   NULL, 200, 250, 2),
-      ('Detailing', NULL, 1500, 2500, 3)
+      INSERT INTO kleenkars_services (name, bike, sedan, suv, updated_at)
+      VALUES (${name}, ${bike}, ${sedan}, ${suv}, NOW())
+      ON CONFLICT (name) DO UPDATE SET
+        bike = COALESCE(EXCLUDED.bike, kleenkars_services.bike),
+        sedan = COALESCE(EXCLUDED.sedan, kleenkars_services.sedan),
+        suv = COALESCE(EXCLUDED.suv, kleenkars_services.suv),
+        updated_at = NOW()
     `;
-  }
-
-  // Backfill positions for any rows missing it (append to end in name order)
-  const { maxpos } = (await sql`SELECT COALESCE(MAX(position),0)::int AS maxpos FROM kleenkars_services`)[0];
-  const nulls = await sql`SELECT name FROM kleenkars_services WHERE position IS NULL ORDER BY name`;
-  let next = maxpos;
-  for (const r of nulls){
-    next += 1;
-    await sql`UPDATE kleenkars_services SET position=${next} WHERE name=${r.name}`;
   }
 }
 
-async function listOrdered(sql){
-  // Always return in the order admin set
-  return await sql`
-    SELECT name, bike, sedan, suv, position
-    FROM kleenkars_services
-    ORDER BY position NULLS LAST, name
+async function seedDefaultsIfEmpty(sql){
+  const { n } = (await sql`SELECT COUNT(*)::int AS n FROM kleenkars_services`)[0];
+  if (n > 0) return;
+  await sql`
+    INSERT INTO kleenkars_services (name, bike, sedan, suv, position) VALUES
+      ('Basic Wash', 50, 150, 200, 1),
+      ('Premium Car Wash', NULL, 200, 250, 2),
+      ('Detailing', NULL, 1500, 2500, 3)
   `;
+}
+
+async function list(sql){
+  await ensureSchema(sql);
+  await tryImportLegacy(sql);
+  await seedDefaultsIfEmpty(sql);
+  return await sql`SELECT name, bike, sedan, suv, position FROM kleenkars_services ORDER BY position ASC, name ASC`;
 }
 
 export async function handler(event){
   if (event.httpMethod === "OPTIONS") return ok({ ok:true });
 
-  try{
-    const sql = neon(process.env.DATABASE_URL);
-    await ensureSchema(sql);
+  const sql = neon(process.env.DATABASE_URL);
 
-    const isPublic = (event.queryStringParameters || {}).public === "1";
+  // Public read for customer page: ?public=1 (no auth)
+  const isPublic = (event.queryStringParameters?.public ?? "") === "1";
+
+  // For admin-only operations, enforce bearer token
+  const needAuth = !isPublic || event.httpMethod !== "GET";
+  if (needAuth) {
     const auth = event.headers.authorization || event.headers.Authorization || "";
+    if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
+  }
 
-    // Auth is required unless public=1 on GET
-    if (!isPublic){
-      if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
+  try{
+    if (event.httpMethod === "GET") {
+      const rows = await list(sql);
+      // For public, just pass rows; admin page also consumes same shape
+      return ok({ ok:true, rows });
     }
 
-    if (event.httpMethod === "GET"){
-      const rows = await listOrdered(sql);
-      return ok({ ok:true, rows, ts: Date.now() });
-    }
-
-    if (event.httpMethod === "POST"){
+    if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
-
-      // Reorder request
-      if (body.action === "reorder"){
-        const name = String(body.name||"").trim();
-        const dir  = String(body.direction||"").trim(); // "up" | "down"
-        if (!name || !/^(up|down)$/i.test(dir)) return err(400, "Bad reorder request");
-
-        const rows = await listOrdered(sql);
-        const i = rows.findIndex(r => r.name === name);
-        if (i === -1) return err(404, "Service not found");
-        const j = dir.toLowerCase() === "up" ? i-1 : i+1;
-        if (j < 0 || j >= rows.length) {
-          // nothing to swap (already at edge)
-          const out = await listOrdered(sql);
-          return ok({ ok:true, rows: out, ts: Date.now() });
-        }
-
-        // swap positions atomically
-        await sql`BEGIN`;
-        const posA = rows[i].position;
-        const posB = rows[j].position;
-
-        // If any side somehow has NULL, normalize it by pushing to end
-        let A = posA, B = posB;
-        if (A == null || B == null){
-          const { maxpos } = (await sql`SELECT COALESCE(MAX(position),0)::int AS maxpos FROM kleenkars_services`)[0];
-          if (A == null && B == null){
-            await sql`UPDATE kleenkars_services SET position=${maxpos+1} WHERE name=${rows[i].name}`;
-            await sql`UPDATE kleenkars_services SET position=${maxpos+2} WHERE name=${rows[j].name}`;
-          } else if (A == null){
-            await sql`UPDATE kleenkars_services SET position=${maxpos+1} WHERE name=${rows[i].name}`;
-          } else if (B == null){
-            await sql`UPDATE kleenkars_services SET position=${maxpos+1} WHERE name=${rows[j].name}`;
-          }
-        } else {
-          // Normal swap
-          await sql`UPDATE kleenkars_services SET position=${B} WHERE name=${rows[i].name}`;
-          await sql`UPDATE kleenkars_services SET position=${A} WHERE name=${rows[j].name}`;
-        }
-        await sql`COMMIT`;
-
-        const out = await listOrdered(sql);
-        return ok({ ok:true, rows: out, ts: Date.now() });
-      }
-
-      // Save (create/update) request
+      const originalName = String(body.originalName || body.name || "").trim().slice(0,100);
       const name  = String(body.name||"").trim().slice(0,100);
       const bike  = normInt(body.bike);
       const sedan = normInt(body.sedan);
       const suv   = normInt(body.suv);
       if (!name) return err(400, "Missing service name");
 
-      // If exists, update; else insert at end
-      const exists = await sql`SELECT position FROM kleenkars_services WHERE name=${name}`;
-      if (exists.length){
+      await ensureSchema(sql);
+
+      // If renaming, and originalName differs, delete/replace; else upsert by name
+      if (originalName && originalName !== name) {
+        // preserve position of original row if exists
+        const posRow = (await sql`SELECT position FROM kleenkars_services WHERE name=${originalName}`)[0];
+        const pos = posRow?.position ?? null;
+
+        await sql`DELETE FROM kleenkars_services WHERE name=${originalName}`;
+
+        const { maxpos } = (await sql`SELECT COALESCE(MAX(position),0)::int AS maxpos FROM kleenkars_services`)[0];
+        const newPos = pos ?? (maxpos + 1);
+
         await sql`
-          UPDATE kleenkars_services
-          SET bike=${bike}, sedan=${sedan}, suv=${suv}, updated_at=NOW()
-          WHERE name=${name}
+          INSERT INTO kleenkars_services (name, bike, sedan, suv, position, updated_at)
+          VALUES (${name}, ${bike}, ${sedan}, ${suv}, ${newPos}, NOW())
+          ON CONFLICT (name)
+          DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
         `;
       } else {
+        // Upsert; if new row, push to end
         const { maxpos } = (await sql`SELECT COALESCE(MAX(position),0)::int AS maxpos FROM kleenkars_services`)[0];
         await sql`
           INSERT INTO kleenkars_services (name, bike, sedan, suv, position, updated_at)
-          VALUES (${name}, ${bike}, ${sedan}, ${suv}, ${maxpos+1}, NOW())
+          VALUES (${name}, ${bike}, ${sedan}, ${suv}, ${maxpos + 1}, NOW())
+          ON CONFLICT (name)
+          DO UPDATE SET bike=EXCLUDED.bike, sedan=EXCLUDED.sedan, suv=EXCLUDED.suv, updated_at=NOW()
         `;
       }
-      const rows = await listOrdered(sql);
-      return ok({ ok:true, rows, ts: Date.now() });
+
+      const rows = await list(sql);
+      return ok({ ok:true, rows });
     }
 
-    if (event.httpMethod === "DELETE"){
+    if (event.httpMethod === "PATCH") {
+      // Reorder: body { name, direction: "up" | "down" }
+      const body = JSON.parse(event.body || "{}");
+      const name = String(body.name||"").trim();
+      const direction = String(body.direction||"").trim().toLowerCase();
+      if (!name || !["up","down"].includes(direction)) return err(400, "Bad request");
+
+      await ensureSchema(sql);
+
+      // Get current position
+      const cur = (await sql`SELECT name, position FROM kleenkars_services WHERE name=${name}`)[0];
+      if (!cur) return err(404, "Service not found");
+
+      // Find neighbor
+      let neighbor;
+      if (direction === "up") {
+        neighbor = (await sql`
+          SELECT name, position FROM kleenkars_services
+          WHERE position < ${cur.position}
+          ORDER BY position DESC
+          LIMIT 1
+        `)[0];
+      } else {
+        neighbor = (await sql`
+          SELECT name, position FROM kleenkars_services
+          WHERE position > ${cur.position}
+          ORDER BY position ASC
+          LIMIT 1
+        `)[0];
+      }
+      if (!neighbor) return ok({ ok:true, rows: await list(sql) }); // already at edge
+
+      // Swap positions
+      await sql`
+        UPDATE kleenkars_services AS s
+           SET position = CASE
+                            WHEN s.name = ${cur.name} THEN ${neighbor.position}
+                            WHEN s.name = ${neighbor.name} THEN ${cur.position}
+                            ELSE s.position
+                          END,
+               updated_at = NOW()
+         WHERE s.name IN (${cur.name}, ${neighbor.name})
+      `;
+
+      const rows = await list(sql);
+      return ok({ ok:true, rows });
+    }
+
+    if (event.httpMethod === "DELETE") {
       const body = JSON.parse(event.body || "{}");
       const name = String(body.name||"").trim();
       if (!name) return err(400, "Missing service name");
 
-      await sql`BEGIN`;
-      const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING position`;
-      if (r.length === 0){
-        await sql`ROLLBACK`;
-        return err(404, "Service not found");
-      }
-      // Compact positions so there are no gaps
-      const rows = await listOrdered(sql);
-      let pos = 0;
-      for (const svc of rows){
-        pos += 1;
-        await sql`UPDATE kleenkars_services SET position=${pos} WHERE name=${svc.name}`;
-      }
-      await sql`COMMIT`;
+      await ensureSchema(sql);
 
-      const out = await listOrdered(sql);
-      return ok({ ok:true, rows: out, ts: Date.now() });
+      const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING name`;
+      if (r.length === 0) return err(404, "Service not found");
+
+      // Re-pack positions to keep sequence tight
+      await sql`
+        WITH ranked AS (
+          SELECT name, ROW_NUMBER() OVER (ORDER BY position ASC, name ASC) AS rn
+          FROM kleenkars_services
+        )
+        UPDATE kleenkars_services s
+           SET position = r.rn
+          FROM ranked r
+         WHERE s.name = r.name
+      `;
+
+      const rows = await list(sql);
+      return ok({ ok:true, rows });
     }
 
     return err(405, "Method Not Allowed");
