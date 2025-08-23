@@ -2,116 +2,123 @@
 <html lang="en">
 <head>
   <!-- PWA Manifest -->
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0b0b12">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b0b12">
 
-<!-- iOS Add-to-Home meta -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kleenkars">
+  <!-- iOS Add-to-Home meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kleenkars">
 
-<!-- iOS home screen icon -->
-<link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
-<link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png">
+  <!-- iOS home screen icon -->
+  <link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png">
 
-<!-- Favicon fallback (desktop browsers) -->
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kleenkars — Premium Wash & Detailing</title>
-<meta name="description" content="Book Kleenkars: Bike • Hatch/Sedan • SUV. Premium car care, doorstep or wash center.">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0b0b12; --card:#13131b; --ink:#e9e9ef; --muted:#b8b8c6;
-    --accent:#7a3cff; --accent-2:#111016; --border:#242433;
-    --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
-    --control-h:48px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    background:
-      radial-gradient(1000px 600px at 80% -10%, rgba(122,60,255,.15), transparent 60%),
-      radial-gradient(900px 500px at -10% 20%, rgba(122,60,255,.12), transparent 60%),
-      var(--bg);
-    color:var(--ink); line-height:1.6;
-  }
-  a{color:var(--ink); text-decoration:none}
-  .wrap{max-width:1100px; margin:auto; padding:20px}
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
 
-  header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 20px}
-  .brand{display:flex; align-items:center; gap:12px}
-  .brand img{
-    width:100px; height:100px; object-fit:contain;
-    border-radius:10px; background:#0f0f16; border:1px solid var(--border)
-  }
-  .title{font-weight:800; letter-spacing:.3px}
-  .pill{display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:.85rem}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kleenkars — Premium Wash & Detailing</title>
+  <meta name="description" content="Book Kleenkars: Bike • Hatch/Sedan • SUV. Premium car care, doorstep or wash center.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0b12; --card:#13131b; --ink:#e9e9ef; --muted:#b8b8c6;
+      --accent:#7a3cff; --accent-2:#111016; --border:#242433;
+      --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+      --control-h:48px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:
+        radial-gradient(1000px 600px at 80% -10%, rgba(122,60,255,.15), transparent 60%),
+        radial-gradient(900px 500px at -10% 20%, rgba(122,60,255,.12), transparent 60%),
+        var(--bg);
+      color:var(--ink); line-height:1.6;
+    }
+    a{color:var(--ink); text-decoration:none}
+    .wrap{max-width:1100px; margin:auto; padding:20px}
 
-  .btn{appearance:none; border:1px solid var(--border); background:var(--accent-2); color:#fff; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; transition:.2s transform ease}
-  .btn:hover{transform:translateY(-1px)}
-  .btn.primary{background:linear-gradient(0deg, rgba(122,60,255,.2), rgba(122,60,255,.2)), var(--accent); border-color:#5c29ef}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0 20px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .brand img{
+      width:100px; height:100px; object-fit:contain;
+      border-radius:10px; background:#0f0f16; border:1px solid var(--border)
+    }
+    .title{font-weight:800; letter-spacing:.3px}
+    .pill{display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:.85rem}
 
-  .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
-  .p24{padding:24px}
+    .btn{appearance:none; border:1px solid var(--border); background:var(--accent-2); color:#fff; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer; transition:.2s transform ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(0deg, rgba(122,60,255,.2), rgba(122,60,255,.2)), var(--accent); border-color:#5c29ef}
 
-  .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:stretch}
-  .hero h1{margin:0 0 10px; font-size:clamp(26px,3.5vw,44px); line-height:1.1}
-  .sub{color:var(--muted); margin:4px 0 18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .p24{padding:24px}
 
-  .grid{display:grid; gap:12px}
-  .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:stretch}
+    .hero h1{margin:0 0 10px; font-size:clamp(26px,3.5vw,44px); line-height:1.1}
+    .sub{color:var(--muted); margin:4px 0 18px}
 
-  label{font-weight:600; font-size:.92rem; min-width:0}
-  input, select, textarea{
-    width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
-    background:#0f0f16; color:#fff; outline:none; min-width:0;
-  }
-  input::placeholder, textarea::placeholder{color:#6f6f84}
+    .grid{display:grid; gap:12px}
+    .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 
-  /* match vehicle/service pill height */
-  #service, #date, #timeSelect{ height:var(--control-h); min-height:var(--control-h); line-height:var(--control-h) }
+    label{font-weight:600; font-size:.92rem; min-width:0}
+    input, select, textarea{
+      width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
+      background:#0f0f16; color:var(--ink); outline:none; min-width:0;
+    }
+    input::placeholder, textarea::placeholder{color:#6f6f84}
 
-  input[type="date"], select{ -webkit-appearance:none; appearance:none; }
+    /* Uniform height without forcing line-height (prevents iOS clipping) */
+    #service, #date, #timeSelect{
+      height:var(--control-h);
+      min-height:var(--control-h);
+      line-height:1.2;
+    }
+    input[type="date"], select{ -webkit-appearance:none; appearance:none; }
+    select#service, select#timeSelect { color:var(--ink); background:#0f0f16; }
+    select#service option[disabled], select#timeSelect option[disabled]{ color:var(--muted); }
 
-  .help{font-size:.85rem; color:var(--muted)}
-  .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
+    .help{font-size:.85rem; color:var(--muted)}
+    .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
 
-  .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
+    .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
 
-  .radio-row{display:flex; gap:8px; flex-wrap:wrap}
-  .radio{
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    border:1px solid var(--border); padding:6px 10px; border-radius:10px; background:#0f0f16;
-    min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
-  }
-  .radio input[type="radio"]{margin:0; transform:translateY(1px)}
+    .radio-row{display:flex; gap:8px; flex-wrap:wrap}
+    .radio{
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      border:1px solid var(--border); padding:6px 10px; border-radius:10px; background:#0f0f16;
+      min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
+    }
+    .radio input[type="radio"]{margin:0; transform:translateY(1px)}
 
-  .hero-media{display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
-  .hero-media img{width:100%; height:100%; object-fit:cover; display:block}
+    .hero-media{display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
+    .hero-media img{width:100%; height:100%; object-fit:cover; display:block}
 
-  footer{opacity:.9; padding:28px 8px; text-align:center; color:var(--muted)}
-  @media (max-width:780px){ .hero{grid-template-columns:1fr} .hero-media{aspect-ratio:3/2} }
+    footer{opacity:.9; padding:28px 8px; text-align:center; color:var(--muted)}
+    @media (max-width:780px){ .hero{grid-template-columns:1fr} .hero-media{aspect-ratio:3/2} }
 
-  .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
-    background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
-</style>
+    .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+      background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
+  </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">
+      <!-- brand is now a link to the homepage -->
+      <a href="/" class="brand">
         <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
         <div>
           <div class="title">Kleenkars</div>
           <div class="pill">Premium • Wash • Detailing</div>
         </div>
-      </div>
+      </a>
       <a class="pill" href="/admin.html">Admin login</a>
     </header>
 
@@ -157,12 +164,11 @@
               <label for="date">Preferred date</label>
               <input type="date" id="date" name="date" required>
             </div>
-
-            <!-- TIME: one select for every device -->
             <div>
-              <label for="timeSelect">Preferred time (10:00–20:00)</label>
-              <select id="timeSelect" required>
-                <option value="" disabled selected>Select time</option>
+              <!-- Time slots select (10:00–20:00, 15-minute steps) -->
+              <label for="timeSelect">Time slots</label>
+              <select id="timeSelect" name="time" required>
+                <option value="" disabled selected>Pick a time</option>
               </select>
             </div>
           </div>
@@ -219,12 +225,56 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
+/* ---------- Build time options (10:00 → 20:00 every 15 min) ---------- */
+function fmtTime(h, m){
+  const t = new Date(Date.UTC(2000,0,1,h,m,0));
+  const hh = t.getUTCHours();
+  const mm = String(t.getUTCMinutes()).padStart(2,'0');
+  const ampm = hh >= 12 ? 'PM' : 'AM';
+  const h12 = ((hh + 11) % 12) + 1;
+  return { value: `${String(hh).padStart(2,'0')}:${mm}`, label: `${h12}:${mm} ${ampm}` };
+}
+function buildTimeOptions(){
+  const sel = els.timeSelect;
+  sel.innerHTML = '<option value="" disabled selected>Pick a time</option>';
+  for(let h=10; h<=20; h++){
+    for(let m=0; m<60; m+=15){
+      if(h===20 && m>0) break; // stop at 20:00
+      const { value, label } = fmtTime(h, m);
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    }
+  }
+  // auto-select next valid slot today
+  try{
+    const now = new Date();
+    const today = new Date().toISOString().split('T')[0];
+    if(els.date.value === today || !els.date.value){
+      const curr = now.getHours()*60 + now.getMinutes();
+      const first = 10*60, last = 20*60;
+      let pick = null;
+      for(let h=10; h<=20; h++){
+        for(let m=0; m<60; m+=15){
+          if(h===20 && m>0) break;
+          const mins = h*60 + m;
+          if(mins >= curr+5){ pick = fmtTime(h,m).value; break; }
+        }
+        if(pick) break;
+      }
+      if(!pick) pick = '10:00'; // next day default earliest
+      sel.value = pick;
+    }
+  }catch{}
+}
+
 /* ---------- Services (public) ---------- */
 let SERVICES = [];
 const FALLBACK = [
-  { name:"Basic Wash",     bike:50,   sedan:150,  suv:200,  position:1, visible:true, description:"Exterior wash & dry" },
-  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250, position:2, visible:true, description:"Foam wash + interior wipe" },
-  { name:"Detailing",      bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
+  { name:"Basic Wash", bike:50, sedan:150, suv:200, position:1, visible:true, description:"Exterior wash & dry" },
+  { name:"Premium Car Wash", bike:null, sedan:200, suv:250, position:2, visible:true, description:"Foam wash + interior wipe" },
+  { name:"Detailing", bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
 ];
 
 async function tryFetch(url){
@@ -253,7 +303,7 @@ async function loadServices(){
         });
         return;
       }
-    }catch(e){ /* try next */ }
+    }catch(e){}
   }
   SERVICES = FALLBACK;
 }
@@ -274,41 +324,6 @@ function servicesForVehicle(v){
   return SERVICES
     .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
     .filter(x => x.name && x.price != null);
-}
-
-/* ---------- Time select for all devices ---------- */
-const OPEN_MIN = 10*60;   // 10:00
-const CLOSE_MIN = 20*60;  // 20:00
-const STEP_MIN = 15;
-
-function pad(n){ return String(n).padStart(2,'0'); }
-function toHHMM(totalMin){
-  const h = Math.floor(totalMin/60), m = totalMin%60;
-  return `${pad(h)}:${pad(m)}`;       // submission value
-}
-function fmtAMPM(totalMin){
-  let h = Math.floor(totalMin/60), m = totalMin%60;
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12; if (h === 0) h = 12;
-  return `${h}:${pad(m)} ${ampm}`;    // label shown to user
-}
-function nearestQuarterWithinWindow(d=new Date()){
-  const mins = d.getHours()*60 + d.getMinutes();
-  let slot = Math.ceil(mins / STEP_MIN) * STEP_MIN;
-  if (slot < OPEN_MIN) slot = OPEN_MIN;
-  if (slot > CLOSE_MIN) slot = OPEN_MIN; // wrap to first slot if past close
-  return slot;
-}
-function buildTimeOptions(){
-  const sel = els.timeSelect;
-  sel.innerHTML = `<option value="" disabled selected>Select time</option>`;
-  for(let t = OPEN_MIN; t <= CLOSE_MIN; t += STEP_MIN){
-    const opt = document.createElement('option');
-    opt.value = toHHMM(t);
-    opt.textContent = fmtAMPM(t);
-    sel.appendChild(opt);
-  }
-  sel.value = toHHMM(nearestQuarterWithinWindow());
 }
 
 /* ---------- UI helpers ---------- */
@@ -376,14 +391,15 @@ function visitChanged(){
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
-  buildTimeOptions(); // one select for all devices
+  buildTimeOptions();
 
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
     els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
-    els.timeSelect.addEventListener('change', ()=>{ /* value already fine */ });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+    els.date.addEventListener(ev, ()=>{ buildTimeOptions(); }); // rebuild options when date changes
   });
+
   visitChanged();
   populateServices();
 }
@@ -400,7 +416,7 @@ els.confirm.addEventListener('click', async ()=>{
     vehicle: (els.vehicle.value||"").trim(),
     service: (els.service.value||"").trim(),
     date: els.date.value,
-    time: (els.timeSelect.value || '').trim(),  // select for all devices
+    time: els.timeSelect.value, // from the select
     visit: getVisit(),
     address: els.address?.value.trim(),
     price: computePrice()
@@ -408,7 +424,7 @@ els.confirm.addEventListener('click', async ()=>{
 
   if(!payload.vehicle){ alert("Select a vehicle."); return; }
   if(!payload.service){ alert("Select a service."); return; }
-  if(!payload.time){ alert("Select a time."); return; }
+  if(!payload.time){ alert("Pick a time slot."); return; }
   if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
 
   els.confirm.disabled = true; els.confirm.textContent = "Saving…";
@@ -435,12 +451,13 @@ els.confirm.addEventListener('click', async ()=>{
   }
 });
 </script>
+
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
-  });
-}
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    });
+  }
 </script>
 </body>
 </html>
