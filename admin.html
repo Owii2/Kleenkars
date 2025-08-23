@@ -158,22 +158,83 @@
 
     <!-- Statistics -->
     <section id="stats" class="section">
-      <div class="card p24">
-        <div class="bar">
-          <div><b>Sales</b></div>
-          <div class="row">
-            <label>Group by
-              <select id="sGroup"><option value="month">Month</option><option value="year">Year</option><option value="day">Day</option></select>
-            </label>
-            <label>From<input type="date" id="sFrom"></label>
-            <label>To<input type="date" id="sTo"></label>
-          </div>
-          <button id="sApply" class="btn">Apply</button>
-          <span class="pill" id="sTotal">Total: —</span>
-        </div>
-        <canvas id="chart"></canvas>
+  <div class="card p24">
+    <div class="bar">
+      <div><b>Sales Dashboard</b></div>
+
+      <div class="row" style="align-items:flex-end">
+        <!-- Group -->
+        <label>Group by<br>
+          <select id="sGroup">
+            <option value="day">Day</option>
+            <option value="month" selected>Month</option>
+            <option value="year">Year</option>
+          </select>
+        </label>
+
+        <!-- Day filters -->
+        <span id="fltDay" class="row">
+          <label>From (date)<br><input type="date" id="sFromDay"></label>
+          <label>To (date)<br><input type="date" id="sToDay"></label>
+        </span>
+
+        <!-- Month filters -->
+        <span id="fltMonth" class="row" style="display:none">
+          <label>From (month)<br><input type="month" id="sFromMonth"></label>
+          <label>To (month)<br><input type="month" id="sToMonth"></label>
+        </span>
+
+        <!-- Year filters -->
+        <span id="fltYear" class="row" style="display:none">
+          <label>From (year)<br><input type="number" id="sFromYear" min="2000" max="2100" step="1" placeholder="YYYY"></label>
+          <label>To (year)<br><input type="number" id="sToYear" min="2000" max="2100" step="1" placeholder="YYYY"></label>
+        </span>
+
+        <button id="sApply" class="btn">Apply</button>
+        <button id="sCurrentYear" class="btn secondary">Current Year</button>
       </div>
-    </section>
+
+      <!-- KPI pills -->
+      <div class="row" style="gap:10px;margin-top:10px;flex-wrap:wrap">
+        <span class="pill" id="kpiTotal">Total: —</span>
+        <span class="pill" id="kpiBookings">Bookings: —</span>
+        <span class="pill" id="kpiAvg">Avg Ticket: —</span>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:12px">
+      <div class="card p24">
+        <div class="muted">Revenue Trend</div>
+        <canvas id="chTrend" style="width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card p24">
+          <div class="muted">By Service</div>
+          <canvas id="chService" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+        </div>
+        <div class="card p24">
+          <div class="muted">By Vehicle</div>
+          <canvas id="chVehicle" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card p24">
+          <div class="muted">Peak Hours</div>
+          <canvas id="chHour" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+        </div>
+        <div class="card p24">
+          <div class="muted">Days of Week</div>
+          <canvas id="chDow" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="sMsg" class="muted" style="margin-top:10px;"></div>
+  </div>
+</section>
 
     <!-- Services -->
     <section id="services" class="section">
