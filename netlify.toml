@@ -1,16 +1,8 @@
 [build]
-# No site build step; just ship the root as-is
-command = ""
+command = ""          # no site build — just publish the repo root
 publish = "."
 
 [functions]
 directory = "netlify/functions"
 node_bundler = "esbuild"
-external_node_modules = ["@netlify/neon","jsonwebtoken"]
-
-# Optional: ensure common env vars are passed to functions
-[build.environment]
-DATABASE_URL = ""
-ADMIN_JWT_SECRET = ""
-ADMIN_USER = ""
-ADMIN_PASS = ""
+# DO NOT list external_node_modules here; let esbuild bundle everything.
