@@ -1,121 +1,75 @@
 // netlify/functions/saveBooking.js
-import { neon, neonConfig } from "@neondatabase/serverless";
-neonConfig.fetchConnectionCache = true;
+import { neon } from "@netlify/neon";
 
-const ok = (obj) => ({
-  statusCode: 200,
+const json = (s, b) => ({
+  statusCode: s,
   headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-  body: JSON.stringify(obj),
+  body: JSON.stringify(b),
 });
-const err = (code, message) => ({
-  statusCode: code,
-  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-  body: JSON.stringify({ ok: false, error: message }),
-});
+const need = (k) => { const v = process.env[k]; if (!v) throw new Error(`${k} missing`); return v; };
 
-// server-side price guard (same rules as UI)
-const PRICES = {
-  "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
-  "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
-  "SUV":         { "Basic": 200, "Premium": 250,  "Detailing": 2500 }
-};
-const HOME_SURCHARGE = 50;
-
-function computePrice(vehicle, service, visit){
-  let p = PRICES?.[vehicle]?.[service] ?? null;
-  if (p == null) return null;
-  if (visit === "Home Visit") p += HOME_SURCHARGE;
-  return p;
-}
-
-// Find smallest positive missing order_id (1,2,3… reuse gaps)
-async function nextOrderId(sql){
-  const rows = await sql`SELECT order_id FROM kleenkars_bookings WHERE order_id IS NOT NULL ORDER BY order_id ASC`;
-  let expected = 1;
-  for (const r of rows) {
-    const id = Number(r.order_id);
-    if (id > expected) break;
-    if (id === expected) expected++;
+export const handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return json(405, { ok:false, error:"Method not allowed" });
   }
-  return expected;
-}
-
-export async function handler(event) {
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "POST, OPTIONS"
-      },
-      body: ""
-    };
-  }
-
-  if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
 
   try {
-    const data = JSON.parse(event.body || "{}");
-    // required fields
-    if (!data.name || !data.phone || !data.vehicle || !data.service || !data.date || !data.time) {
-      return err(400, "Missing required fields");
-    }
+    const DBURL = need("DATABASE_URL");
+    let body = {};
+    try { body = JSON.parse(event.body || "{}"); } catch {}
 
-    // sanitize
-    const name = String(data.name || "").trim().slice(0,200);
-    const phone = String(data.phone || "").replace(/\D/g,"").slice(0,15);
-    const vehicle = String(data.vehicle || "").trim();
-    const service = String(data.service || "").trim();
-    const visit = String(data.visit || "In-Shop").trim();
-    const address = String(data.address || "").trim().slice(0,500);
+    // Expect: name, phone (10 digits), vehicle, service, date (YYYY-MM-DD), time (HH:MM 24h)
+    const name    = String(body.name || "").trim();
+    const phone   = String(body.phone || "").replace(/\D/g, "");
+    const vehicle = String(body.vehicle || "").trim();
+    const service = String(body.service || "").trim();
+    const date    = String(body.date || "").trim();   // YYYY-MM-DD
+    const time    = String(body.time || "").trim();   // HH:MM (24h)
+    const visit   = String(body.visit || "Wash Center").trim();
+    const address = String(body.address || "").trim();
 
-    // normalize date -> YYYY-MM-DD
-    let date = String(data.date || "").trim();
-    try { date = new Date(date).toISOString().split("T")[0]; } catch {}
-    // normalize time -> HH:MM (24h)
-    let time = String(data.time || "").trim();
-    try {
-      const d = new Date(`1970-01-01T${time}`);
-      const hh = String(d.getUTCHours()).padStart(2,"0");
-      const mm = String(d.getUTCMinutes()).padStart(2,"0");
-      time = `${hh}:${mm}`;
-    } catch {}
+    if (!name) return json(400, { ok:false, error:"Missing name" });
+    if (!/^\d{10}$/.test(phone)) return json(400, { ok:false, error:"Phone must be 10 digits" });
+    if (!vehicle) return json(400, { ok:false, error:"Missing vehicle" });
+    if (!service) return json(400, { ok:false, error:"Missing service" });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json(400, { ok:false, error:"Invalid date" });
+    if (!/^\d{2}:\d{2}$/.test(time)) return json(400, { ok:false, error:"Invalid time" });
 
-    // server-side price check
-    const price = computePrice(vehicle, service, visit);
-    if (price == null) return err(400, `${service} not available for ${vehicle}`);
+    // Build timestamptz for Asia/Kolkata from date+time
+    const dt = `${date} ${time}`; // e.g. "2025-08-23 14:30"
 
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(DBURL);
 
-    // ensure table
-    await sql`
-      CREATE TABLE IF NOT EXISTS kleenkars_bookings (
-        id SERIAL PRIMARY KEY,
-        order_id INT UNIQUE,
-        name TEXT, phone TEXT, vehicle TEXT, service TEXT,
-        date TEXT, time TEXT, visit TEXT, address TEXT, price INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    // Insert into the REAL table your admin uses: bookings(id, name, phone, service, vehicle, datetime, created_at)
+    const rows = await sql(
+      `
+      INSERT INTO bookings (name, phone, service, vehicle, datetime, created_at)
+      VALUES (
+        $1, $2, $3, $4,
+        make_timestamptz(
+          substr($5,1,4)::int,    -- YYYY
+          substr($5,6,2)::int,    -- MM
+          substr($5,9,2)::int,    -- DD
+          substr($5,12,2)::int,   -- HH
+          substr($5,15,2)::int,   -- MI
+          0,
+          'Asia/Kolkata'
+        ),
+        now()
       )
-    `;
+      RETURNING id;
+      `,
+      [name, phone, service, vehicle, dt]
+    );
 
-    // get next reusable order_id
-    const order_id = await nextOrderId(sql);
+    const order_id = rows[0]?.id;
 
-    // insert
-    await sql`
-      INSERT INTO kleenkars_bookings
-      (order_id, name, phone, vehicle, service, date, time, visit, address, price)
-      VALUES (${order_id}, ${name}, ${phone}, ${vehicle}, ${service}, ${date}, ${time}, ${visit}, ${address}, ${price})
-    `;
+    // WhatsApp numbers (optional; digits only). These names match what index.html expects.
+    const admin   = (process.env.ADMIN_WHATSAPP   || process.env.ADMIN_PHONE   || "").replace(/\D/g, "") || null;
+    const manager = (process.env.MANAGER_WHATSAPP || process.env.MANAGER_PHONE || "").replace(/\D/g, "") || null;
 
-    // WhatsApp numbers (optional env vars, digits only)
-    const admin = (process.env.ADMIN_PHONE || "").replace(/\D/g,"") || null;
-    const manager = (process.env.MANAGER_PHONE || "").replace(/\D/g,"") || null;
-
-    return ok({ ok: true, order_id, admin, manager });
+    return json(200, { ok:true, order_id, admin, manager });
   } catch (e) {
-    console.error("saveBooking error:", e);
-    return err(500, e.message);
+    return json(500, { ok:false, error: e.message });
   }
-}
+};
