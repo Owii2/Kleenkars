@@ -11,7 +11,7 @@
     --bg:#0b0b12; --card:#13131b; --ink:#e9e9ef; --muted:#b8b8c6;
     --accent:#7a3cff; --accent-2:#111016; --border:#242433;
     --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
-    --control-h:48px;        /* uniform control height */
+    --control-h:48px;
   }
   *{box-sizing:border-box}
   body{
@@ -46,7 +46,6 @@
   .sub{color:var(--muted); margin:4px 0 18px}
 
   .grid{display:grid; gap:12px}
-  /* responsive two-column rows so inputs don’t collide on phones */
   .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 
   label{font-weight:600; font-size:.92rem; min-width:0}
@@ -56,7 +55,6 @@
   }
   input::placeholder, textarea::placeholder{color:#6f6f84}
 
-  /* Uniform control height for Service, Date, Time */
   #service, #date, #time{
     height:var(--control-h);
     min-height:var(--control-h);
@@ -68,8 +66,9 @@
   .help{font-size:.85rem; color:var(--muted)}
   .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
 
+  .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
+
   .radio-row{display:flex; gap:8px; flex-wrap:wrap}
-  /* Equal-sized visit type pills */
   .radio{
     display:flex; align-items:center; justify-content:center; gap:8px;
     border:1px solid var(--border); padding:6px 10px; border-radius:10px; background:#0f0f16;
@@ -83,7 +82,6 @@
   footer{opacity:.9; padding:28px 8px; text-align:center; color:var(--muted)}
   @media (max-width:780px){ .hero{grid-template-columns:1fr} .hero-media{aspect-ratio:3/2} }
 
-  /* Toast */
   .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
     background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
 </style>
@@ -134,6 +132,7 @@
                 <option value="" disabled selected>Select vehicle first</option>
               </select>
               <div class="help" id="serviceHelp">Choose a vehicle to see pricing.</div>
+              <div class="svc-desc" id="svcDesc"></div>
             </div>
           </div>
 
@@ -184,6 +183,7 @@ const els = {
   vehicle: document.getElementById('vehicle'),
   service: document.getElementById('service'),
   serviceHelp: document.getElementById('serviceHelp'),
+  svcDesc: document.getElementById('svcDesc'),
   name: document.getElementById('name'),
   phone: document.getElementById('phone'),
   date: document.getElementById('date'),
@@ -199,30 +199,26 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
-/* ---------- Public services fetch with graceful fallback ---------- */
-/* expected row: { name, bike, sedan, suv, position? } */
+/* ---------- Services (public) ---------- */
 let SERVICES = [];
 const FALLBACK = [
-  { name:"Basic Wash",       bike:50,   sedan:150,  suv:200  },
-  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250  },
-  { name:"Detailing",        bike:null, sedan:1500, suv:2500 }
+  { name:"Basic Wash",     bike:50,   sedan:150,  suv:200,  position:1, visible:true, description:"Exterior wash & dry" },
+  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250, position:2, visible:true, description:"Foam wash + interior wipe" },
+  { name:"Detailing",      bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
 ];
 
-/* ADD-ON #1: cache-busting fetch helper so new services show instantly */
 async function tryFetch(url){
-  const bust = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-  const r = await fetch(bust, { cache: 'no-store' });
+  const r = await fetch(url);
   if(!r.ok) throw new Error("HTTP "+r.status);
   const d = await r.json();
-  if (Array.isArray(d)) return d;
-  if (d && d.ok && Array.isArray(d.rows)) return d.rows;
+  if(Array.isArray(d)) return d;
+  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
   throw new Error("Unexpected response");
 }
 
-/* ADD-ON #2: loadServices that respects admin order (position/ordinal/sort_order) */
 async function loadServices(){
   const candidates = [
-    "/.netlify/functions/admin-services?public=1",          // public, ordered, visible only
+    "/.netlify/functions/admin-services?public=1",
     "/.netlify/functions/site-settings?fn=services",
     "/.netlify/functions/services"
   ];
@@ -230,8 +226,7 @@ async function loadServices(){
     try{
       const rows = await tryFetch(url);
       if(rows && rows.length){
-        // Server already filters visible + orders by position,
-        // but we keep a stable secondary sort by name.
+        // Keep admin order strictly by position ASC then name
         SERVICES = rows.slice().sort((a,b)=>{
           const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
           if (pa !== pb) return pa - pb;
@@ -239,19 +234,14 @@ async function loadServices(){
         });
         return;
       }
-    }catch(e){ /* next candidate */ }
+    }catch(e){ /* try next */ }
   }
-  SERVICES = FALLBACK.slice();
+  SERVICES = FALLBACK;
 }
 
-/* ---------- Helpers ---------- */
-function getVisit(){
-  const r = Array.from(els.visitRadios).find(r=>r.checked);
-  return r ? r.value : "Wash Center";
-}
 function parseIntLike(v){
   if (v == null) return null;
-  const m = String(v).match(/\d+/);   // pulls 250 from "₹250", "250", "250 rs"
+  const m = String(v).match(/\d+/);
   if (!m) return null;
   const n = parseInt(m[0], 10);
   return Number.isFinite(n) ? n : null;
@@ -262,14 +252,20 @@ function priceFor(row, vehicle){
 }
 function servicesForVehicle(v){
   if(!v) return [];
-  // keep the order already sorted in loadServices()
   return SERVICES
-    .map(row => ({ name: String(row.name||""), price: priceFor(row, v) }))
+    .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
     .filter(x => x.name && x.price != null);
+}
+
+/* ---------- UI helpers ---------- */
+function getVisit(){
+  const r = Array.from(els.visitRadios).find(r=>r.checked);
+  return r ? r.value : "Wash Center";
 }
 function populateServices(){
   const v = (els.vehicle.value || "").trim();
   els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
+  els.svcDesc.textContent = "";
   const list = servicesForVehicle(v);
   if(list.length===0){
     els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
@@ -280,13 +276,20 @@ function populateServices(){
     opt.value = item.name;
     opt.textContent = `${item.name} — ₹${item.price}`;
     opt.dataset.price = item.price;
-    // find and attach description (if any) for tooltip
-    const row = SERVICES.find(r => String(r.name) === item.name);
-    if (row && row.description) opt.title = String(row.description);
+    opt.dataset.description = item.description || "";
     els.service.appendChild(opt);
   }
   els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
+  updateServiceDesc(); // show desc when user picks
   updatePriceUI();
+}
+function updateServiceDesc(){
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
+  if(!v || !s){ els.svcDesc.textContent=""; return; }
+  const list = servicesForVehicle(v);
+  const item = list.find(x=>x.name===s);
+  els.svcDesc.textContent = item?.description || "";
 }
 function computePrice(){
   const v = (els.vehicle.value || "").trim();
@@ -320,8 +323,8 @@ function visitChanged(){
 async function init(){
   await loadServices();
   ['change','input'].forEach(ev=>{
-    els.vehicle.addEventListener(ev, populateServices);
-    els.service.addEventListener(ev, updatePriceUI);
+    els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
+    els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
   visitChanged();
