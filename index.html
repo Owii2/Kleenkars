@@ -162,10 +162,9 @@
               <input type="date" id="date" name="date" required>
             </div>
             <div>
-              <label for="time">Preferred time (10:00–20:00)</label>
-              <!-- ADDED: min/max to hard-limit the picker -->
-              <input type="time" id="time" name="time" required step="900" min="10:00" max="20:00">
-            </div>
+             <label for="time">Preferred time (10:00–20:00)</label>
+             <select id="time" name="time" required></select>
+          </div>
           </div>
 
           <div>
@@ -220,6 +219,42 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
 els.phone.addEventListener('input', ()=>{ els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); });
 
+ // Build 15-min time options between 10:00 and 20:00
+function buildTimeOptions(start = "10:00", end = "20:00", stepMin = 15) {
+  els.time.innerHTML = "";
+
+  const toMins = (hhmm) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const pad2 = (n) => String(n).padStart(2, "0");
+
+  const from = toMins(start);
+  const to = toMins(end);
+
+  for (let t = from; t <= to; t += stepMin) {
+    const hh = Math.floor(t / 60);
+    const mm = t % 60;
+    const value = `${pad2(hh)}:${pad2(mm)}`;
+    const hour12 = ((hh + 11) % 12) + 1;
+    const ampm = hh < 12 ? "AM" : "PM";
+
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = `${hour12}:${pad2(mm)} ${ampm}`;
+    els.time.appendChild(opt);
+  }
+
+  // Default to next available slot today (clamped to window)
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  let sel = Math.ceil(cur / stepMin) * stepMin;
+  if (sel < from) sel = from;
+  if (sel > to) sel = from;
+  const def = `${pad2(Math.floor(sel / 60))}:${pad2(sel % 60)}`;
+  const defOpt = [...els.time.options].find(o => o.value === def);
+  if (defOpt) defOpt.selected = true;
+} 
 /* ---------- Services (public) ---------- */
 let SERVICES = [];
 const FALLBACK = [
@@ -353,20 +388,15 @@ function clampToServiceHours(val){
 /* ---------- Init & bindings ---------- */
 async function init(){
   await loadServices();
+
+  // ⬅️ NEW: populate the time <select> with allowed slots
+  buildTimeOptions();
+
   ['change','input'].forEach(ev=>{
     els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
     els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
     els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
   });
-  // ADDED: clamp picker changes to 10:00–20:00
-  els.time.addEventListener('change', ()=>{
-    const clamped = clampToServiceHours(els.time.value);
-    if (clamped !== els.time.value) {
-      alert("We’re open 10:00–20:00. Time adjusted.");
-      els.time.value = clamped;
-    }
-  });
-
   visitChanged();
   populateServices();
 }
