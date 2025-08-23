@@ -16,17 +16,11 @@
   }
   .logo-title{display:flex;align-items:center;gap:12px;min-height:56px}
   .logo{
-    width:100px;height:100px;object-fit:contain;display:block;
-    background:#0f0f16;border:1px solid var(--border);border-radius:10px;
+    width:100px; height:100px; display:block;
+    background:#0f0f16; border:1px solid var(--border); border-radius:10px; padding:6px;
   }
   .title{font-weight:800;font-size:1.2rem}
-
-  /* Toolbar directly under header */
-  .toolbar{
-    background:#111018;border-bottom:1px solid var(--border);
-    padding:10px 20px; position:sticky; top:0; z-index:10;
-  }
-  .actions{display:none;gap:8px;flex-wrap:wrap}
+  .actions{display:none;gap:8px}
   .btn{background:var(--accent);border:0;color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
   .btn.secondary{background:#2a2a3a}
   .btn.danger{background:#d64545}
@@ -42,39 +36,25 @@
   table{width:100%;border-collapse:collapse;margin-top:8px}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
   thead th{background:#1a1a25;position:sticky;top:0}
-
-  /* Responsive rows for filters/forms to prevent overlap */
-  .bar .row, #editWrap .row, #services .row{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:12px; align-items:end;
-  }
-  .bar .row label, #editWrap .row label, #services .row label{
-    display:flex; flex-direction:column; min-width:0;
-  }
-
-  .bar{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+  .bar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
   .pill{display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.8rem}
   canvas{width:100%;max-width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:#0f0f16}
 </style>
 </head>
 <body>
-  <!-- HEADER: only logo + title -->
   <header>
     <div class="logo-title">
       <img src="/assets/logo.png" alt="Kleenkars logo" class="logo" onerror="this.src='/logo.svg'">
       <span class="title">Admin</span>
     </div>
-  </header>
-
-  <!-- TOOLBAR: buttons live here (shown after login by JS) -->
-  <nav class="toolbar">
     <div id="actions" class="actions">
       <button data-tab="bookings" class="btn secondary">Bookings</button>
       <button data-tab="stats" class="btn secondary">Statistics</button>
       <button data-tab="services" class="btn secondary">Services</button>
       <button id="logout" class="btn">Logout</button>
     </div>
-  </nav>
+  </header>
 
   <!-- LOGIN (visible first) -->
   <div id="loginPanel" class="wrap">
@@ -97,15 +77,15 @@
         <div class="bar">
           <div><b>Filters</b></div>
           <div class="row">
-            <label>Date from<input type="date" id="fFrom"></label>
-            <label>Date to<input type="date" id="fTo"></label>
-            <label>Service
+            <label>Date from<br><input type="date" id="fFrom"></label>
+            <label>Date to<br><input type="date" id="fTo"></label>
+            <label>Service<br>
               <select id="fService">
                 <option value="">All</option>
                 <option>Basic</option><option>Premium</option><option>Detailing</option>
               </select>
             </label>
-            <label>Name/Phone<input id="fSearch" placeholder="Type to filter"></label>
+            <label>Name/Phone<br><input id="fSearch" placeholder="Type to filter"></label>
           </div>
           <button id="fApply" class="btn">Apply</button>
           <button id="fClear" class="btn secondary">Clear</button>
@@ -128,29 +108,27 @@
       <!-- Editor -->
       <div id="editWrap" class="card p24" style="margin-top:12px;display:none;">
         <h3 id="editTitle" style="margin:0 0 10px;">Edit booking</h3>
-        <div class="row" style="gap:12px;">
-          <label>Customer name<input id="eName"></label>
-          <label>Phone<input id="ePhone" inputmode="numeric" maxlength="15"></label>
-          <label>Date<input type="date" id="eDate"></label>
-          <label>Time<input type="time" id="eTime" step="900"></label>
-          <label>Vehicle
+        <div class="row" style="gap:12px;flex-wrap:wrap;">
+          <label style="flex:1 1 240px;">Customer name<input id="eName"></label>
+          <label style="flex:1 1 200px;">Phone<input id="ePhone" inputmode="numeric" maxlength="15"></label>
+          <label style="flex:1 1 160px;">Date<input type="date" id="eDate"></label>
+          <label style="flex:1 1 160px;">Time<input type="time" id="eTime" step="900"></label>
+          <label style="flex:1 1 180px;">Vehicle
             <select id="eVehicle"><option>Bike</option><option>Hatch/Sedan</option><option>SUV</option></select>
           </label>
-          <label>Service
+          <label style="flex:1 1 200px;">Service
             <select id="eService"><option>Basic</option><option>Premium</option><option>Detailing</option></select>
           </label>
-          <label>Visit
+          <label style="flex:1 1 180px;">Visit
             <select id="eVisit"><option>In-Shop</option><option>Home Visit</option></select>
           </label>
-          <label style="grid-column:1/-1;">Address<textarea id="eAddress" rows="2"></textarea></label>
+          <label style="flex:1 1 100%;min-width:260px;">Address<textarea id="eAddress" rows="2"></textarea></label>
         </div>
-        <div class="bar" style="margin-top:10px;">
+        <div class="row" style="margin-top:10px;">
           <span class="pill" id="ePrice">Price: —</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="save" class="btn">Save</button>
-            <button id="delete" class="btn danger">Delete</button>
-            <button id="close" class="btn secondary">Close</button>
-          </div>
+          <button id="save" class="btn">Save</button>
+          <button id="delete" class="btn danger">Delete</button>
+          <button id="close" class="btn secondary">Close</button>
         </div>
         <div id="eMsg" class="muted" style="margin-top:8px;"></div>
       </div>
@@ -162,13 +140,13 @@
         <div class="bar">
           <div><b>Sales</b></div>
           <div class="row">
-            <label>Group by
+            <label>Group by<br>
               <select id="sGroup"><option value="month">Month</option><option value="year">Year</option><option value="day">Day</option></select>
             </label>
-            <label>From<input type="date" id="sFrom"></label>
-            <label>To<input type="date" id="sTo"></label>
+            <label>From<br><input type="date" id="sFrom"></label>
+            <label>To<br><input type="date" id="sTo"></label>
+            <button id="sApply" class="btn">Apply</button>
           </div>
-          <button id="sApply" class="btn">Apply</button>
           <span class="pill" id="sTotal">Total: —</span>
         </div>
         <canvas id="chart"></canvas>
@@ -192,16 +170,16 @@
         </div>
 
         <h3 style="margin:16px 0 8px;">Add / Update service</h3>
-        <div class="row" style="gap:12px;">
-          <label>Name<input id="svName" placeholder="e.g., Premium"></label>
-          <label>Bike (₹ or blank)<input id="svBike" inputmode="numeric"></label>
-          <label>Hatch/Sedan (₹ or blank)<input id="svSedan" inputmode="numeric"></label>
-          <label>SUV (₹ or blank)<input id="svSuv" inputmode="numeric"></label>
+        <div class="row" style="gap:12px;flex-wrap:wrap;">
+          <label style="flex:1 1 220px;">Name<input id="svName" placeholder="e.g., Premium"></label>
+          <label style="flex:1 1 180px;">Bike (₹ or blank)<input id="svBike" inputmode="numeric"></label>
+          <label style="flex:1 1 180px;">Hatch/Sedan (₹ or blank)<input id="svSedan" inputmode="numeric"></label>
+          <label style="flex:1 1 180px;">SUV (₹ or blank)<input id="svSuv" inputmode="numeric"></label>
         </div>
-        <div class="bar" style="margin-top:10px;">
+        <div class="row" style="margin-top:10px;">
           <button id="svSave" class="btn">Save service</button>
-          <div id="svMsg" class="muted"></div>
         </div>
+        <div id="svMsg" class="muted" style="margin-top:8px;"></div>
       </div>
     </section>
 
@@ -270,7 +248,7 @@ function tabTo(id){
   if(id==='stats') loadStats();
   if(id==='services') loadServices();
 }
-document.querySelector('.toolbar').addEventListener('click', (e)=>{
+els.actions.addEventListener('click', (e)=>{
   const btn = e.target.closest('[data-tab]'); if(!btn) return;
   tabTo(btn.dataset.tab);
 });
@@ -296,8 +274,14 @@ async function loadBookings(){
   });
   try{
     const r = await fetch(url, { headers:{ Authorization:`Bearer ${token()}` }});
-    const d = await r.json();
-    if(!r.ok || !d.ok) throw new Error(d.error||"Failed to load bookings");
+    // Read raw text first so we can show helpful messages even if JSON parse fails
+    const raw = await r.text();
+    let d = null;
+    try { d = JSON.parse(raw); } catch {}
+    if(!r.ok || !d?.ok){
+      const msg = (d && d.error) ? d.error : `HTTP ${r.status} — ${raw.slice(0,200)}`;
+      throw new Error(msg);
+    }
     const rows = d.rows || [];
     b.count.textContent = `${rows.length} bookings`;
     if(rows.length===0){ b.rows.innerHTML = `<tr><td colspan="10" class="muted">No bookings.</td></tr>`; return; }
@@ -322,7 +306,7 @@ async function loadBookings(){
       b.rows.appendChild(tr);
     });
   }catch(e){
-    alert(e.message);
+    alert("Failed to load bookings:\n" + e.message);
     if(/unauthorized|token/i.test(e.message)){ clearToken(); showLogin(); }
   }
 }
