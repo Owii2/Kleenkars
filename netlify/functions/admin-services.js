@@ -1,6 +1,5 @@
 // netlify/functions/admin-services.js
-import { neon, neonConfig } from "@neondatabase/serverless";
-neonConfig.fetchConnectionCache = true;
+import { neon } from "@netlify/neon";
 
 const ok = (obj) => ({
   statusCode: 200,
@@ -25,7 +24,7 @@ const err = (code, msg) => ({
 
 function normInt(v) {
   if (v === null || v === undefined || v === "") return null;
-  const m = String(v).match(/\d+/); // pulls 150 from "₹150" etc.
+  const m = String(v).match(/\d+/);
   if (!m) return null;
   const n = parseInt(m[0], 10);
   return Number.isFinite(n) ? n : null;
@@ -43,20 +42,23 @@ async function ensureSchema(sql) {
     )
   `;
   // Add column if older table exists without it
-  await sql`DO $$
-  BEGIN
-    IF NOT EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name='kleenkars_services' AND column_name='position'
-    ) THEN
-      ALTER TABLE kleenkars_services ADD COLUMN position INT UNIQUE;
-    END IF;
-  END$$;`;
+  await sql(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name='kleenkars_services'
+          AND column_name='position'
+      ) THEN
+        ALTER TABLE kleenkars_services ADD COLUMN position INT UNIQUE;
+      END IF;
+    END$$;
+  `);
 }
 
-/** Assigns positions where missing, and compacts positions to 1..N keeping current order by (position NULLS LAST, name) */
+/** Assign positions where missing, and compact to 1..N keeping current order */
 async function ensurePositions(sql) {
-  // Give missing positions a big number so we can order them deterministically by name and then number them
   await sql`UPDATE kleenkars_services SET position = NULL WHERE position IS NOT NULL AND position <= 0`;
 
   const rows = await sql`
@@ -64,7 +66,6 @@ async function ensurePositions(sql) {
     FROM kleenkars_services
     ORDER BY position NULLS LAST, name ASC
   `;
-
   let pos = 1;
   for (const r of rows) {
     await sql`UPDATE kleenkars_services SET position = ${pos}, updated_at = NOW() WHERE name = ${r.name}`;
@@ -86,7 +87,6 @@ async function seedDefaultsIfEmpty(sql) {
 }
 
 async function tryImportLegacy(sql) {
-  // import from legacy "services" table if it exists, no re-seeding on top
   const legacy = await sql`
     SELECT 1
     FROM information_schema.tables
@@ -112,17 +112,13 @@ async function tryImportLegacy(sql) {
   }
 }
 
-/** Returns ordered list; if includePosition true, returns position too */
+/** Ordered list; include position so admin sees serials; public GET also gets it but you only render name/prices there */
 async function list(sql, includePosition = true) {
   await ensureSchema(sql);
   await seedDefaultsIfEmpty(sql);
   await ensurePositions(sql);
-  const cols = includePosition ? sql`name, bike, sedan, suv, position` : sql`name, bike, sedan, suv`;
-  const rows = await sql`
-    SELECT ${cols}
-    FROM kleenkars_services
-    ORDER BY position ASC, name ASC
-  `;
+  const cols = includePosition ? 'name, bike, sedan, suv, position' : 'name, bike, sedan, suv';
+  const rows = await sql(`SELECT ${cols} FROM kleenkars_services ORDER BY position ASC, name ASC`);
   return rows;
 }
 
@@ -131,8 +127,6 @@ export async function handler(event) {
 
   try {
     const sql = neon(process.env.DATABASE_URL);
-
-    // PUBLIC MODE (for index.html): allow GET with ?public=1 without auth
     const qs = event.queryStringParameters || {};
     const isPublic = String(qs.public || "") === "1";
 
@@ -145,12 +139,11 @@ export async function handler(event) {
       return ok({ ok: true, rows });
     }
 
-    // Admin endpoints require auth
+    // Admin-only for write operations
     const auth = event.headers.authorization || event.headers.Authorization || "";
     if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
 
     if (event.httpMethod === "POST") {
-      // Create / Update (with optional rename via originalName)
       const body = JSON.parse(event.body || "{}");
       const originalName = String(body.originalName || "").trim();
       const name = String(body.name || "").trim().slice(0, 100);
@@ -164,7 +157,6 @@ export async function handler(event) {
       await ensurePositions(sql);
 
       if (originalName && originalName !== name) {
-        // Rename path: keep same position as original
         const o = (await sql`SELECT position FROM kleenkars_services WHERE name=${originalName}`)[0];
         if (!o) return err(404, "Original service not found");
         await sql`
@@ -175,7 +167,6 @@ export async function handler(event) {
         `;
         await sql`DELETE FROM kleenkars_services WHERE name=${originalName} AND name <> ${name}`;
       } else {
-        // Upsert (keep existing position; if new, append after max)
         const nextPos = (await sql`SELECT COALESCE(MAX(position),0)::int + 1 AS p FROM kleenkars_services`)[0].p;
         await sql`
           INSERT INTO kleenkars_services (name, bike, sedan, suv, position, updated_at)
@@ -190,7 +181,6 @@ export async function handler(event) {
     }
 
     if (event.httpMethod === "PATCH") {
-      // Reorder: { name, direction: "up" | "down" }
       const body = JSON.parse(event.body || "{}");
       const name = String(body.name || "").trim();
       const direction = (body.direction || "").toLowerCase();
@@ -208,9 +198,8 @@ export async function handler(event) {
         ORDER BY position ${direction === "up" ? "DESC" : "ASC"}
         LIMIT 1
       `)[0];
-      if (!neighbor) return ok({ ok: true, rows: await list(sql, true) }); // nothing to swap with
+      if (!neighbor) return ok({ ok: true, rows: await list(sql, true) });
 
-      // swap positions
       await sql`UPDATE kleenkars_services SET position = -1 WHERE name = ${name}`;
       await sql`UPDATE kleenkars_services SET position = ${cur.position} WHERE name = ${neighbor.name}`;
       await sql`UPDATE kleenkars_services SET position = ${neighbor.position} WHERE name = ${name}`;
@@ -228,7 +217,6 @@ export async function handler(event) {
       const r = await sql`DELETE FROM kleenkars_services WHERE name=${name} RETURNING name`;
       if (r.length === 0) return err(404, "Service not found");
 
-      // compact positions
       await ensurePositions(sql);
       const rows = await list(sql, true);
       return ok({ ok: true, rows });
