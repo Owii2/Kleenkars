@@ -210,15 +210,28 @@ const FALLBACK = [
 ];
 
 async function loadServices(){
-  try{
-    const r = await fetch("/.netlify/functions/public-services");
-    const d = await r.json();
-    if(!r.ok || !d.ok) throw new Error(d.error || "Failed to load services");
-    const rows = Array.isArray(d.services) ? d.services : (Array.isArray(d.rows) ? d.rows : []);
-    SERVICES = rows.length ? rows : FALLBACK;
-  }catch(e){
-    SERVICES = FALLBACK;
+  const candidates = [
+    "/.netlify/functions/admin-services?public=1",
+    "/.netlify/functions/site-settings?fn=services",
+    "/.netlify/functions/services"
+  ];
+  for(const url of candidates){
+    try{
+      const rows = await tryFetch(url);
+      if(rows && rows.length){
+        SERVICES = rows.slice();
+        // Respect admin order: position ASC, then name
+        SERVICES.sort((a,b)=>{
+          const pa = (a.position ?? 1e9), pb = (b.position ?? 1e9);
+          if (pa !== pb) return pa - pb;
+          return String(a.name||"").localeCompare(String(b.name||""));
+        });
+        return;
+      }
+    }catch(e){ /* try next */ }
   }
+  // Fallback (keep sensible order)
+  SERVICES = FALLBACK.slice();
 }
 
 /* ---------- Helpers ---------- */
@@ -229,6 +242,7 @@ function getVisit(){
 function servicesForVehicle(v){
   if(!v) return [];
   const key = v==="Bike" ? "bike" : (v==="SUV" ? "suv" : "sedan");
+  // Do NOT sort here; we already sorted SERVICES once in loadServices()
   return SERVICES
     .filter(s => s && s.name && s[key] != null)
     .map(s => ({ name: String(s.name), price: Number(s[key]) }));
