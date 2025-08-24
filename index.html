@@ -327,11 +327,21 @@ function priceFor(row, vehicle){
   const key = vehicle === "Bike" ? "bike" : (vehicle === "SUV" ? "suv" : "sedan");
   return parseIntLike(row?.[key]);
 }
+
+/* ---------- PATCH: Bike => Basic-only ---------- */
 function servicesForVehicle(v){
   if(!v) return [];
-  return SERVICES
+  const list = SERVICES
     .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
     .filter(x => x.name && x.price != null);
+
+  if(v === "Bike"){
+    const basic = list.find(x => /basic/i.test(x.name));
+    if(basic) return [basic];
+    if(list.length) return [list.sort((a,b)=>a.price-b.price)[0]];
+    return [];
+  }
+  return list;
 }
 
 /* ---------- UI helpers ---------- */
@@ -461,5 +471,19 @@ els.confirm.addEventListener('click', async ()=>{
     });
   }
 </script>
+
+<!-- PATCH: hero override loader (admin local upload) -->
+<script>
+(function(){
+  try{
+    var saved = localStorage.getItem('kleenkars.hero');
+    if(saved){
+      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
+      if(hero) hero.src = saved;
+    }
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
