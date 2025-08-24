@@ -111,8 +111,22 @@
   <!-- APP (hidden until login) -->
   <div id="app" class="wrap" style="display:none;">
 
+    <!-- ✅ NEW: Site settings card (Hero uploader) -->
+    <section id="site" class="section active">
+      <div class="card p24" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Site Settings</h3>
+        <div class="muted" style="margin-bottom:10px;">Replace homepage hero image (stored locally on this device).</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="file" id="heroFile" accept="image/*" />
+          <button id="saveHero" class="btn">Save Hero</button>
+          <button id="resetHero" class="btn secondary">Reset</button>
+          <span class="pill">Homepage will use this image if set.</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Bookings -->
-    <section id="bookings" class="section active">
+    <section id="bookings" class="section">
       <div class="card p24">
         <div class="bar">
           <div><b>Filters</b></div>
@@ -858,7 +872,43 @@ function toIntOrNull(v){
 /* ===================== Boot ===================== */
 if(token()){ showApp(); tabTo('bookings'); loadBookings(); } else showLogin();
 </script>
-  <script>
+
+<!-- ✅ NEW: Hero uploader logic -->
+<script>
+(function(){
+  function toBase64(file){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ res(r.result); };
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
+  var save = document.getElementById('saveHero');
+  var reset = document.getElementById('resetHero');
+  if(save && reset){
+    save.onclick = async function(){
+      var f = document.getElementById('heroFile').files[0];
+      if(!f){ alert('Choose an image first.'); return; }
+      var b64 = await toBase64(f);
+      try{
+        localStorage.setItem('kleenkars.hero', b64);
+        alert('Saved! Refresh homepage to see it.');
+      }catch(e){
+        alert('Could not save image.');
+      }
+    };
+    reset.onclick = function(){
+      try{
+        localStorage.removeItem('kleenkars.hero');
+        alert('Reset done. Refresh homepage.');
+      }catch(e){}
+    };
+  }
+})();
+</script>
+
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
