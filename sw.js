@@ -1,28 +1,23 @@
-const CACHE_NAME = "kleenkars-v2";  // ⬅️ change v1 → v2
-self.addEventListener("install", e => self.skipWaiting());
-self.addEventListener("activate", e => self.clients.matchAll({ type: "window" }).then(clients => {
-  clients.forEach(client => client.navigate(client.url));
-}));
-
-// Disable all caching:
-self.addEventListener("fetch", e => {
-  // Just pass through without caching
-  return;
-});// sw.js — minimal offline cache (optional)
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('kleenkars-v1').then(cache =>
-      cache.addAll([
-        '/',               // homepage
-        '/index.html',     // adjust if your index has a different path
-        '/assets/logo.png' // small essentials; add more if you want
-      ])
-    )
-  );
+// sw.js — kill switch to remove old caches & unregister this SW
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then(resp => resp || fetch(event.request))
-  );
+self.addEventListener('activate', async (e) => {
+  try {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map((c) => caches.delete(c)));
+  } catch (err) {}
+  // Unregister self
+  if (self.registration && self.registration.unregister) {
+    await self.registration.unregister();
+  }
+  // Take control of all pages so they stop using the old SW immediately
+  self.clients.claim();
+  // Tell pages to reload
+  const clients = await self.clients.matchAll({ type: 'window' });
+  clients.forEach((client) => client.navigate(client.url));
 });
+
+// No offline handling anymore
+self.addEventListener('fetch', () => {});
