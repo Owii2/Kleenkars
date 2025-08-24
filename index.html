@@ -464,13 +464,7 @@ els.confirm.addEventListener('click', async ()=>{
   }
 });
 </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
-    });
-  }
-</script>
+
 
 <!-- PATCH: hero override loader (admin local upload) -->
 <script>
