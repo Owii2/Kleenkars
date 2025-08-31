@@ -112,3 +112,180 @@
 
     .mode-toggle { cursor:pointer; font-size:1.2rem; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card);}
   </style>
+     <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CarWash",
+  "name": "Kleenkars Car Wash",
+  "image": "https://kleenkars.in/assets/logo.png",
+  "url": "https://kleenkars.in/",
+  "telephone": "+91-9910578378",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Mustafa Market, Anoop Shahar Rd, Maheshpur, Manjur Garhi",
+    "addressLocality": "Aligarh",
+    "addressRegion": "Uttar Pradesh",
+    "postalCode": "202001",
+    "addressCountry": "IN"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 27.9446657,
+    "longitude": 78.0854167
+  },
+  "openingHours": "Mo-Su 10:00-20:00",
+  "priceRange": "₹150-₹2500",
+  "sameAs": [
+    "https://www.facebook.com/",
+    "https://www.instagram.com/"
+  ]
+}
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <a href="/" style="display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none">
+          <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+          <div>
+            <div class="title">Kleenkars</div>
+            <div class="pill">Premium • Wash • Detailing</div>
+          </div>
+        </a>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="modeToggle" class="mode-toggle">🌓</span>
+        <a class="pill" href="/admin.html">Admin login</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="card p24">
+        <h1>Kleenkars — Premium Car Wash & Detailing in Aligarh</h1>
+        <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
+
+        <form id="booking" class="grid" autocomplete="on" novalidate>
+          <div class="grid two">
+            <div>
+              <label for="name">Customer name</label>
+              <input id="name" name="name" placeholder="Full name" required>
+            </div>
+            <div>
+              <label for="phone">Phone number</label>
+              <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" required>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <div>
+              <label for="vehicle">Vehicle type</label>
+              <select id="vehicle" name="vehicle" required>
+                <option value="" disabled selected>Select</option>
+                <option value="Bike">Bike</option>
+                <option value="Hatch/Sedan">Hatchback / Sedan</option>
+                <option value="SUV">SUV</option>
+              </select>
+            </div>
+            <div>
+              <label for="service">Service</label>
+              <select id="service" name="service" required>
+                <option value="" disabled selected>Select vehicle first</option>
+              </select>
+              <div class="help" id="serviceHelp">Choose a vehicle to see pricing.</div>
+              <div class="svc-desc" id="svcDesc"></div>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <div>
+              <label for="date">Preferred date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+            <div>
+              <label for="time">Time slots</label>
+              <select id="time" name="time" required>
+                <option value="" disabled selected>Pick a time</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="10:15">10:15 AM</option>
+                <option value="10:30">10:30 AM</option>
+                <option value="10:45">10:45 AM</option>
+
+                <option value="11:00">11:00 AM</option>
+                <option value="11:15">11:15 AM</option>
+                <option value="11:30">11:30 AM</option>
+                <option value="11:45">11:45 AM</option>
+
+                <option value="12:00">12:00 PM</option>
+                <option value="12:15">12:15 PM</option>
+                <option value="12:30">12:30 PM</option>
+                <option value="12:45">12:45 PM</option>
+
+                <option value="13:00">1:00 PM</option>
+                <option value="13:15">1:15 PM</option>
+                <option value="13:30">1:30 PM</option>
+                <option value="13:45">1:45 PM</option>
+
+                <option value="14:00">2:00 PM</option>
+                <option value="14:15">2:15 PM</option>
+                <option value="14:30">2:30 PM</option>
+                <option value="14:45">2:45 PM</option>
+
+                <option value="15:00">3:00 PM</option>
+                <option value="15:15">3:15 PM</option>
+                <option value="15:30">3:30 PM</option>
+                <option value="15:45">3:45 PM</option>
+
+                <option value="16:00">4:00 PM</option>
+                <option value="16:15">4:15 PM</option>
+                <option value="16:30">4:30 PM</option>
+                <option value="16:45">4:45 PM</option>
+
+                <option value="17:00">5:00 PM</option>
+                <option value="17:15">5:15 PM</option>
+                <option value="17:30">5:30 PM</option>
+                <option value="17:45">5:45 PM</option>
+
+                <option value="18:00">6:00 PM</option>
+                <option value="18:15">6:15 PM</option>
+                <option value="18:30">6:30 PM</option>
+                <option value="18:45">6:45 PM</option>
+
+                <option value="19:00">7:00 PM</option>
+                <option value="19:15">7:15 PM</option>
+                <option value="19:30">7:30 PM</option>
+                <option value="19:45">7:45 PM</option>
+
+                <option value="20:00">8:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label>Visit type</label>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="visit" value="Wash Center" checked> Wash Center</label>
+              <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
+            </div>
+          </div>
+
+          <div id="addressWrap" style="display:none;">
+            <label for="address">Address (for Home Visit)</label>
+            <textarea id="address" name="address" rows="2" placeholder="House/Flat, Street, Area, City"></textarea>
+          </div>
+
+          <div class="price" id="priceBox">Estimated price: —</div>
+
+          <button class="btn primary" type="button" id="confirm">Confirm Booking</button>
+        </form>
+      </div>
+
+      <picture class="hero-media" aria-label="Kleenkars foam wash in action">
+        <img src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
+      </picture>
+    </section>
+
+    <footer>© <span id="yr"></span> Kleenkars • Aligarh • Open 10:00–20:00 Daily</footer>
+  </div>
+
+  <div class="toast" id="toast">✅ Booking confirmed!</div>
