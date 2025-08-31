@@ -30,16 +30,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0b0b12; --card:#13131b; --ink:#e9e9ef; --muted:#b8b8c6;
-      --accent:#7a3cff; --accent-2:#111016; --border:#242433;
-      --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
-      --control-h:48px;
-    }
-    body.light {
-      --bg:#ffffff; --card:#f8f8f8; --ink:#111111; --muted:#555;
-      --accent:#7a3cff; --accent-2:#eaeaea; --border:#ccc;
-    }
+    :root {
+    --bg:#0b0b12; 
+    --card:#13131b; 
+    --ink:#e9e9ef; 
+    --muted:#b8b8c6;
+    --accent:#7a3cff; 
+    --accent-2:#111016; 
+    --border:#242433;
+    --radius:16px; 
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+    --control-h:48px;
+}
+
+/* Light Mode Overrides */
+body.light {
+  --bg:#ffffff;
+  --card:#f9f9f9;
+  --ink:#111111;
+  --muted:#444444;
+  --accent:#7a3cff;
+  --accent-2:#e9e9ef;
+  --border:#cccccc;
+}
     *{box-sizing:border-box}
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
@@ -76,10 +89,16 @@
     .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 
     label{font-weight:600; font-size:.92rem; min-width:0}
-    input, select, textarea{
-      width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
-      background:#0f0f16; color:var(--ink); outline:none; min-width:0;
-    }
+    input, select, textarea {
+  width:100%; 
+  padding:12px; 
+  border-radius:12px; 
+  border:1px solid var(--border);
+  background:var(--card);   /* dynamic background */
+  color:var(--ink);         /* dynamic text color */
+  outline:none; 
+  min-width:0;
+}
     input::placeholder, textarea::placeholder{color:#6f6f84}
 
     #service, #date, #time{
