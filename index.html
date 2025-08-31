@@ -289,3 +289,248 @@
   </div>
 
   <div class="toast" id="toast">✅ Booking confirmed!</div>
+    <script>
+/* ---------- Elements ---------- */
+const els = {
+  vehicle: document.getElementById('vehicle'),
+  service: document.getElementById('service'),
+  serviceHelp: document.getElementById('serviceHelp'),
+  svcDesc: document.getElementById('svcDesc'),
+  name: document.getElementById('name'),
+  phone: document.getElementById('phone'),
+  date: document.getElementById('date'),
+  time: document.getElementById('time'),
+  visitRadios: document.querySelectorAll('input[name="visit"]'),
+  addressWrap: document.getElementById('addressWrap'),
+  address: document.getElementById('address'),
+  priceBox: document.getElementById('priceBox'),
+  confirm: document.getElementById('confirm'),
+  toast: document.getElementById('toast'),
+  modeToggle: document.getElementById('modeToggle')
+};
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
+els.phone.addEventListener('input', ()=>{ 
+  els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); 
+});
+
+/* ---------- Services (public) ---------- */
+let SERVICES = [];
+const FALLBACK = [
+  { name:"Basic Wash",       bike:50,   sedan:150,  suv:200,  position:1, visible:true, description:"Exterior wash & dry" },
+  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250,  position:2, visible:true, description:"Foam wash + interior wipe" },
+  { name:"Detailing",        bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
+];
+
+async function tryFetch(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const d = await r.json();
+  if(Array.isArray(d)) return d;
+  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
+  throw new Error("Unexpected response");
+}
+
+async function loadServices(){
+  const candidates = [
+    "/.netlify/functions/admin-services?public=1",
+    "/.netlify/functions/site-settings?fn=services",
+    "/.netlify/functions/services"
+  ];
+  for(const url of candidates){
+    try{
+      const rows = await tryFetch(url);
+      if(rows && rows.length){
+        SERVICES = rows.slice().sort((a,b)=>{
+          const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
+          if (pa !== pb) return pa - pb;
+          return String(a.name||"").localeCompare(String(b.name||""));
+        });
+        return;
+      }
+    }catch(e){ /* try next */ }
+  }
+  SERVICES = FALLBACK;
+}
+
+function parseIntLike(v){
+  if (v == null) return null;
+  const m = String(v).match(/\d+/);
+  if (!m) return null;
+  const n = parseInt(m[0], 10);
+  return Number.isFinite(n) ? n : null;
+}
+function priceFor(row, vehicle){
+  const key = vehicle === "Bike" ? "bike" : (vehicle === "SUV" ? "suv" : "sedan");
+  return parseIntLike(row?.[key]);
+}
+
+/* ---------- PATCH: Bike => Basic-only ---------- */
+function servicesForVehicle(v){
+  if(!v) return [];
+  const list = SERVICES
+    .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
+    .filter(x => x.name && x.price != null);
+
+  if(v === "Bike"){
+    const basic = list.find(x => /basic/i.test(x.name));
+    if(basic) return [basic];
+    if(list.length) return [list.sort((a,b)=>a.price-b.price)[0]];
+    return [];
+  }
+  return list;
+}
+
+/* ---------- UI helpers ---------- */
+function getVisit(){
+  const r = Array.from(els.visitRadios).find(r=>r.checked);
+  return r ? r.value : "Wash Center";
+}
+function populateServices(){
+  const v = (els.vehicle.value || "").trim();
+  els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
+  els.svcDesc.textContent = "";
+  const list = servicesForVehicle(v);
+  if(list.length===0){
+    els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
+    updatePriceUI(); return;
+  }
+  for(const item of list){
+    const opt = document.createElement("option");
+    opt.value = item.name;
+    opt.textContent = `${item.name} — ₹${item.price}`;
+    opt.dataset.price = item.price;
+    opt.dataset.description = item.description || "";
+    els.service.appendChild(opt);
+  }
+  els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
+  updateServiceDesc();
+  updatePriceUI();
+}
+function updateServiceDesc(){
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
+  if(!v || !s){ els.svcDesc.textContent=""; return; }
+  const list = servicesForVehicle(v);
+  const item = list.find(x=>x.name===s);
+  els.svcDesc.textContent = item?.description || "";
+}
+function computePrice(){
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
+  if(!v || !s) return null;
+  const list = servicesForVehicle(v);
+  const item = list.find(x=>x.name===s);
+  if(!item) return null;
+  let p = item.price;
+  if(getVisit()==="Home Visit") p += 50;
+  return p;
+}
+function updatePriceUI(){
+  const v = (els.vehicle.value || "").trim();
+  const s = (els.service.value || "").trim();
+  const p = computePrice();
+  if(p!=null){
+    els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${getVisit()==="Home Visit"?" +₹50":""})</span>`;
+  } else {
+    els.priceBox.textContent = "Estimated price: —";
+  }
+}
+function visitChanged(){
+  const v = getVisit();
+  els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
+  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); }
+  else { els.address?.removeAttribute('required'); els.address.value=""; }
+}
+
+/* ---------- Init & bindings ---------- */
+async function init(){
+  await loadServices();
+  ['change','input'].forEach(ev=>{
+    els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
+    els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
+    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
+  });
+  visitChanged();
+  populateServices();
+}
+init();
+
+/* ---------- Booking submit ---------- */
+els.confirm.addEventListener('click', async ()=>{
+  const raw = els.phone.value.replace(/\D/g,'');
+  if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
+
+  const payload = {
+    name: els.name.value.trim(),
+    phone: raw,
+    vehicle: (els.vehicle.value||"").trim(),
+    service: (els.service.value||"").trim(),
+    date: els.date.value,
+    time: els.time.value,
+    visit: getVisit(),
+    address: els.address?.value.trim(),
+    price: computePrice()
+  };
+
+  if(!payload.vehicle){ alert("Select a vehicle."); return; }
+  if(!payload.service){ alert("Select a service."); return; }
+  if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
+
+  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
+  try{
+    const r = await fetch("/.netlify/functions/saveBooking", {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if(!data.ok) throw new Error(data.error||"Save failed");
+
+    els.toast.textContent="✅ Booking confirmed!";
+    els.toast.style.display="block";
+    setTimeout(()=>els.toast.style.display="none",2500);
+
+    const text = `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
+    if(data.admin) window.open(`https://api.whatsapp.com/send?phone=${data.admin}&text=${encodeURIComponent(text)}`, "_blank");
+    if(data.manager) window.open(`https://api.whatsapp.com/send?phone=${data.manager}&text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
+
+  }catch(e){
+    alert(e.message);
+  }finally{
+    els.confirm.disabled=false; els.confirm.textContent="Confirm Booking";
+  }
+});
+
+/* ---------- PATCH: hero override loader ---------- */
+(function(){
+  try{
+    var saved = localStorage.getItem('kleenkars.hero');
+    if(saved){
+      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
+      if(hero) hero.src = saved;
+    }
+  }catch(e){}
+})();
+
+/* ---------- Dark/Light Mode Patch ---------- */
+function applyMode(mode){
+  document.body.classList.toggle('light', mode === 'light');
+  localStorage.setItem('kleenkars.mode', mode);
+}
+function autoMode(){
+  const hour = new Date().getHours();
+  return (hour >= 7 && hour < 19) ? 'light' : 'dark';
+}
+(function(){
+  const saved = localStorage.getItem('kleenkars.mode');
+  applyMode(saved || autoMode());
+})();
+els.modeToggle.addEventListener('click', ()=>{
+  const current = document.body.classList.contains('light') ? 'light' : 'dark';
+  applyMode(current==='light' ? 'dark' : 'light');
+});
+</script>
+
+</body>
+</html>
