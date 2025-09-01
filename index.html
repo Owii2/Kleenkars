@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- In <head> -->
   <title>Kleenkars Car Wash & Detailing in Aligarh | Bike, Sedan & SUV</title>
   <meta name="description" content="Kleenkars offers professional car wash and detailing in Aligarh. Services for Bike, Sedan and SUV with doorstep Home Visit or Wash Center. Open daily 10 AM–8 PM. Call 9910578378.">
   <link rel="canonical" href="https://kleenkars.in/">
@@ -10,49 +9,48 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
 
-  <!-- iOS Add-to-Home meta -->
+  <!-- iOS Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Kleenkars">
 
-  <!-- iOS home screen icon -->
-  <link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
+  <!-- Icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
   <link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
   <link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png">
-
-  <!-- Favicon fallback -->
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
   <style>
     :root {
-    --bg:#0b0b12; 
-    --card:#13131b; 
-    --ink:#e9e9ef; 
-    --muted:#b8b8c6;
-    --accent:#7a3cff; 
-    --accent-2:#111016; 
-    --border:#242433;
-    --radius:16px; 
-    --shadow:0 10px 30px rgba(0,0,0,.35);
-    --control-h:48px;
-}
+      --bg:#0b0b12; 
+      --card:#13131b; 
+      --ink:#e9e9ef; 
+      --muted:#b8b8c6;
+      --accent:#7a3cff; 
+      --accent-2:#111016; 
+      --border:#242433;
+      --radius:16px; 
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --control-h:48px;
+    }
 
-/* Light Mode Overrides */
-body.light {
-  --bg:#ffffff;
-  --card:#f9f9f9;
-  --ink:#111111;
-  --muted:#444444;
-  --accent:#7a3cff;
-  --accent-2:#e9e9ef;
-  --border:#cccccc;
-}
+    /* Light Mode Overrides */
+    body.light {
+      --bg:#ffffff;
+      --card:#f9f9f9;
+      --ink:#111111;
+      --muted:#444444;
+      --accent:#7a3cff;
+      --accent-2:#e9e9ef;
+      --border:#cccccc;
+    }
+
     *{box-sizing:border-box}
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
@@ -65,39 +63,46 @@ body.light {
     a{color:var(--ink); text-decoration:none}
     .wrap{max-width:1100px; margin:auto; padding:20px}
 
-    .title {
-  font-weight:800; 
-  letter-spacing:.3px; 
-  font-size:1.2rem;
-}
+    /* Header */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
+    .brand img {
+      width: clamp(40px, 8vw, 70px); height: auto;
+      object-fit: contain; border-radius: 8px;
+      background: #0f0f16; border: 1px solid var(--border);
+    }
+    .brand-text { display:flex; flex-direction:column; }
+    .brand-text .title { font-weight:800; font-size: clamp(1rem, 2.5vw, 1.4rem); }
+    .brand-text .pill { font-size: 0.85rem; margin-top: 2px; }
 
-.tagline {
-  font-size:.9rem; 
-  color:var(--muted);
-  margin-top:2px;
-}
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .header-actions .pill {
+      padding: 6px 12px; border-radius: 999px;
+      font-size: 0.9rem; cursor: pointer; transition: 0.2s;
+    }
+    .header-actions .pill:hover { transform: translateY(-1px); }
 
-.header-actions {
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+    .mode-toggle { cursor:pointer; font-size:1.2rem; padding:6px 10px;
+      border-radius:999px; border:1px solid var(--border); background:var(--card); }
 
-.icon-btn {
-  background:none;
-  border:none;
-  font-size:1.3rem;
-  cursor:pointer;
-  color:var(--ink);
-}
+    /* Inputs + Selects dynamic */
+    input, select, textarea {
+      width:100%; padding:12px;
+      border-radius:12px; border:1px solid var(--border);
+      background:var(--card); color:var(--ink);
+      outline:none; min-width:0;
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    select option { background: var(--card); color: var(--ink); }
 
-.pill.small {
-  padding:4px 10px;
-  font-size:.85rem;
-}
-    input::placeholder, textarea::placeholder{color:#6f6f84}
-
-    #service, #date, #time{
+    #service, #date, #time {
       height:var(--control-h); min-height:var(--control-h);
       padding:0 12px; line-height:var(--control-h);
     }
@@ -105,157 +110,49 @@ body.light {
 
     .help{font-size:.85rem; color:var(--muted)}
     .price {
-  margin-top:10px; 
-  font-weight:800; 
-  font-size:1.1rem; 
-  background:var(--card);      /* dynamic */
-  color:var(--ink);            /* dynamic */
-  border:1px dashed var(--border); 
-  padding:10px 12px; 
-  border-radius:12px;
-}
-
-    .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
+      margin-top:10px; font-weight:800; font-size:1.1rem;
+      background:var(--card); color:var(--ink);
+      border:1px dashed var(--border); padding:10px 12px; border-radius:12px;
+    }
 
     .radio-row{display:flex; gap:8px; flex-wrap:wrap}
     .radio {
-  display:flex; 
-  align-items:center; 
-  justify-content:center; 
-  gap:8px;
-  border:1px solid var(--border); 
-  padding:6px 10px; 
-  border-radius:10px; 
-  background:var(--card);   /* dynamic */
-  color:var(--ink);         /* dynamic */
-  min-height:var(--control-h); 
-  flex:1 1 220px; 
-  text-align:center; 
-  font-size:.95rem;
-}
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      border:1px solid var(--border); padding:6px 10px; border-radius:10px;
+      background:var(--card); color:var(--ink);
+      min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
+    }
     .radio input[type="radio"]{margin:0; transform:translateY(1px)}
 
-    .hero-media{display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
+    .hero-media{display:block; position:relative; border-radius:16px;
+      border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
     .hero-media img{width:100%; height:100%; object-fit:cover; display:block}
 
     footer{opacity:.9; padding:28px 8px; text-align:center; color:var(--muted)}
     @media (max-width:780px){ .hero{grid-template-columns:1fr} .hero-media{aspect-ratio:3/2} }
 
     .toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
-      background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
-
-    .mode-toggle { cursor:pointer; font-size:1.2rem; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card);}
-
-    /* Header wrapper */
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0 20px;
-  gap: 16px;
-  flex-wrap: wrap; /* ensures good stacking on mobile */
-}
-
-/* Brand section (logo + text) */
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1; /* let brand take remaining space */
-  min-width: 200px;
-}
-
-.brand img {
-  width: clamp(40px, 8vw, 70px);
-  height: auto;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #0f0f16;
-  border: 1px solid var(--border);
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-text .title {
-  font-weight: 800;
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
-}
-
-.brand-text .pill {
-  font-size: 0.85rem;
-  margin-top: 2px;
-}
-
-/* Actions (theme toggle + admin login) */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-actions .pill {
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.header-actions .pill:hover {
-  transform: translateY(-1px);
-}
-  
+      background:var(--card); color:var(--ink);
+      border:1px solid var(--border); padding:12px 16px; border-radius:12px; display:none; z-index:99}
   </style>
-     <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "CarWash",
-  "name": "Kleenkars Car Wash",
-  "image": "https://kleenkars.in/assets/logo.png",
-  "url": "https://kleenkars.in/",
-  "telephone": "+91-9910578378",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Mustafa Market, Anoop Shahar Rd, Maheshpur, Manjur Garhi",
-    "addressLocality": "Aligarh",
-    "addressRegion": "Uttar Pradesh",
-    "postalCode": "202001",
-    "addressCountry": "IN"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 27.9446657,
-    "longitude": 78.0854167
-  },
-  "openingHours": "Mo-Su 10:00-20:00",
-  "priceRange": "₹150-₹2500",
-  "sameAs": [
-    "https://www.facebook.com/",
-    "https://www.instagram.com/"
-  ]
-}
-  </script>
 </head>
 <body>
   <div class="wrap">
    <header class="site-header">
-  <div class="brand">
-    <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
-    <div class="brand-text">
-      <div class="title">Kleenkars Car Wash</div>
-      <div class="pill">Premium • Wash • Detailing</div>
-    </div>
-  </div>
+      <div class="brand">
+        <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+        <div class="brand-text">
+          <div class="title">Kleenkars Car Wash</div>
+          <div class="pill">Premium • Wash • Detailing</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggle" class="pill">🌙</button>
+        <a class="pill" href="/admin.html">Admin Login</a>
+      </div>
+   </header>
 
-  <div class="header-actions">
-    <button id="themeToggle" class="pill">🌙</button>
-    <a class="pill" href="/admin.html">Admin Login</a>
-  </div>
-</header>
-    <section class="hero">
+        <section class="hero">
       <div class="card p24">
         <h1>Kleenkars — Premium Car Wash & Detailing in Aligarh</h1>
         <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
@@ -305,52 +202,42 @@ body.light {
                 <option value="10:15">10:15 AM</option>
                 <option value="10:30">10:30 AM</option>
                 <option value="10:45">10:45 AM</option>
-
                 <option value="11:00">11:00 AM</option>
                 <option value="11:15">11:15 AM</option>
                 <option value="11:30">11:30 AM</option>
                 <option value="11:45">11:45 AM</option>
-
                 <option value="12:00">12:00 PM</option>
                 <option value="12:15">12:15 PM</option>
                 <option value="12:30">12:30 PM</option>
                 <option value="12:45">12:45 PM</option>
-
                 <option value="13:00">1:00 PM</option>
                 <option value="13:15">1:15 PM</option>
                 <option value="13:30">1:30 PM</option>
                 <option value="13:45">1:45 PM</option>
-
                 <option value="14:00">2:00 PM</option>
                 <option value="14:15">2:15 PM</option>
                 <option value="14:30">2:30 PM</option>
                 <option value="14:45">2:45 PM</option>
-
                 <option value="15:00">3:00 PM</option>
                 <option value="15:15">3:15 PM</option>
                 <option value="15:30">3:30 PM</option>
                 <option value="15:45">3:45 PM</option>
-
                 <option value="16:00">4:00 PM</option>
                 <option value="16:15">4:15 PM</option>
                 <option value="16:30">4:30 PM</option>
                 <option value="16:45">4:45 PM</option>
-
                 <option value="17:00">5:00 PM</option>
                 <option value="17:15">5:15 PM</option>
                 <option value="17:30">5:30 PM</option>
                 <option value="17:45">5:45 PM</option>
-
                 <option value="18:00">6:00 PM</option>
                 <option value="18:15">6:15 PM</option>
                 <option value="18:30">6:30 PM</option>
                 <option value="18:45">6:45 PM</option>
-
                 <option value="19:00">7:00 PM</option>
                 <option value="19:15">7:15 PM</option>
                 <option value="19:30">7:30 PM</option>
                 <option value="19:45">7:45 PM</option>
-
                 <option value="20:00">8:00 PM</option>
               </select>
             </div>
@@ -384,7 +271,8 @@ body.light {
   </div>
 
   <div class="toast" id="toast">✅ Booking confirmed!</div>
-    <script>
+
+   <script>
 /* ---------- Elements ---------- */
 const els = {
   vehicle: document.getElementById('vehicle'),
@@ -401,37 +289,41 @@ const els = {
   priceBox: document.getElementById('priceBox'),
   confirm: document.getElementById('confirm'),
   toast: document.getElementById('toast'),
-  modeToggle: document.getElementById('modeToggle')
+  themeToggle: document.getElementById('themeToggle')
 };
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
-els.phone.addEventListener('input', ()=>{ 
-  els.phone.value = els.phone.value.replace(/\D/g,'').slice(0,10); 
+els.phone.addEventListener('input', () => {
+  els.phone.value = els.phone.value.replace(/\D/g, '').slice(0, 10);
 });
 
-   // Theme toggle button
-const themeBtn = document.getElementById('themeToggle');
-function setTheme(mode){
-  if(mode === 'light'){
-    document.body.classList.add('light');
-    document.body.classList.remove('dark');
-    themeBtn.textContent = "☀️";
-    localStorage.setItem('theme','light');
-  } else {
-    document.body.classList.add('dark');
+/* ---------- Theme Toggle ---------- */
+function applyTheme(isDark){
+  if(isDark){
     document.body.classList.remove('light');
-    themeBtn.textContent = "🌙";
+    els.themeToggle.textContent = '🌙';
     localStorage.setItem('theme','dark');
+  } else {
+    document.body.classList.add('light');
+    els.themeToggle.textContent = '☀️';
+    localStorage.setItem('theme','light');
   }
 }
-themeBtn.addEventListener('click', ()=>{
-  const current = document.body.classList.contains('light') ? 'light' : 'dark';
-  setTheme(current === 'light' ? 'dark' : 'light');
+// Auto apply based on time if no saved theme
+const savedTheme = localStorage.getItem('theme');
+if(savedTheme){
+  applyTheme(savedTheme === 'dark');
+} else {
+  const hour = new Date().getHours();
+  applyTheme(!(hour >= 6 && hour < 18));
+}
+// Toggle on click
+els.themeToggle.addEventListener('click', ()=>{
+  const isCurrentlyDark = !document.body.classList.contains('light');
+  applyTheme(!isCurrentlyDark);
 });
-// On load
-setTheme(localStorage.getItem('theme') || 'dark');   
-      
+
 /* ---------- Services (public) ---------- */
 let SERVICES = [];
 const FALLBACK = [
@@ -629,52 +521,11 @@ els.confirm.addEventListener('click', async ()=>{
     }
   }catch(e){}
 })();
-
-/* ---------- Dark/Light Mode Patch ---------- */
-function applyMode(mode){
-  document.body.classList.toggle('light', mode === 'light');
-  localStorage.setItem('kleenkars.mode', mode);
-}
-function autoMode(){
-  const hour = new Date().getHours();
-  return (hour >= 7 && hour < 19) ? 'light' : 'dark';
-}
-(function(){
-  const saved = localStorage.getItem('kleenkars.mode');
-  applyMode(saved || autoMode());
-})();
-els.modeToggle.addEventListener('click', ()=>{
-  const current = document.body.classList.contains('light') ? 'light' : 'dark';
-  applyMode(current==='light' ? 'dark' : 'light');
-});
-
-// PATCH: theme toggle button with auto icon switch
-(function(){
-  const btn = document.getElementById('themeToggle');
-  if(!btn) return;
-
-  function applyTheme(isDark){
-    if(isDark){
-      document.body.classList.remove('light');
-      btn.textContent = '🌙';
-    } else {
-      document.body.classList.add('light');
-      btn.textContent = '☀️';
-    }
-  }
-
-  // Auto apply based on time (day=light, night=dark)
-  const hour = new Date().getHours();
-  applyTheme(!(hour >= 6 && hour < 18));
-
-  // Toggle on click
-  btn.addEventListener('click', ()=>{
-    const isCurrentlyDark = !document.body.classList.contains('light');
-    applyTheme(!isCurrentlyDark);
-  });
-})();
-   
 </script>
-
 </body>
 </html>
+
+
+
+
+    
