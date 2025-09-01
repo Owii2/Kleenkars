@@ -586,6 +586,33 @@ els.modeToggle.addEventListener('click', ()=>{
   const current = document.body.classList.contains('light') ? 'light' : 'dark';
   applyMode(current==='light' ? 'dark' : 'light');
 });
+
+// PATCH: theme toggle button with auto icon switch
+(function(){
+  const btn = document.getElementById('themeToggle');
+  if(!btn) return;
+
+  function applyTheme(isDark){
+    if(isDark){
+      document.body.classList.remove('light');
+      btn.textContent = '🌙';
+    } else {
+      document.body.classList.add('light');
+      btn.textContent = '☀️';
+    }
+  }
+
+  // Auto apply based on time (day=light, night=dark)
+  const hour = new Date().getHours();
+  applyTheme(!(hour >= 6 && hour < 18));
+
+  // Toggle on click
+  btn.addEventListener('click', ()=>{
+    const isCurrentlyDark = !document.body.classList.contains('light');
+    applyTheme(!isCurrentlyDark);
+  });
+})();
+   
 </script>
 
 </body>
