@@ -199,7 +199,27 @@ body.light .toast {
   background: rgba(255,255,255,0.9);
   color: #111;
 }
+/* Glossy black + red gradient backdrop for header */
+.glossy-header {
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 40%, #b0212b 100%);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+}
 
+/* Make text + pills pop against backdrop */
+.glossy-header .title {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.glossy-header .pill {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #f1f1f1;
+}
+    
 /* Toast close button */
 .toast .close-btn {
   position: absolute;
@@ -214,19 +234,20 @@ body.light .toast {
 </head>
 <body>
   <div class="wrap">
-   <header class="site-header">
-      <div class="brand">
-        <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
-        <div class="brand-text">
-  <div class="title">Kleenkars Car Wash</div>
-  <div class="tagline">Premium • Wash • Detailing</div>
-</div>
-      </div>
-      <div class="header-actions">
-        <button id="themeToggle" class="pill">🌙</button>
-        <a class="pill" href="/admin.html">Admin Login</a>
-      </div>
-   </header>
+   <header class="site-header glossy-header">
+  <div class="brand">
+    <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+    <div class="brand-text">
+      <div class="title">Kleenkars Car Wash</div>
+      <div class="pill">Premium • Wash • Detailing</div>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <button id="themeToggle" class="pill">🌙</button>
+    <a class="pill" href="/admin.html">Admin Login</a>
+  </div>
+</header>
 
         <section class="hero">
       <div class="card p24">
