@@ -108,7 +108,16 @@ body.light {
     input[type="date"], select{ -webkit-appearance:none; appearance:none; }
 
     .help{font-size:.85rem; color:var(--muted)}
-    .price{margin-top:10px; font-weight:800; font-size:1.1rem; background:#101018; border:1px dashed #2a2a3a; padding:10px 12px; border-radius:12px}
+    .price {
+  margin-top:10px; 
+  font-weight:800; 
+  font-size:1.1rem; 
+  background:var(--card);      /* dynamic */
+  color:var(--ink);            /* dynamic */
+  border:1px dashed var(--border); 
+  padding:10px 12px; 
+  border-radius:12px;
+}
 
     .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
 
