@@ -179,22 +179,23 @@
    
     /* Confirm Button */
     .btn.primary {
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      font-size: 1.1rem;
-      padding: 16px 28px;
-      border-radius: 14px;
-      display: block;
-      margin: 24px auto 10px;
-      text-align: center;
-      font-weight: 700;
-      transition: all 0.25s ease;
-    }
-    .btn.primary:hover {
-      box-shadow: 0 6px 20px rgba(230,57,70,.5);
-      transform: translateY(-2px);
-    }
+  background: var(--accent); /* brand red */
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 16px 28px;
+  border-radius: 14px;
+  display: block;
+  margin: 24px auto 10px;
+  text-align: center;
+  font-weight: 700;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 12px rgba(230,57,70,0.35); /* subtle red glow */
+}
+.btn.primary:hover {
+  box-shadow: 0 0 18px rgba(230,57,70,0.6), 0 6px 20px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
 
     /* Toast popup (confirmation) */
     .toast {
