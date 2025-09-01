@@ -72,16 +72,38 @@
       gap: 16px;
       flex-wrap: wrap;
     }
-    .brand { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
-    .brand img {
-      width: clamp(40px, 8vw, 70px); height: auto;
-      object-fit: contain; border-radius: 8px;
-      background: #0f0f16; border: 1px solid var(--border);
-    }
-    .brand-text { display:flex; flex-direction:column; }
-    .brand-text .title { font-weight:800; font-size: clamp(1rem, 2.5vw, 1.4rem); }
-    .brand-text .pill { font-size: 0.85rem; margin-top: 2px; }
+  .brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;              /* slightly larger gap for breathing space */
+  flex: 1;
+  min-width: 200px;
+}
 
+.brand img {
+  width: clamp(80px, 10vw, 120px); /* bigger logo */
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #0f0f16;
+  border: 1px solid var(--border);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text .title {
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3.5vw, 2rem); /* bigger brand name */
+}
+
+.brand-text .pill {
+  font-size: 1rem;        /* tagline smaller but clear */
+  margin-top: 4px;
+  color: var(--muted);
+}
     .header-actions { display:flex; align-items:center; gap:10px; }
     .header-actions .pill {
       padding: 6px 12px; border-radius: 999px;
@@ -142,9 +164,9 @@
       <div class="brand">
         <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
         <div class="brand-text">
-          <div class="title">Kleenkars Car Wash</div>
-          <div class="pill">Premium • Wash • Detailing</div>
-        </div>
+  <div class="title">Kleenkars Car Wash</div>
+  <div class="tagline">Premium • Wash • Detailing</div>
+</div>
       </div>
       <div class="header-actions">
         <button id="themeToggle" class="pill">🌙</button>
