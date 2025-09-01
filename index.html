@@ -145,6 +145,69 @@ body.light {
       background:#0f0f16; border:1px solid #2a2a3a; padding:12px 16px; border-radius:12px; display:none; z-index:99}
 
     .mode-toggle { cursor:pointer; font-size:1.2rem; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--card);}
+
+    /* Header wrapper */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 20px;
+  gap: 16px;
+  flex-wrap: wrap; /* ensures good stacking on mobile */
+}
+
+/* Brand section (logo + text) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1; /* let brand take remaining space */
+  min-width: 200px;
+}
+
+.brand img {
+  width: clamp(40px, 8vw, 70px);
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #0f0f16;
+  border: 1px solid var(--border);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text .title {
+  font-weight: 800;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+}
+
+.brand-text .pill {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+/* Actions (theme toggle + admin login) */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-actions .pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.header-actions .pill:hover {
+  transform: translateY(-1px);
+}
+  
   </style>
      <script type="application/ld+json">
 {
@@ -178,20 +241,18 @@ body.light {
 </head>
 <body>
   <div class="wrap">
-   <header>
+   <header class="site-header">
   <div class="brand">
-    <a href="/" style="display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none">
-      <img src="/assets/logo.png" alt="Kleenkars Car Wash logo" onerror="this.src='/logo.svg'">
-      <div>
-        <div class="title">Kleenkars Car Wash</div>
-        <div class="tagline">Premium • Wash • Detailing</div>
-      </div>
-    </a>
+    <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+    <div class="brand-text">
+      <div class="title">Kleenkars Car Wash</div>
+      <div class="pill">Premium • Wash • Detailing</div>
+    </div>
   </div>
 
   <div class="header-actions">
-    <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌙</button>
-    <a class="pill small" href="/admin.html">Admin Login</a>
+    <button id="themeToggle" class="pill">🌙</button>
+    <a class="pill" href="/admin.html">Admin Login</a>
   </div>
 </header>
     <section class="hero">
