@@ -113,11 +113,21 @@ body.light {
     .svc-desc{margin-top:6px; font-size:.9rem; color:var(--muted)}
 
     .radio-row{display:flex; gap:8px; flex-wrap:wrap}
-    .radio{
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      border:1px solid var(--border); padding:6px 10px; border-radius:10px; background:#0f0f16;
-      min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
-    }
+    .radio {
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  gap:8px;
+  border:1px solid var(--border); 
+  padding:6px 10px; 
+  border-radius:10px; 
+  background:var(--card);   /* dynamic */
+  color:var(--ink);         /* dynamic */
+  min-height:var(--control-h); 
+  flex:1 1 220px; 
+  text-align:center; 
+  font-size:.95rem;
+}
     .radio input[type="radio"]{margin:0; transform:translateY(1px)}
 
     .hero-media{display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16}
