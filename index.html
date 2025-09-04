@@ -1,652 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Kleenkars Car Wash & Detailing in Aligarh | Bike, Sedan & SUV</title>
-  <meta name="description" content="Kleenkars offers professional car wash and detailing in Aligarh. Services for Bike, Sedan and SUV with doorstep Home Visit or Wash Center. Open daily 10 AM–8 PM. Call 9910578378.">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Kleenkars Car Wash — Aligarh</title>
+  <meta name="description" content="Kleenkars Car Wash in Aligarh — professional wash & detailing. Book now for Bike, Sedan or SUV. Open 10:00–20:00. Call 9910578378">
   <link rel="canonical" href="https://kleenkars.in/">
-  
-  <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
 
-  <!-- iOS Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kleenkars">
+  <!-- icons -->
+  <link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
+  <link rel="icon" href="/assets/icons/icon-192.png" sizes="192x192">
 
-  <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
-
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
   <style>
-    :root {
-      --bg:#0b0b12; 
-      --card:#13131b; 
-      --ink:#e9e9ef; 
-      --muted:#b8b8c6;
-      --accent:#e63946;   /* red brand color */
-      --accent-2:#111016; 
-      --border:#242433;
-      --radius:16px; 
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --control-h:48px;
+    :root{
+      --bg:#0b0b12; --ink:#e9e9ef; --accent:#e63946;
+      --muted:#b8b8c6; --card:#13131b; --radius:12px;
     }
-
-    /* Light Mode Overrides */
-    body.light {
-      --bg:#ffffff;
-      --card:#f9f9f9;
-      --ink:#111111;
-      --muted:#444444;
-      --accent:#e63946;
-      --accent-2:#e9e9ef;
-      --border:#cccccc;
-    }
-
     *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:
-  radial-gradient(1000px 600px at 80% -10%, rgba(230,57,70,.15), transparent 60%),
-  radial-gradient(900px 500px at -10% 20%, rgba(230,57,70,.12), transparent 60%),
-  var(--bg);
-      color:var(--ink); line-height:1.6;
-    }
-    a{color:var(--ink); text-decoration:none}
-    .wrap{max-width:1100px; margin:auto; padding:20px}
-
-    /* ---------------- Header ---------------- */
-    .site-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 0 20px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex: 1;
-      min-width: 200px;
-    }
-    .brand img {
-      width: clamp(100px, 14vw, 150px); /* bigger logo */
-      height: auto;
-      object-fit: contain;
-      border-radius: 10px;
-      background: #0f0f16;
-      border: 1px solid var(--border);
-    }
-    /* Red glow effect */
-    .glossy-header .brand img {
-      border-radius: 12px;
-      border: 1px solid #b0212b;
-      box-shadow: 0 0 20px rgba(176, 33, 43, 0.8),
-                  0 0 40px rgba(176, 33, 43, 0.4);
-    }
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-    }
-    .brand-text .title {
-      font-weight: 800;
-      font-size: clamp(1.8rem, 3.5vw, 2.2rem); /* Brand name bigger */
-    }
-    
-    .header-actions { display:flex; align-items:center; gap:10px; }
-    .header-actions .pill {
-      padding: 6px 12px; border-radius: 999px;
-      font-size: 0.9rem; cursor: pointer; transition: 0.2s;
-      background: var(--card); color: var(--ink); border: 1px solid var(--border);
-    }
-    .header-actions .pill:hover { transform: translateY(-1px); }
-
-    /* Dark/Light Toggle */
-    .mode-toggle {
-      cursor:pointer; font-size:1.2rem; padding:6px 10px;
-      border-radius:999px; border:1px solid var(--border); background:var(--card);
-    }
-
-        /* ---------------- Form + Inputs ---------------- */
-    input, select, textarea {
-      width:100%; padding:12px;
-      border-radius:12px; border:1px solid var(--border);
-      background:var(--card); color:var(--ink);
-      outline:none; min-width:0;
-    }
-    input::placeholder, textarea::placeholder { color: var(--muted); }
-    select option { background: var(--card); color: var(--ink); }
-
-    #service, #date, #time {
-      height:var(--control-h); min-height:var(--control-h);
-      padding:0 12px; line-height:var(--control-h);
-    }
-    input[type="date"], select{ -webkit-appearance:none; appearance:none; }
-
-    .help{font-size:.85rem; color:var(--muted)}
-    .price {
-      margin-top:10px; font-weight:800; font-size:1.1rem;
-      background:var(--card); color:var(--ink);
-      border:1px dashed var(--border); padding:10px 12px; border-radius:12px;
-    }
-
-    .radio-row{display:flex; gap:8px; flex-wrap:wrap}
-    .radio {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      border:1px solid var(--border); padding:6px 10px; border-radius:10px;
-      background:var(--card); color:var(--ink);
-      min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
-    }
-    .radio input[type="radio"]{margin:0; transform:translateY(1px)}
-
-    /* ---------------- Hero Section ---------------- */
-.hero-media {
-  display: block;
-  position: relative;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  aspect-ratio: 16/9;      /* desktop ratio */
-  background: #0f0f16;
-  max-height: 480px;       /* prevent too tall hero */
-}
-
-.hero-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Mobile override */
-@media (max-width: 820px) {
-  .hero { grid-template-columns: 1fr; }
-  .hero-media {
-    aspect-ratio: 16/9;      /* compact ratio on mobile */
-    max-height: 300px;      /* smaller hero height */
-  }
-}
-   
-    /* Confirm Button */
-    .btn.primary {
-  background: var(--accent); /* brand red */
-  border: none;
-  color: #fff;
-  font-size: 1.1rem;
-  padding: 16px 28px;
-  border-radius: 14px;
-  display: block;
-  margin: 24px auto 10px;
-  text-align: center;
-  font-weight: 700;
-  transition: all 0.25s ease;
-  box-shadow: 0 0 12px rgba(230,57,70,0.35); /* subtle red glow */
-}
-.btn.primary:hover {
-  box-shadow: 0 0 18px rgba(230,57,70,0.6), 0 6px 20px rgba(0,0,0,0.3);
-  transform: translateY(-2px);
-}
-
-    /* Toast popup (confirmation) */
-    .toast {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.85);
-      color: #fff;
-      padding: 24px 28px;
-      border-radius: 16px;
-      border: 2px solid #e63946;
-      box-shadow: 0 6px 25px rgba(0,0,0,.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      max-width: 90%;
-      text-align: center;
-      z-index: 9999;
-      display: none;
-      font-size: 1rem;
-      line-height: 1.5;
-    }
-    body.light .toast {
-      background: rgba(255,255,255,0.95);
-      color: #111;
-    }
-    .toast .close-btn {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: var(--muted);
-    }
-    .toast.show { display: block; }
-
-    /* Glossy black + red gradient backdrop for header */
-    .glossy-header {
-      background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 40%, #b0212b 100%);
-      padding: 16px 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-    .glossy-header .title {
-      color: #fff;
-      font-size: 1.6rem;
-      font-weight: 800;
-    }
-    .glossy-header .pill {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #f1f1f1;
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,-apple-system,Arial;background:linear-gradient(180deg,#070708 0%, #0b0b12 60%);color:var(--ink);-webkit-font-smoothing:antialiased}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:84px;height:auto;border-radius:10px;background:#0f0f16}
+    .brand .title{font-weight:800;font-size:1.05rem}
+    .cta{display:flex;gap:10px}
+    .btn{background:var(--card);color:var(--ink);padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.04);text-decoration:none;font-weight:700}
+    .btn.primary{background:linear-gradient(180deg,var(--accent),#b0212b);color:#fff;box-shadow:0 8px 30px rgba(230,57,70,.18)}
+    main{display:grid;grid-template-columns:1fr;gap:18px;margin-top:28px}
+    .hero{display:flex;flex-direction:column;gap:14px;padding:28px;border-radius:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+    .hero h1{margin:0;font-size:clamp(22px,6vw,40px)}
+    .hero p{margin:0;color:var(--muted)}
+    .features{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.02);min-width:160px}
+    footer{margin-top:30px;color:var(--muted);text-align:center}
+    @media(min-width:900px){
+      main{grid-template-columns:1fr 360px}
+      .hero{padding:40px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="site-header glossy-header">
-      <div class="brand">
-        <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
-        <div class="brand-text">
-          <div class="title">KLEENKARS CARWASH</div>
+    <header>
+      <a class="brand" href="/">
+        <img src="/assets/icons/icon-180.png" alt="Kleenkars logo">
+        <div>
+          <div class="title">Kleenkars Car Wash</div>
+          <div style="font-size:.85rem;color:var(--muted)">Premium • Wash • Detailing — Aligarh</div>
         </div>
-      </div>
-      <div class="header-actions">
-        <button id="themeToggle" class="pill">🌙</button>
-        <a class="pill" href="/admin.html">Admin Login</a>
+      </a>
+      <div class="cta">
+        <a class="btn" href="/admin.html">Admin</a>
+        <a class="btn primary" href="/booking.html">Book Now</a>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="card p24">
-        <h1>Kleenkars — Premium Car Wash & Detailing in Aligarh</h1>
-        <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
+    <main>
+      <section class="hero">
+        <h1>Doorstep wash or wash center — premium car care in Aligarh</h1>
+        <p>Fast, professional detailing for Bike • Hatch/Sedan • SUV. Open 10:00–20:00 daily. Call 9910578378 or book online.</p>
+        <div class="features">
+          <div class="card"><strong>Fast</strong><div style="color:var(--muted)">10:00–20:00</div></div>
+          <div class="card"><strong>Doorstep</strong><div style="color:var(--muted)">Home Visit available</div></div>
+          <div class="card"><strong>Quality</strong><div style="color:var(--muted)">Trained staff & premium products</div></div>
+        </div>
+      </section>
 
-        <form id="booking" class="grid" autocomplete="on" novalidate>
-          <div class="grid two">
-            <div>
-              <label for="name">Customer name</label>
-              <input id="name" name="name" placeholder="Full name" required>
-            </div>
-            <div>
-              <label for="phone">Phone number</label>
-              <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" required>
-            </div>
-          </div>
+      <aside>
+        <div class="card" style="margin-bottom:12px;">
+          <h3 style="margin:0 0 8px">Quick book</h3>
+          <p style="margin:0 0 12px;color:var(--muted)">Choose service & time on the booking page.</p>
+          <a class="btn primary" href="/booking.html">Open booking page</a>
+        </div>
 
-          <div class="grid two">
-            <div>
-              <label for="vehicle">Vehicle type</label>
-              <select id="vehicle" name="vehicle" required>
-                <option value="" disabled selected>Select</option>
-                <option value="Bike">Bike</option>
-                <option value="Hatch/Sedan">Hatchback / Sedan</option>
-                <option value="SUV">SUV</option>
-              </select>
-            </div>
-            <div>
-              <label for="service">Service</label>
-              <select id="service" name="service" required>
-                <option value="" disabled selected>Select vehicle first</option>
-              </select>
-              <div class="help" id="serviceHelp">Choose a vehicle to see pricing.</div>
-              <div class="svc-desc" id="svcDesc"></div>
-            </div>
-          </div>
+        <div class="card">
+          <h4 style="margin:0 0 8px">Location</h4>
+          <div style="color:var(--muted)">Mustafa Market, Anoop Shahar Rd, Aligarh</div>
+        </div>
+      </aside>
+    </main>
 
-          <div class="grid two">
-            <div>
-              <label for="date">Preferred date</label>
-              <input type="date" id="date" name="date" required>
-            </div>
-            <div>
-              <label for="time">Time slots</label>
-              <select id="time" name="time" required>
-                <option value="" disabled selected>Pick a time</option>
-                <option value="10:00">10:00 AM</option>
-                <option value="10:15">10:15 AM</option>
-                <option value="10:30">10:30 AM</option>
-                <option value="10:45">10:45 AM</option>
-                <option value="11:00">11:00 AM</option>
-                <option value="11:15">11:15 AM</option>
-                <option value="11:30">11:30 AM</option>
-                <option value="11:45">11:45 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="12:15">12:15 PM</option>
-                <option value="12:30">12:30 PM</option>
-                <option value="12:45">12:45 PM</option>
-                <option value="13:00">1:00 PM</option>
-                <option value="13:15">1:15 PM</option>
-                <option value="13:30">1:30 PM</option>
-                <option value="13:45">1:45 PM</option>
-                <option value="14:00">2:00 PM</option>
-                <option value="14:15">2:15 PM</option>
-                <option value="14:30">2:30 PM</option>
-                <option value="14:45">2:45 PM</option>
-                <option value="15:00">3:00 PM</option>
-                <option value="15:15">3:15 PM</option>
-                <option value="15:30">3:30 PM</option>
-                <option value="15:45">3:45 PM</option>
-                <option value="16:00">4:00 PM</option>
-                <option value="16:15">4:15 PM</option>
-                <option value="16:30">4:30 PM</option>
-                <option value="16:45">4:45 PM</option>
-                <option value="17:00">5:00 PM</option>
-                <option value="17:15">5:15 PM</option>
-                <option value="17:30">5:30 PM</option>
-                <option value="17:45">5:45 PM</option>
-                <option value="18:00">6:00 PM</option>
-                <option value="18:15">6:15 PM</option>
-                <option value="18:30">6:30 PM</option>
-                <option value="18:45">6:45 PM</option>
-                <option value="19:00">7:00 PM</option>
-                <option value="19:15">7:15 PM</option>
-                <option value="19:30">7:30 PM</option>
-                <option value="19:45">7:45 PM</option>
-                <option value="20:00">8:00 PM</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label>Visit type</label>
-            <div class="radio-row">
-              <label class="radio"><input type="radio" name="visit" value="Wash Center" checked> Wash Center</label>
-              <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
-            </div>
-          </div>
-
-          <div id="addressWrap" style="display:none;">
-            <label for="address">Address (for Home Visit)</label>
-            <textarea id="address" name="address" rows="2" placeholder="House/Flat, Street, Area, City"></textarea>
-          </div>
-
-          <div class="price" id="priceBox">Estimated price: —</div>
-
-          <button class="btn primary" type="button" id="confirm">Confirm Booking</button>
-        </form>
-      </div>
-
-      <picture class="hero-media" aria-label="Kleenkars foam wash in action">
-        <img src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
-      </picture>
-    </section>
-     
-        <footer>© <span id="yr"></span> Kleenkars • Aligarh • Open 10:00–20:00 Daily</footer>
+    <footer>© <span id="yr"></span> Kleenkars — Aligarh</footer>
   </div>
 
-  <!-- Custom confirmation toast -->
-  <div class="toast" id="toast">
-    <span class="close-btn" onclick="document.getElementById('toast').style.display='none'">✖</span>
-    <div id="toastContent">✅ Booking confirmed!</div>
-  </div>
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
 
-<script>
-/* ---------- Elements ---------- */
-const els = {
-  vehicle: document.getElementById('vehicle'),
-  service: document.getElementById('service'),
-  serviceHelp: document.getElementById('serviceHelp'),
-  svcDesc: document.getElementById('svcDesc'),
-  name: document.getElementById('name'),
-  phone: document.getElementById('phone'),
-  date: document.getElementById('date'),
-  time: document.getElementById('time'),
-  visitRadios: document.querySelectorAll('input[name="visit"]'),
-  addressWrap: document.getElementById('addressWrap'),
-  address: document.getElementById('address'),
-  priceBox: document.getElementById('priceBox'),
-  confirm: document.getElementById('confirm'),
-  toast: document.getElementById('toast'),
-  toastContent: document.getElementById('toastContent'),
-  themeToggle: document.getElementById('themeToggle')
-};
-
-/* ---------- Footer Year + Date Min ---------- */
-document.getElementById('yr').textContent = new Date().getFullYear();
-els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
-
-/* ---------- Phone input cleanup ---------- */
-els.phone.addEventListener('input', () => {
-  els.phone.value = els.phone.value.replace(/\D/g, '').slice(0, 10);
-});
-
-/* ---------- Theme Toggle ---------- */
-function applyTheme(isDark){
-  if(isDark){
-    document.body.classList.remove('light');
-    els.themeToggle.textContent = '🌙';
-    localStorage.setItem('theme','dark');
-  } else {
-    document.body.classList.add('light');
-    els.themeToggle.textContent = '☀️';
-    localStorage.setItem('theme','light');
-  }
-}
-const savedTheme = localStorage.getItem('theme');
-if(savedTheme){
-  applyTheme(savedTheme === 'dark');
-} else {
-  const hour = new Date().getHours();
-  applyTheme(!(hour >= 6 && hour < 18));
-}
-els.themeToggle.addEventListener('click', ()=>{
-  const isCurrentlyDark = !document.body.classList.contains('light');
-  applyTheme(!isCurrentlyDark);
-});
-
-/* ---------- Services (public) ---------- */
-let SERVICES = [];
-const FALLBACK = [
-  { name:"Basic Wash",       bike:50,   sedan:150,  suv:200,  position:1, visible:true, description:"Exterior wash & dry" },
-  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250,  position:2, visible:true, description:"Foam wash + interior wipe" },
-  { name:"Detailing",        bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
-];
-
-async function tryFetch(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  const d = await r.json();
-  if(Array.isArray(d)) return d;
-  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
-  throw new Error("Unexpected response");
-}
-
-async function loadServices(){
-  const candidates = [
-    "/.netlify/functions/admin-services?public=1",
-    "/.netlify/functions/site-settings?fn=services",
-    "/.netlify/functions/services"
-  ];
-  for(const url of candidates){
-    try{
-      const rows = await tryFetch(url);
-      if(rows && rows.length){
-        SERVICES = rows.slice().sort((a,b)=>{
-          const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
-          if (pa !== pb) return pa - pb;
-          return String(a.name||"").localeCompare(String(b.name||""));
-        });
-        return;
-      }
-    }catch(e){ /* try next */ }
-  }
-  SERVICES = FALLBACK;
-}
-
-function parseIntLike(v){
-  if (v == null) return null;
-  const m = String(v).match(/\d+/);
-  if (!m) return null;
-  const n = parseInt(m[0], 10);
-  return Number.isFinite(n) ? n : null;
-}
-function priceFor(row, vehicle){
-  const key = vehicle === "Bike" ? "bike" : (vehicle === "SUV" ? "suv" : "sedan");
-  return parseIntLike(row?.[key]);
-}
-
-/* ---------- PATCH: Bike => Basic-only ---------- */
-function servicesForVehicle(v){
-  if(!v) return [];
-  const list = SERVICES
-    .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
-    .filter(x => x.name && x.price != null);
-
-  if(v === "Bike"){
-    const basic = list.find(x => /basic/i.test(x.name));
-    if(basic) return [basic];
-    if(list.length) return [list.sort((a,b)=>a.price-b.price)[0]];
-    return [];
-  }
-  return list;
-}
-
-/* ---------- UI helpers ---------- */
-function getVisit(){
-  const r = Array.from(els.visitRadios).find(r=>r.checked);
-  return r ? r.value : "Wash Center";
-}
-function populateServices(){
-  const v = (els.vehicle.value || "").trim();
-  els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
-  els.svcDesc.textContent = "";
-  const list = servicesForVehicle(v);
-  if(list.length===0){
-    els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
-    updatePriceUI(); return;
-  }
-  for(const item of list){
-    const opt = document.createElement("option");
-    opt.value = item.name;
-    opt.textContent = `${item.name} — ₹${item.price}`;
-    opt.dataset.price = item.price;
-    opt.dataset.description = item.description || "";
-    els.service.appendChild(opt);
-  }
-  els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
-  updateServiceDesc();
-  updatePriceUI();
-}
-function updateServiceDesc(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  if(!v || !s){ els.svcDesc.textContent=""; return; }
-  const list = servicesForVehicle(v);
-  const item = list.find(x=>x.name===s);
-  els.svcDesc.textContent = item?.description || "";
-}
-function computePrice(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  if(!v || !s) return null;
-  const list = servicesForVehicle(v);
-  const item = list.find(x=>x.name===s);
-  if(!item) return null;
-  let p = item.price;
-  if(getVisit()==="Home Visit") p += 50;
-  return p;
-}
-function updatePriceUI(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  const p = computePrice();
-  if(p!=null){
-    els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${getVisit()==="Home Visit"?" +₹50":""})</span>`;
-  } else {
-    els.priceBox.textContent = "Estimated price: —";
-  }
-}
-function visitChanged(){
-  const v = getVisit();
-  els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
-  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); }
-  else { els.address?.removeAttribute('required'); els.address.value=""; }
-}
-
-/* ---------- Init & bindings ---------- */
-async function init(){
-  await loadServices();
-  ['change','input'].forEach(ev=>{
-    els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
-    els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
-    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
-  });
-  visitChanged();
-  populateServices();
-}
-init();
-
-/* ---------- Booking submit ---------- */
-els.confirm.addEventListener('click', async ()=>{
-  const raw = els.phone.value.replace(/\D/g,'');
-  if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
-
-  const payload = {
-    name: els.name.value.trim(),
-    phone: raw,
-    vehicle: (els.vehicle.value||"").trim(),
-    service: (els.service.value||"").trim(),
-    date: els.date.value,
-    time: els.time.value,
-    visit: getVisit(),
-    address: els.address?.value.trim(),
-    price: computePrice()
-  };
-
-  if(!payload.vehicle){ alert("Select a vehicle."); return; }
-  if(!payload.service){ alert("Select a service."); return; }
-  if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
-
-  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
-  try{
-    const r = await fetch("/.netlify/functions/saveBooking", {
-      method:"POST", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await r.json();
-    if(!data.ok) throw new Error(data.error||"Save failed");
-
-    // Custom confirmation popup with name + service
-    els.toast.classList.add("show");
-    const name = payload.name || "Customer";
-    const service = payload.service || "selected service";
-    els.toastContent.innerHTML = `
-      ✅ Thank you, <b>${name}</b>!<br>
-      Your <b>${service}</b> is confirmed.<br>
-      We look forward to your arrival 🚗✨
-    `;
-    setTimeout(()=>els.toast.classList.remove("show"), 4000);
-
-    const text = `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
-    if(data.admin) window.open(`https://api.whatsapp.com/send?phone=${data.admin}&text=${encodeURIComponent(text)}`, "_blank");
-    if(data.manager) window.open(`https://api.whatsapp.com/send?phone=${data.manager}&text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
-
-  }catch(e){
-    alert(e.message);
-  }finally{
-    els.confirm.disabled=false; els.confirm.textContent="Confirm Booking";
-  }
-});
-
-/* ---------- PATCH: hero override loader ---------- */
-(function(){
-  try{
-    var saved = localStorage.getItem('kleenkars.hero');
-    if(saved){
-      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
-      if(hero) hero.src = saved;
+    // Ensure old service worker doesn't keep showing old index — unregister if present.
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(regs=>{
+        for(const r of regs){ r.unregister().catch(()=>{}); }
+      }).catch(()=>{});
     }
-  }catch(e){}
-})();
-</script>
+  </script>
 </body>
 </html>
