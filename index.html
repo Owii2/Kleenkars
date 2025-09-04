@@ -1,374 +1,391 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kleenkars Car Wash & Detailing in Aligarh | Book Now</title>
-  <meta name="description" content="Kleenkars — Premium car wash & detailing in Aligarh. Bike • Sedan • SUV. Book online or via WhatsApp. Open daily 10:00–20:00.">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kleenkars Car Wash — Premium Car Wash & Detailing in Aligarh</title>
+  <meta name="description" content="Kleenkars Car Wash — Premium car wash & detailing in Aligarh. Bike, Sedan & SUV. Open 10:00–20:00. Call 9910578378.">
   <link rel="canonical" href="https://kleenkars.in/">
 
-  <!-- PWA & icons -->
+  <!-- PWA / manifest (keep as-is in site) -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
+
+  <!-- Icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 
-  <!-- Fonts -->
+  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg: #0b0b12;
-      --card: #13131b;
-      --ink: #e9e9ef;
-      --muted: #b8b8c6;
-      --accent: #e63946;     /* red accent */
-      --accent-2: #111016;
-      --border: #242433;
-      --radius: 16px;
-      --control-h: 48px;
-      --maxw: 1100px;
+      --bg:#0b0b12;
+      --card:#13131b;
+      --ink:#e9e9ef;
+      --muted:#b8b8c6;
+      --accent:#e63946; /* red accent */
+      --accent-2:#111016;
+      --border:#242433;
+      --radius:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --control-h:48px;
+      --max-width:1100px;
     }
-    /* light mode overrides */
-    body.light{
-      --bg: #ffffff;
-      --card: #f9f9f9;
-      --ink: #111111;
-      --muted: #555555;
-      --border: #e6e6e6;
+    /* Light mode overrides */
+    body.light {
+      --bg:#fff;
+      --card:#f9f9f9;
+      --ink:#111;
+      --muted:#444;
+      --border:#ddd;
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:
-        radial-gradient(1000px 600px at 80% -10%, rgba(230,57,70,.06), transparent 60%),
-        radial-gradient(900px 500px at -10% 20%, rgba(230,57,70,.05), transparent 60%),
-        var(--bg);
-      color:var(--ink); line-height:1.5; -webkit-font-smoothing:antialiased;
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.5;
     }
-    a{color:inherit}
-    .wrap{max-width:var(--maxw); margin:28px auto; padding:18px}
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:var(--max-width); margin:0 auto; padding:20px}
 
-    /* ---------- Header ---------- */
-    .site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:16px;flex:1;min-width:200px}
-    .brand img{width:clamp(80px,10vw,120px);height:auto;object-fit:contain;border-radius:10px;background:#0f0f16;border:1px solid var(--border)}
-    .brand-text{display:flex;flex-direction:column}
-    .brand-text .title{font-weight:800;font-size:clamp(1.25rem,2.8vw,2rem)}
-    .brand-text .tag{font-size:.95rem;color:var(--muted);margin-top:4px}
-    .header-actions{display:flex;align-items:center;gap:10px}
-    .pill{display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--ink);font-weight:600;cursor:pointer}
-    .pill:hover{transform:translateY(-2px)}
-    .theme-btn{font-size:1.05rem;padding:6px 10px}
-
-    /* glossy header backdrop */
-    .glossy-header{background:linear-gradient(135deg,#0d0d0d 0%,#1a1a1a 40%, #b0212b 100%);padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,0.03)}
-    .glossy-header .brand img{border-radius:12px;border:1px solid #b0212b;box-shadow:0 6px 30px rgba(176,33,43,.45),0 10px 50px rgba(176,33,43,.2)}
-    .glossy-header .title,.glossy-header .tag{color:#fff}
-    .glossy-header .pill{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff}
-
-    /* ---------- Hero ---------- */
-    .hero{display:grid;grid-template-columns:1fr 420px;gap:22px;align-items:stretch;margin-top:20px}
-    @media (max-width:980px){ .hero{grid-template-columns:1fr} }
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
-    .hero h1{margin:0 0 8px;font-size:clamp(26px,4.4vw,40px);line-height:1.05}
-    .hero .sub{color:var(--muted);margin-bottom:14px}
-    .hero-visual{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:#0f0f16;aspect-ratio:16/9}
-    .hero-visual img{width:100%;height:100%;object-fit:cover;display:block}
-
-    /* form layout (removed quick booking - kept styles) */
-    .grid{display:grid;gap:12px}
-    .two{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-    label{font-weight:600;font-size:.94rem;display:block;margin-bottom:6px}
-    input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--ink);outline:none}
-    input::placeholder,textarea::placeholder{color:var(--muted)}
-    #service,#date,#time{height:var(--control-h);padding:0 12px;line-height:var(--control-h)}
-    .help{font-size:.86rem;color:var(--muted)}
-    .price{margin-top:10px;font-weight:800;font-size:1.05rem;background:var(--card);color:var(--ink);border:1px dashed var(--border);padding:10px;border-radius:12px}
-
-    .radio-row{display:flex;gap:8px;flex-wrap:wrap}
-    .radio{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);padding:6px 10px;border-radius:10px;background:var(--card);color:var(--ink);min-height:var(--control-h);flex:1 1 180px;text-align:center;font-size:.95rem}
-    .radio input{margin:0}
-
-    /* confirm button (accent + subtle glow) */
-    .btn {appearance:none;border:1px solid var(--border);background:var(--accent-2);color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer}
-    .btn.primary{background:var(--accent);box-shadow:0 6px 24px rgba(230,57,70,.18);padding:14px 26px;font-size:1.05rem;display:block;margin:18px auto 0}
-    .btn.primary:active{transform:translateY(1px)}
-
-    /* toast modal centered */
-    .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;padding:20px 22px;border-radius:14px;border:2px solid var(--accent);box-shadow:0 10px 40px rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:9999;display:none;max-width:90%;text-align:center}
-    body.light .toast{background:rgba(255,255,255,0.96);color:#111}
-
-    /* hero visual size control for mobile so it's not too large */
-    @media (max-width:560px){
-      .brand img{width:clamp(64px,18vw,92px)}
-      .hero-visual{aspect-ratio:3/2}
-      .brand-text .title{font-size:1.15rem}
+    /* ---------- HEADER / HERO (combined) ---------- */
+    .site-header {
+      border-radius:12px;
+      overflow:hidden;
+      position:relative;
+      margin-bottom:20px;
     }
 
-    /* gallery before/after */
-    .ba-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
-    .ba-wrap img{display:block;width:100%;height:auto}
-    .ba-after{position:absolute;left:0;top:0;height:100%;width:50%;overflow:hidden}
-    .ba-handle{position:absolute;top:0;height:100%;left:50%;transform:translateX(-50%);width:18px;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:ew-resize}
-    .ba-handle .bar{width:6px;height:60px;background:rgba(255,255,255,.9);border-radius:6px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
-    @media (max-width:780px){ .ba-handle .bar{height:44px} }
+    /* Hero background (use hero image as background for header) */
+    .site-header::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image: url('/assets/hero.jpg?v=1');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(.35);
+      z-index:0;
+    }
+    .site-header .header-inner{
+      position:relative; /* above background */
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:20px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12));
+    }
 
-    /* pricing/testimonials grid */
-    .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:10px}
-    .card-s{background:var(--card);padding:14px;border-radius:12px;border:1px solid var(--border)}
-    .muted{color:var(--muted)}
+    .brand {
+      display:flex; align-items:center; gap:14px;
+      min-width:0;
+    }
+    /* Desktop logo larger; mobile later forced to 110px */
+    .brand img {
+      width: clamp(120px, 14vw, 160px);
+      height:auto; object-fit:contain; border-radius:10px;
+      border:1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+      box-shadow: 0 6px 20px rgba(0,0,0,.4);
+    }
+    .brand-text { display:flex; flex-direction:column }
+    .brand-text .title {
+      font-weight:800; letter-spacing:.3px;
+      font-size: clamp(1.2rem, 3.5vw, 2.0rem);
+      color: #fff;
+    }
+    .brand-text .tagline {
+      color: rgba(255,255,255,0.9);
+      font-size: .95rem;
+      margin-top:4px;
+    }
 
-    /* map / contact */
-    .contact-grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
-    @media (max-width:980px){ .contact-grid{grid-template-columns:1fr} }
+    .header-actions {
+      display:flex; align-items:center; gap:10px;
+    }
+    .pill {
+      display:inline-block;
+      padding:8px 12px; border-radius:999px;
+      background: rgba(255,255,255,0.06); color:#fff;
+      border:1px solid rgba(255,255,255,0.08);
+      font-weight:600;
+    }
+    .pill.secondary { background:transparent; border:1px solid rgba(255,255,255,0.12) }
 
-    /* footer */
-    footer{margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-    footer nav a{margin-right:10px}
-    /* floating book button moved to bottom-center */
-    .float-book{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;border-radius:999px;background:var(--accent);color:#fff;padding:12px 18px;font-weight:800;z-index:999;box-shadow:0 12px 34px rgba(230,57,70,.2);display:flex;align-items:center;gap:10px}
-    @media (min-width:980px){ .float-book{display:block} }
+    .mode-toggle {
+      cursor:pointer; font-size:1.1rem; background:transparent; border:none; color:#fff;
+      padding:6px 8px; display:inline-flex; align-items:center; gap:8px;
+    }
+
+    /* Make header compact on small screens + logo size rule for mobile 110px */
+    @media (max-width:600px){
+      .brand img { width: 110px; } /* mobile requested */
+      .brand-text .title { font-size: 1.0rem; }
+      .site-header::before{ filter: brightness(.4); background-position: center 30%; }
+      .header-inner { padding:14px; gap:10px; }
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    main { margin-top:18px; }
+
+    .section { margin-bottom:26px; }
+    .section h2 { margin:0 0 10px; font-size:1.25rem; color:var(--ink) }
+    .grid { display:grid; gap:12px }
+    .two { grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
+
+    /* Services cards */
+    .services { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+    .svc-card {
+      background:var(--card); border:1px solid var(--border); padding:14px; border-radius:12px;
+      display:flex; flex-direction:column; gap:8px; align-items:flex-start;
+    }
+    .svc-card .svc-icon { width:44px; height:44px; border-radius:10px; background:rgba(0,0,0,0.12); display:flex; align-items:center; justify-content:center; }
+    .svc-card h3 { margin:0; font-size:1rem }
+    .svc-card p { margin:0; color:var(--muted); font-size:.92rem }
+
+    /* Pricing / packages */
+    .packages { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .pkg { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+    .pkg h3 { margin:6px 0 6px }
+    .pkg .price { font-weight:800; font-size:1.1rem; color:var(--accent); }
+
+    /* Gallery placeholder and slider container */
+    .gallery { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .gallery img { width:100%; height:160px; object-fit:cover; border-radius:10px; border:1px solid var(--border); }
+
+    /* Testimonials */
+    .testimonials { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+    .review { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; }
+
+    /* Map / contact */
+    .location .map-wrap { border-radius:12px; overflow:hidden; border:1px solid var(--border) }
+
+    /* Footer */
+    footer { margin-top:18px; padding:18px 0; color:var(--muted); text-align:center; font-size:.95rem; }
+
+    /* Floating Book Now button (single) — centered bottom */
+    .floating-book {
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:18px; z-index:9999;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .floating-book .pill {
+      background:var(--accent); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700;
+      box-shadow: 0 8px 30px rgba(230,57,70,.15), 0 2px 8px rgba(0,0,0,.2);
+      border:none;
+    }
+
+    /* small utilities */
+    .muted { color:var(--muted) }
+    .center { text-align:center }
 
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- HEADER -->
-    <header class="site-header glossy-header" aria-label="Kleenkars header">
-      <div class="brand">
-        <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit" aria-label="Home — Kleenkars">
-          <img src="/assets/logo.png" alt="Kleenkars logo" id="logoImg">
+    <!-- Header / hero combined -->
+    <header class="site-header glossy-header" role="banner">
+      <div class="header-inner">
+        <div class="brand" role="img" aria-label="Kleenkars Car Wash logo">
+          <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
           <div class="brand-text">
             <div class="title">Kleenkars Car Wash</div>
-            <div class="tag">Premium • Wash • Detailing</div>
+            <div class="tagline">Premium • Wash • Detailing — Aligarh</div>
           </div>
-        </a>
-      </div>
+        </div>
 
-      <div class="header-actions" role="navigation" aria-label="Site actions">
-        <button id="themeToggle" class="pill theme-btn" aria-label="Toggle theme">🌙</button>
-        <!-- header Book Now removed as requested -->
+        <div class="header-actions" role="navigation" aria-label="Top actions">
+          <button id="themeToggle" class="mode-toggle" aria-label="Toggle theme">🌙</button>
+          <a class="pill secondary" href="/admin.html" title="Admin login">Admin Login</a>
+        </div>
       </div>
     </header>
 
-    <!-- HERO: left=info (no booking), right visual -->
-    <section class="hero" aria-labelledby="heroHeading">
-      <div class="card">
-        <h1 id="heroHeading">Premium Car Wash & Detailing in Aligarh</h1>
-        <p class="sub">Shine, protect & revive your ride — Bike, Sedan & SUV. Doorstep Home Visit or at our Wash Center. Open daily 10:00–20:00.</p>
+    <main>
+      <!-- HERO copy & CTA -->
+      <section class="section center">
+        <h1 style="margin:0 0 8px">Premium Car Wash & Detailing in Aligarh</h1>
+        <p class="muted" style="margin:0 0 12px">Shine, protect & revive your ride — Bike, Sedan & SUV. Open daily 10:00–20:00.</p>
+        <!-- single CTA on homepage -> floating Book Now (so we don't include inline booking) -->
+        <a class="pill" href="/booking.html" style="background:var(--accent); color:#fff; font-weight:800; padding:12px 18px; border-radius:999px; box-shadow:0 6px 20px rgba(230,57,70,.12)">Book Now</a>
+      </section>
 
-        <!-- Booking section removed from homepage as requested.
-             Kept an informational link to booking page instead. -->
-        <div style="margin-top:12px">
-          <a class="pill" href="/booking.html" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">Go to booking page</a>
-          <a class="pill" href="https://wa.me/919910578378?text=Hi%20Kleenkars,%20I%20want%20to%20book%20a%20slot." target="_blank" rel="noopener" style="margin-left:10px">WhatsApp</a>
-        </div>
-
-        <div style="margin-top:16px" class="muted">Or use the floating <strong>Book Now</strong> button at the bottom of the screen to make a booking.</div>
-      </div>
-
-      <div class="hero-visual" aria-hidden="true">
-        <!-- Replace with /assets/hero.webp if available -->
-        <img src="/assets/hero.jpg" alt="Kleenkars foam wash in action">
-      </div>
-    </section>
-
-    <!-- SERVICES PREVIEW -->
-    <section id="services" style="margin-top:22px">
-      <h3 style="margin-bottom:10px">Our Services</h3>
-      <div class="cols">
-        <div class="card-s">
-          <strong>Exterior Wash</strong>
-          <div class="muted" style="margin-top:8px">Foam wash, wheel clean, dry & dressing</div>
-        </div>
-        <div class="card-s">
-          <strong>Interior Detailing</strong>
-          <div class="muted" style="margin-top:8px">Vacuum, shampoo, dashboard & trim care</div>
-        </div>
-        <div class="card-s">
-          <strong>Ceramic Coating</strong>
-          <div class="muted" style="margin-top:8px">Long-lasting gloss & protection</div>
-        </div>
-        <div class="card-s">
-          <strong>Bike Wash</strong>
-          <div class="muted" style="margin-top:8px">Safe, quick & thorough</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PRICING / PACKAGES -->
-    <section id="pricing" style="margin-top:26px">
-      <h3 style="margin-bottom:10px">Packages & Pricing</h3>
-      <div class="cols">
-        <div class="card-s"><strong>Basic Wash</strong><div class="muted" style="margin-top:8px">Exterior wash, tyre & wheel, dry</div><div style="margin-top:10px;font-weight:800">From ₹150</div></div>
-        <div class="card-s"><strong>Premium Wash</strong><div class="muted" style="margin-top:8px">Foam wash, interior wipe, tire dressing</div><div style="margin-top:10px;font-weight:800">From ₹250</div></div>
-        <div class="card-s"><strong>Full Detailing</strong><div class="muted" style="margin-top:8px">Deep interior + exterior treatment</div><div style="margin-top:10px;font-weight:800">From ₹1500</div></div>
-        <div class="card-s"><strong>Ceramic Coating</strong><div class="muted" style="margin-top:8px">Long-term paint protection</div><div style="margin-top:10px;font-weight:800">From ₹5000</div></div>
-      </div>
-      <div style="margin-top:12px">
-        <a class="pill" href="/pricing.html">See Full Price List</a>
-        <!-- Book Package removed -->
-      </div>
-    </section>
-
-    <!-- GALLERY / BEFORE-AFTER SLIDER -->
-    <section id="gallery" style="margin-top:26px">
-      <h3 style="margin-bottom:10px">Gallery — Before & After</h3>
-      <div class="ba-wrap" id="baWrap" style="max-width:100%;height:auto">
-        <img src="/assets/gallery-before.jpg" alt="Before cleaning" aria-hidden="true">
-        <div class="ba-after"><img src="/assets/gallery-after.jpg" alt="After cleaning" aria-hidden="true"></div>
-        <div class="ba-handle" role="slider" aria-valuemin="5" aria-valuemax="95" aria-valuenow="50" tabindex="0">
-          <div class="bar" aria-hidden="true"></div>
-        </div>
-      </div>
-      <small class="muted" style="display:block;margin-top:8px">Drag the handle (or tap) to compare before & after.</small>
-    </section>
-
-    <!-- TESTIMONIALS -->
-    <section id="testimonials" style="margin-top:26px">
-      <h3 style="margin-bottom:10px">What customers say</h3>
-      <div class="cols">
-        <div class="card-s"><strong>Rahul K.</strong><div class="muted" style="margin-top:8px">“Quick, professional — my car looks brand new.”</div><div class="muted" style="margin-top:8px">5 ⭐ • Aligarh</div></div>
-        <div class="card-s"><strong>Suman P.</strong><div class="muted" style="margin-top:8px">“Doorstep service was punctual and thorough.”</div><div class="muted" style="margin-top:8px">5 ⭐ • Aligarh</div></div>
-        <div class="card-s"><strong>Vikram S.</strong><div class="muted" style="margin-top:8px">“Excellent detailing, paint protection visible for weeks.”</div><div class="muted" style="margin-top:8px">5 ⭐ • Aligarh</div></div>
-      </div>
-      <div style="margin-top:10px"><a class="pill" href="https://www.google.com/search?q=Kleenkars+Aligarh+reviews" target="_blank" rel="noopener">Read more reviews</a></div>
-    </section>
-
-    <!-- LOCATION & CONTACT -->
-    <section id="contact" style="margin-top:26px">
-      <h3 style="margin-bottom:10px">Location & Contact</h3>
-      <div class="contact-grid">
-        <div>
-          <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
-            <!-- Google Maps using your Plus Code (W3VP+V5 Aligarh, Uttar Pradesh) -->
-            <iframe width="100%" height="300" style="border:0" loading="lazy"
-              src="https://www.google.com/maps/search/?api=1&query=W3VP%2BV5+Aligarh%2C+Uttar+Pradesh"
-              referrerpolicy="no-referrer-when-downgrade" aria-hidden="false"></iframe>
+      <!-- Services -->
+      <section class="section">
+        <h2>Our Services</h2>
+        <div class="services" aria-hidden="false">
+          <div class="svc-card">
+            <div class="svc-icon">🚿</div>
+            <h3>Exterior Wash</h3>
+            <p>Foam, rinse & spot-free dry for a showroom shine.</p>
           </div>
-          <div style="margin-top:10px;color:var(--muted)">
-            <div><strong>Address:</strong> Mustafa Market, Anoop Shahar Rd, Maheshpur, Manjur Garhi, Aligarh, Uttar Pradesh 202001</div>
-            <div style="margin-top:6px"><strong>Phone:</strong> <a href="tel:+919910578378">+91 99105 78378</a></div>
-            <div style="margin-top:6px"><strong>Hours:</strong> Daily 10:00 — 20:00</div>
+          <div class="svc-card">
+            <div class="svc-icon">🪑</div>
+            <h3>Interior Detailing</h3>
+            <p>Deep clean, vacuum, polish & odor removal.</p>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">💎</div>
+            <h3>Ceramic Coating</h3>
+            <p>Long-lasting protection & gloss boost.</p>
+          </div>
+          <div class="svc-card">
+            <div class="svc-icon">🧽</div>
+            <h3>Engine Bay Cleaning</h3>
+            <p>Safe, effective degreasing and dressing.</p>
           </div>
         </div>
-        <aside style="display:flex;flex-direction:column;gap:12px">
-          <div class="card-s">
-            <h4 style="margin:0 0 8px">Quick contact</h4>
-            <div class="muted">Message us on WhatsApp and we'll confirm your slot.</div>
-            <div style="margin-top:10px"><a class="pill" href="https://wa.me/919910578378?text=Hi%20Kleenkars,%20I%20want%20to%20book%20a%20slot." target="_blank" rel="noopener" style="background:var(--accent);color:#fff;border:0">WhatsApp Us</a></div>
-          </div>
-          <div class="card-s">
-            <h4 style="margin:0 0 8px">Need help?</h4>
-            <div class="muted">Call: <a href="tel:+919910578378">+91 99105 78378</a></div>
-            <div class="muted" style="margin-top:8px">Email: <a href="mailto:info@kleenkars.in">info@kleenkars.in</a></div>
-          </div>
-        </aside>
-      </div>
-    </section>
+      </section>
 
-    <!-- FOOTER -->
-    <footer>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <nav aria-label="Footer links" style="display:flex;gap:8px;flex-wrap:wrap">
-          <a class="pill" href="/about.html">About</a>
-          <a class="pill" href="/services.html">Services</a>
-          <a class="pill" href="/pricing.html">Pricing</a>
-          <a class="pill" href="/gallery.html">Gallery</a>
-          <a class="pill" href="/contact.html">Contact</a>
-        </nav>
-
-        <div style="display:flex;gap:10px;align-items:center">
-          <a class="pill" href="#" aria-label="Facebook">f</a>
-          <a class="pill" href="#" aria-label="Instagram">ig</a>
-          <a class="pill" href="#" aria-label="Google">G</a>
+      <!-- Pricing / Packages -->
+      <section class="section">
+        <h2>Packages & Pricing</h2>
+        <div class="packages">
+          <div class="pkg">
+            <h3>Basic Wash</h3>
+            <div class="price">₹150 – ₹350</div>
+            <p class="muted">Exterior wash, dry, quick interior tidy.</p>
+          </div>
+          <div class="pkg">
+            <h3>Premium Wash</h3>
+            <div class="price">₹250 – ₹600</div>
+            <p class="muted">Foam wash, interior wipe, wheel clean.</p>
+          </div>
+          <div class="pkg">
+            <h3>Full Detailing</h3>
+            <div class="price">₹1500 – ₹2500</div>
+            <p class="muted">Deep interior + exterior restoration.</p>
+          </div>
+          <div class="pkg">
+            <h3>Ceramic Coating</h3>
+            <div class="price">Custom pricing</div>
+            <p class="muted">Professional ceramic protection packages.</p>
+          </div>
         </div>
-      </div>
+        <div style="margin-top:12px" class="center">
+          <a class="pill" href="/pricing.html">See Full Price List</a>
+        </div>
+      </section>
+            <!-- Gallery / Before-After slider (placeholder images) -->
+      <section class="section">
+        <h2>Gallery — Before & After</h2>
+        <div class="gallery" aria-hidden="false">
+          <!-- Replace these with real before/after images; keep same aspect ratio -->
+          <img src="/assets/gallery1.jpg" alt="Before - Exterior" loading="lazy">
+          <img src="/assets/gallery1-after.jpg" alt="After - Exterior" loading="lazy">
+          <img src="/assets/gallery2.jpg" alt="Before - Interior" loading="lazy">
+          <img src="/assets/gallery2-after.jpg" alt="After - Interior" loading="lazy">
+        </div>
+        <p class="muted" style="margin-top:8px">Tip: Replace the placeholder images with your real before/after photos for maximum impact.</p>
+      </section>
 
-      <div style="margin-top:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px">
-        <div>Kleenkars — Bringing Shine Back to Your Ride</div>
-        <div>© <span id="yr"></span> Kleenkars • Aligarh • Open 10:00–20:00 Daily</div>
-      </div>
-    </footer>
+      <!-- Testimonials -->
+      <section class="section">
+        <h2>What customers say</h2>
+        <div class="testimonials">
+          <div class="review">
+            <strong>Rohit K.</strong>
+            <p class="muted">“Great service and arrived on time — car looks brand new!”</p>
+          </div>
+          <div class="review">
+            <strong>Priya S.</strong>
+            <p class="muted">“Professional team. Highly recommended for full detailing.”</p>
+          </div>
+          <div class="review">
+            <strong>Ajay M.</strong>
+            <p class="muted">“Ceramic job lasted months. Really happy with the gloss.”</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Location & Contact -->
+      <section class="section location">
+        <h2>Location & Contact</h2>
+        <div class="map-wrap" style="margin-bottom:12px">
+          <!-- Google Embed — uses provided coordinates -->
+          <!-- Replace YOUR_GOOGLE_MAPS_API_KEY with your API key or use the provided "directions" link only -->
+          <iframe
+            width="100%" height="300" style="border:0; display:block;"
+            loading="lazy" allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=27.9446834,78.0854261">
+          </iframe>
+        </div>
+
+        <div class="two grid" style="align-items:center">
+          <div>
+            <p style="margin:0"><strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Maheshpur, Aligarh, Uttar Pradesh 202001</p>
+            <p class="muted" style="margin:6px 0 0">Phone: <a href="tel:+919910578378">+91 9910578378</a></p>
+          </div>
+          <div class="center">
+            <!-- Get directions button uses Google Maps directions URL to provided coords -->
+            <a class="pill" target="_blank" rel="noopener"
+               href="https://www.google.com/maps/dir/?api=1&destination=27.9446834,78.0854261">
+              Get Directions
+            </a>
+            <div style="margin-top:8px">
+              <a class="pill secondary" href="https://wa.me/919910578378" target="_blank">WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <div style="margin-bottom:8px">Kleenkars — Bringing Shine Back to Your Ride</div>
+        <div style="font-size:.9rem">
+          <a href="/about.html" class="muted">About</a> •
+          <a href="/services.html" class="muted">Services</a> •
+          <a href="/pricing.html" class="muted">Pricing</a> •
+          <a href="/gallery.html" class="muted">Gallery</a> •
+          <a href="/contact.html" class="muted">Contact</a>
+        </div>
+        <div style="margin-top:8px" class="muted">© <span id="yr"></span> Kleenkars • Open 10:00–20:00 Daily</div>
+      </footer>
+    </main>
   </div>
 
-  <!-- Floating book (only booking CTA) - bottom center -->
-  <a class="float-book" href="/booking.html" aria-label="Book now">Book Now</a>
-
-  <!-- Centered toast (used for local messages) -->
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <div id="toastContent">✅ Booking confirmed!</div>
+  <!-- Floating Book Now button (single, bottom center) -->
+  <div class="floating-book" role="navigation" aria-label="Book Now">
+    <a class="pill" href="/booking.html">Book Now</a>
   </div>
+
+  <!-- Minimal toast (kept for consistency if any scripts use it) -->
+  <div id="toast" style="display:none; position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:12px;color:var(--ink);z-index:9999">✅ Saved</div>
 
   <script>
-    /* ---------- Footer year ---------- */
-    try{ document.getElementById('yr').textContent = new Date().getFullYear(); }catch(e){}
+    // Footer year
+    document.getElementById('yr').textContent = new Date().getFullYear();
 
-    /* ---------- Theme toggle (auto by time + remembers choice) ---------- */
+    // Theme toggle: persist and auto by time
     (function(){
       const btn = document.getElementById('themeToggle');
-      function setTheme(mode){
-        if(mode === 'light'){ document.body.classList.add('light'); btn.textContent = '☀️'; localStorage.setItem('kleenkars.theme','light'); }
-        else { document.body.classList.remove('light'); btn.textContent = '🌙'; localStorage.setItem('kleenkars.theme','dark'); }
+      if(!btn) return;
+      function applyTheme(isDark){
+        if(isDark){ document.body.classList.remove('light'); btn.textContent='🌙'; localStorage.setItem('theme','dark'); }
+        else { document.body.classList.add('light'); btn.textContent='☀️'; localStorage.setItem('theme','light'); }
       }
-      const saved = localStorage.getItem('kleenkars.theme');
-      if(saved) setTheme(saved);
+      const saved = localStorage.getItem('theme');
+      if(saved) applyTheme(saved !== 'light');
       else {
         const h = new Date().getHours();
-        setTheme((h >= 7 && h < 19) ? 'light' : 'dark');
+        applyTheme(!(h >= 7 && h < 19)); // day=light (7–18)
       }
-      if(btn) btn.addEventListener('click', ()=>{
-        const isLight = document.body.classList.contains('light');
-        setTheme(isLight ? 'dark' : 'light');
-      });
+      btn.addEventListener('click', ()=> applyTheme(document.body.classList.contains('light')));
     })();
 
-    /* ---------- Before/After slider ---------- */
+    // Accessibility: ensure only one Book Now visible to screenreaders
     (function(){
-      const wrap = document.getElementById('baWrap');
-      if(!wrap) return;
-      const after = wrap.querySelector('.ba-after');
-      const handle = wrap.querySelector('.ba-handle');
-      function setPos(pct){
-        after.style.width = pct + '%';
-        handle.style.left = pct + '%';
-        if(handle) handle.setAttribute('aria-valuenow', Math.round(pct));
-      }
-      // initial
-      setPos(50);
-
-      let dragging = false;
-      function pointerPos(clientX){
-        const r = wrap.getBoundingClientRect();
-        let pct = (clientX - r.left) / r.width * 100;
-        pct = Math.max(5, Math.min(95, pct));
-        setPos(pct);
-      }
-      handle.addEventListener('mousedown', ()=>dragging=true);
-      window.addEventListener('mouseup', ()=>dragging=false);
-      window.addEventListener('mousemove', (e)=>{ if(dragging) pointerPos(e.clientX); });
-      // touch
-      handle.addEventListener('touchstart', ()=>dragging=true, {passive:true});
-      window.addEventListener('touchend', ()=>dragging=false);
-      window.addEventListener('touchmove', (e)=>{ if(dragging) pointerPos(e.touches[0].clientX); }, {passive:true});
-      // click to move
-      wrap.addEventListener('click', (e)=> pointerPos(e.clientX || (e.touches && e.touches[0].clientX)));
+      const floating = document.querySelector('.floating-book .pill');
+      if(floating) floating.setAttribute('aria-label','Open booking page');
     })();
-
-    /* ---------- Utility: show toast (use locally) ---------- */
-    function showToast(html, ms=3500){
-      try{
-        const t = document.getElementById('toast');
-        const c = document.getElementById('toastContent');
-        c.innerHTML = html;
-        t.style.display = 'block';
-        setTimeout(()=> { t.style.display = 'none'; }, ms);
-      }catch(e){}
-    }
-    // Example usage: showToast('✅ Thanks — we will confirm your slot!');
   </script>
 </body>
 </html>
+      
