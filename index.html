@@ -9,11 +9,9 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
 
-  <!-- Icons -->
+  <!-- Icons & font -->
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-
-  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
@@ -23,112 +21,46 @@
       --ink:#e9e9ef;
       --muted:#b8b8c6;
       --brand:#e63946; /* red */
-      --accent:var(--brand);
       --radius:14px;
       --container:1100px;
     }
-
-    /* Light mode override when body.light is toggled */
-    body.light {
-      --bg:#ffffff;
-      --card:#f9f9f9;
-      --ink:#111111;
-      --muted:#444444;
-    }
-
+    body.light { --bg:#fff; --card:#f9f9f9; --ink:#111; --muted:#444; }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--ink);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      line-height:1.5;
-    }
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
     a{color:inherit;text-decoration:none}
     .wrap{max-width:var(--container);margin:0 auto;padding:20px}
 
     /* Header */
-    header.site-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      padding:18px 0;
-    }
+    header.site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;flex-wrap:wrap}
     .brand{display:flex;align-items:center;gap:14px}
-    .brand img{
-      width:clamp(72px,10vw,120px);
-      height:auto;
-      border-radius:12px;
-      background:#000;
-      border:1px solid rgba(255,255,255,.04);
-      object-fit:contain;
-    }
-    .brand-text .title{
-      font-weight:800;
-      font-size:clamp(1.1rem,3vw,2rem);
-      line-height:1;
-    }
+    .brand img{width:clamp(72px,10vw,120px);height:auto;border-radius:12px;background:#000;border:1px solid rgba(255,255,255,.04);object-fit:contain}
+    .brand-text .title{font-weight:800;font-size:clamp(1.1rem,3vw,2rem);line-height:1}
     .brand-text .sub{color:var(--muted);margin-top:6px;font-size:0.95rem}
-
     .header-actions{display:flex;align-items:center;gap:10px}
     .pill{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);font-weight:600;color:var(--muted)}
     .pill:hover{transform:translateY(-2px);transition:transform .14s ease}
 
-    /* Glossy header backdrop (wrap the header with class glossy-header) */
-    .glossy-header{
-      background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 45%, #b0212b 100%);
-      padding:14px 18px;
-      border-radius:12px;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-    .glossy-header .title{ color:#fff }
-    .glossy-header .pill{ background: rgba(255,255,255,0.06); color:#fff; border-color: rgba(255,255,255,0.08) }
+    /* glossy header backdrop */
+    .glossy-header{background:linear-gradient(135deg,#0d0d0d 0%,#1a1a1a 45%,#b0212b 100%);padding:12px;border-radius:12px;box-shadow:0 6px 25px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06)}
+    .glossy-header .title{color:#fff}
+    .glossy-header .pill{background:rgba(255,255,255,0.06);color:#fff;border-color:rgba(255,255,255,0.08)}
 
-    /* HERO - responsive background + content */
-    .hero{
-      margin-top:18px;
-      border-radius:18px;
-      overflow:hidden;
-      position:relative;
-      background:
-        linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 100%),
-        url('/assets/hero.jpg?v=1') center/cover no-repeat;
-      min-height:320px;
-      display:flex;
-      align-items:center;
-    }
+    /* HERO */
+    .hero{margin-top:18px;border-radius:18px;overflow:hidden;position:relative;background:
+      linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 100%),
+      url('/assets/hero.jpg?v=1') center/cover no-repeat;min-height:320px;display:flex;align-items:center}
     .hero-inner{display:flex;align-items:center;gap:28px;padding:40px;width:100%}
     .hero-left{flex:1;max-width:780px}
     .hero-title{margin:0;font-size:clamp(1.6rem,5vw,3rem);line-height:1;font-weight:800}
     .hero-sub{color:var(--muted);margin:12px 0 20px;font-size:1.05rem}
     .cta-row{display:flex;gap:12px;align-items:center}
-    .btn-cta{
-      background:var(--brand);
-      color:#fff;
-      padding:14px 22px;
-      border-radius:12px;
-      font-weight:800;
-      border:none;
-      cursor:pointer;
-      box-shadow:0 10px 30px rgba(230,57,70,.16);
-      font-size:1rem;
-    }
-    .btn-ghost{
-      background:transparent;
-      border:1px solid rgba(255,255,255,.12);
-      padding:12px 18px;
-      border-radius:12px;
-      color:var(--ink);
-      font-weight:600;
-    }
+    .btn-cta{background:var(--brand);color:#fff;padding:14px 22px;border-radius:12px;font-weight:800;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(230,57,70,.16);font-size:1rem}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.12);padding:12px 18px;border-radius:12px;color:var(--ink);font-weight:600}
 
-    /* Hero right-side small badges */
-    .hero-right{min-width:160px; display:flex;flex-direction:column; gap:10px; align-items:flex-end}
-    .badge{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+    /* hero-right */
+    .hero-right{min-width:160px;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+    .badge{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);color:var(--ink)}
 
     /* SERVICES preview */
     .services{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:22px}
@@ -137,28 +69,34 @@
     .svc h4{margin:0;font-size:1rem}
     .svc p{margin:6px 0 0;color:var(--muted);font-size:0.92rem}
 
-    /* sticky mobile CTA */
-    .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:999;display:none}
-    .sticky-cta .btn{background:var(--brand);padding:12px 22px;border-radius:999px;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(230,57,70,.16)}
-    @media (max-width:780px){
-      .hero-inner{padding:22px;flex-direction:column;align-items:flex-start}
-      .hero-right{align-self:stretch; width:100%}
-      .hero{min-height:260px}
-      .brand img{width:80px}
-      .sticky-cta{display:block}
-    }
+    /* Quick CTA + trust */
+    .row-flex{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:26px}
+    .card-small{flex:1;min-width:220px;background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.03);color:var(--ink)}
 
     /* Footer */
     footer{color:var(--muted);text-align:center;padding:36px 0 90px;font-size:0.95rem}
 
-    /* small utilities */
+    /* Sticky mobile CTA: keep only this booking button as requested */
+    .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:999;display:none}
+    .sticky-cta .btn{background:var(--brand);padding:12px 22px;border-radius:999px;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(230,57,70,.16)}
+        /* Responsive fixes to prevent overlap on small screens */
+    @media (max-width:780px){
+      .hero-inner{padding:20px;flex-direction:column;align-items:flex-start;gap:14px}
+      .hero-right{display:none}            /* hide to avoid overlap */
+      .brand img{width:80px}
+      .sticky-cta{display:block}
+      .hero{min-height:260px}
+      .brand-text .title{font-size:1.05rem}
+    }
+
+    /* Utility */
     .muted{color:var(--muted)}
     .center{text-align:center}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- glossy header -->
+    <!-- header: no Book Now in header (only Admin + theme) -->
     <header class="site-header glossy-header" role="banner">
       <div class="brand">
         <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
@@ -169,7 +107,7 @@
       </div>
 
       <div class="header-actions" role="navigation" aria-label="Top actions">
-        <a class="pill" href="/booking.html" aria-label="Book now">Book Now</a>
+        <button id="themeToggle" class="pill" aria-label="Toggle theme">🌙</button>
         <a class="pill" href="/admin.html">Admin Login</a>
       </div>
     </header>
@@ -180,12 +118,13 @@
         <div class="hero-left">
           <h1 class="hero-title">Premium Car Wash & Detailing in Aligarh</h1>
           <p class="hero-sub">Shine, protect & revive your car — Bike, Sedan, SUV. Fast, professional, doorstep or wash center.</p>
-
           <div class="cta-row">
+            <!-- main CTA kept as non-floating for desktop; user asked only floating remains, but desktop keeps a prominent CTA too -->
             <a class="btn-cta" href="/booking.html">Book Now</a>
             <a class="btn-ghost" href="#services">Our Services</a>
           </div>
         </div>
+
         <div class="hero-right" aria-hidden="true">
           <div class="badge">
             <div style="font-weight:800">Open 10:00–20:00</div>
@@ -196,9 +135,9 @@
       </div>
     </section>
 
-      <!-- SERVICES PREVIEW -->
-    <section id="services" style="margin-top:26px">
-      <h3 style="margin:0 0 14px;font-size:1.1rem">Main Services</h3>
+    <!-- SERVICES PREVIEW -->
+    <section id="services">
+      <h3 style="margin:18px 0 12px;font-size:1.1rem">Main Services</h3>
       <div class="services">
         <div class="svc">
           <div class="icon" aria-hidden="true">🧽</div>
@@ -242,23 +181,22 @@
       </div>
     </section>
 
-    <!-- QUICK CTA + short trust row (can be expanded later) -->
-    <section style="margin-top:26px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-      <div style="flex:1;min-width:220px">
-        <div style="background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.03)">
-          <strong>Why choose Kleenkars?</strong>
-          <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:0.95rem">
-            <li>Eco-friendly water & responsible cleaning</li>
-            <li>Professional-grade products</li>
-            <li>Experienced & trained staff</li>
-          </ul>
-        </div>
+    <!-- Quick trust + single book CTA (kept minimal) -->
+    <div class="row-flex">
+      <div class="card-small">
+        <strong>Why choose Kleenkars?</strong>
+        <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:0.95rem">
+          <li>Eco-friendly water & responsible cleaning</li>
+          <li>Professional-grade products</li>
+          <li>Experienced & trained staff</li>
+        </ul>
       </div>
 
-      <div style="min-width:220px">
+      <div style="min-width:220px;display:flex;align-items:center;justify-content:center">
+        <!-- desktop CTA still visible; sticky one covers mobile -->
         <a class="btn-cta" href="/booking.html">Book Now — Quick</a>
       </div>
-    </section>
+    </div>
 
     <footer style="margin-top:32px">
       <div style="margin-bottom:12px" class="muted">© <span id="yr"></span> Kleenkars • Aligarh</div>
@@ -266,21 +204,34 @@
     </footer>
   </div>
 
-  <!-- Sticky mobile CTA -->
+  <!-- Sticky floating CTA (the single booking button you requested) -->
   <div class="sticky-cta" role="dialog" aria-hidden="false">
-    <a class="btn" href="/booking.html" style="background:var(--brand);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;display:inline-block">Book Now</a>
+    <a class="btn" href="/booking.html" aria-label="Book now (mobile)" style="background:var(--brand);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;display:inline-block">Book Now</a>
   </div>
 
   <script>
-    // set footer year
-    try { document.getElementById('yr').textContent = new Date().getFullYear(); } catch(e){}
-
-    // Small accessibility: focus outline for keyboard users
+    // footer year
+    try{ document.getElementById('yr').textContent = new Date().getFullYear(); }catch(e){}
+    // Theme toggle (simple)
     (function(){
-      document.addEventListener('keydown', function(e){
-        if(e.key === 'Tab') document.documentElement.classList.add('show-focus');
+      var btn = document.getElementById('themeToggle');
+      if(!btn) return;
+      function apply(isDark){
+        if(isDark){ document.body.classList.remove('light'); btn.textContent='🌙'; localStorage.setItem('theme','dark'); }
+        else { document.body.classList.add('light'); btn.textContent='☀️'; localStorage.setItem('theme','light'); }
+      }
+      var saved = localStorage.getItem('theme');
+      if(saved) apply(saved !== 'light');
+      else apply(!(new Date().getHours() >= 6 && new Date().getHours() < 18));
+      btn.addEventListener('click', function(){
+        var isNowDark = !document.body.classList.contains('light');
+        apply(!isNowDark);
       });
     })();
+
+    // small accessibility: focus outline when using keyboard
+    (function(){ document.addEventListener('keydown', function(e){ if(e.key==='Tab') document.documentElement.classList.add('show-focus'); }); })();
   </script>
 </body>
 </html>
+    
