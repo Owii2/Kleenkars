@@ -78,7 +78,7 @@
     .hero-visual{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:#0f0f16;aspect-ratio:16/9}
     .hero-visual img{width:100%;height:100%;object-fit:cover;display:block}
 
-    /* form layout */
+    /* form layout (removed quick booking - kept styles) */
     .grid{display:grid;gap:12px}
     .two{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
     label{font-weight:600;font-size:.94rem;display:block;margin-bottom:6px}
@@ -128,9 +128,9 @@
     /* footer */
     footer{margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.04);color:var(--muted)}
     footer nav a{margin-right:10px}
-    /* floating book button for mobile */
-    .float-book{position:fixed;right:16px;bottom:18px;border-radius:999px;background:var(--accent);color:#fff;padding:12px 16px;font-weight:800;z-index:999;box-shadow:0 12px 34px rgba(230,57,70,.2);display:flex;align-items:center;gap:10px}
-    @media (min-width:980px){ .float-book{display:none} } /* desktop uses header CTA */
+    /* floating book button moved to bottom-center */
+    .float-book{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;border-radius:999px;background:var(--accent);color:#fff;padding:12px 18px;font-weight:800;z-index:999;box-shadow:0 12px 34px rgba(230,57,70,.2);display:flex;align-items:center;gap:10px}
+    @media (min-width:980px){ .float-book{display:block} }
 
   </style>
 </head>
@@ -150,61 +150,28 @@
 
       <div class="header-actions" role="navigation" aria-label="Site actions">
         <button id="themeToggle" class="pill theme-btn" aria-label="Toggle theme">🌙</button>
-        <a class="pill" href="/booking.html" aria-label="Go to booking page">Book Now</a>
+        <!-- header Book Now removed as requested -->
       </div>
     </header>
 
-    <!-- HERO: left=form, right visual -->
+    <!-- HERO: left=info (no booking), right visual -->
     <section class="hero" aria-labelledby="heroHeading">
       <div class="card">
         <h1 id="heroHeading">Premium Car Wash & Detailing in Aligarh</h1>
         <p class="sub">Shine, protect & revive your ride — Bike, Sedan & SUV. Doorstep Home Visit or at our Wash Center. Open daily 10:00–20:00.</p>
 
-        <!-- quick booking form (keeps simple - button links to booking page) -->
-        <form id="quickBooking" class="grid" onsubmit="event.preventDefault(); window.location='/booking.html'">
-          <div class="two">
-            <div>
-              <label for="qname">Your name</label>
-              <input id="qname" name="qname" placeholder="Full name">
-            </div>
-            <div>
-              <label for="qphone">Phone</label>
-              <input id="qphone" name="qphone" placeholder="10-digit mobile" inputmode="numeric">
-            </div>
-          </div>
+        <!-- Booking section removed from homepage as requested.
+             Kept an informational link to booking page instead. -->
+        <div style="margin-top:12px">
+          <a class="pill" href="/booking.html" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">Go to booking page</a>
+          <a class="pill" href="https://wa.me/919910578378?text=Hi%20Kleenkars,%20I%20want%20to%20book%20a%20slot." target="_blank" rel="noopener" style="margin-left:10px">WhatsApp</a>
+        </div>
 
-          <div class="two" style="margin-top:6px">
-            <div>
-              <label for="qvehicle">Vehicle</label>
-              <select id="qvehicle" name="qvehicle">
-                <option value="">Select</option>
-                <option>Bike</option>
-                <option>Hatchback / Sedan</option>
-                <option>SUV</option>
-              </select>
-            </div>
-            <div>
-              <label for="qservice">Service</label>
-              <select id="qservice" name="qservice">
-                <option value="">Select</option>
-                <option>Basic Wash</option>
-                <option>Premium Wash</option>
-                <option>Full Detailing</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
-            <button class="btn primary" type="submit">Book & Confirm</button>
-            <a class="pill" href="https://wa.me/919910578378?text=Hi%20Kleenkars,%20I%20want%20to%20book%20a%20slot." target="_blank" rel="noopener">Book via WhatsApp</a>
-          </div>
-        </form>
-
-        <div style="margin-top:16px" class="muted">Or go to <a href="/booking.html">Full booking form</a> to choose date & time.</div>
+        <div style="margin-top:16px" class="muted">Or use the floating <strong>Book Now</strong> button at the bottom of the screen to make a booking.</div>
       </div>
 
       <div class="hero-visual" aria-hidden="true">
-        <!-- Replace with /assets/hero.webp for smaller size if available -->
+        <!-- Replace with /assets/hero.webp if available -->
         <img src="/assets/hero.jpg" alt="Kleenkars foam wash in action">
       </div>
     </section>
@@ -243,7 +210,7 @@
       </div>
       <div style="margin-top:12px">
         <a class="pill" href="/pricing.html">See Full Price List</a>
-        <a class="pill" href="/booking.html" style="margin-left:10px;background:var(--accent);color:#fff;border:0">Book Package</a>
+        <!-- Book Package removed -->
       </div>
     </section>
 
@@ -277,9 +244,9 @@
       <div class="contact-grid">
         <div>
           <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
-            <!-- Replace src with your exact Google Maps embed link if you have it -->
+            <!-- Google Maps using your Plus Code (W3VP+V5 Aligarh, Uttar Pradesh) -->
             <iframe width="100%" height="300" style="border:0" loading="lazy"
-              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2858.123456789012!2d78.0854167!3d27.9446657!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDU2JzE0LjkiTiA3OMKwMDUnMTMuNiJF!5e0!3m2!1sen!2sin!4v0000000000000"
+              src="https://www.google.com/maps/search/?api=1&query=W3VP%2BV5+Aligarh%2C+Uttar+Pradesh"
               referrerpolicy="no-referrer-when-downgrade" aria-hidden="false"></iframe>
           </div>
           <div style="margin-top:10px;color:var(--muted)">
@@ -328,7 +295,7 @@
     </footer>
   </div>
 
-  <!-- Floating mobile book -->
+  <!-- Floating book (only booking CTA) - bottom center -->
   <a class="float-book" href="/booking.html" aria-label="Book now">Book Now</a>
 
   <!-- Centered toast (used for local messages) -->
@@ -353,7 +320,7 @@
         const h = new Date().getHours();
         setTheme((h >= 7 && h < 19) ? 'light' : 'dark');
       }
-      btn.addEventListener('click', ()=>{
+      if(btn) btn.addEventListener('click', ()=>{
         const isLight = document.body.classList.contains('light');
         setTheme(isLight ? 'dark' : 'light');
       });
@@ -368,7 +335,6 @@
       function setPos(pct){
         after.style.width = pct + '%';
         handle.style.left = pct + '%';
-        const slider = handle.closest('.ba-wrap');
         if(handle) handle.setAttribute('aria-valuenow', Math.round(pct));
       }
       // initial
@@ -390,11 +356,6 @@
       window.addEventListener('touchmove', (e)=>{ if(dragging) pointerPos(e.touches[0].clientX); }, {passive:true});
       // click to move
       wrap.addEventListener('click', (e)=> pointerPos(e.clientX || (e.touches && e.touches[0].clientX)));
-    })();
-
-    /* ---------- Simple accessibility helpers (optional) ---------- */
-    (function(){
-      // Make logo click go home (already anchored) — no extra code needed.
     })();
 
     /* ---------- Utility: show toast (use locally) ---------- */
