@@ -1,602 +1,189 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <title>Kleenkars Car Wash & Detailing in Aligarh | Bike, Sedan & SUV</title>
-  <meta name="description" content="Kleenkars offers professional car wash and detailing in Aligarh. Services for Bike, Sedan and SUV with doorstep Home Visit or Wash Center. Open daily 10 AM–8 PM. Call 9910578378.">
-  <link rel="canonical" href="https://kleenkars.in/">
-  
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#e63946">
-
-  <!-- iOS Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kleenkars">
-
-  <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="256x256" href="/assets/icons/icon-256.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/icon-512.png">
-
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kleenkars — Premium Car Wash & Detailing in Aligarh</title>
+  <meta name="description" content="Premium car wash & detailing in Aligarh. Book Kleenkars for Bike, Sedan & SUV. Doorstep or Wash Center.">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="canonical" href="https://kleenkars.in/">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b0b12">
+
+  <!-- Fallback icons (keep your existing files) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
-    /* ---------------- Theme variables ---------------- */
-    :root {
+    :root{
       --bg:#0b0b12;
       --card:#13131b;
       --ink:#e9e9ef;
       --muted:#b8b8c6;
-      --accent:#e63946;   /* brand red */
-      --accent-2:#111016;
-      --border:#242433;
-      --radius:16px;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --control-h:48px;
+      --brand:#e63946; /* red */
+      --accent:#e63946;
+      --radius:14px;
+      --container:1100px;
     }
-
-    /* Light mode overrides (toggle body.light) */
-    body.light {
-      --bg:#ffffff;
-      --card:#f7f7f7;
-      --ink:#111111;
-      --muted:#5a5a5a;
-      --accent:#e63946; /* keep red */
-      --accent-2:#f1f1f5;
-      --border:#e6e6e6;
-    }
-
     *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:var(--container);margin:0 auto;padding:20px}
+
+    /* Header */
+    header.site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{width:clamp(72px,10vw,120px);height:auto;border-radius:12px;background:#000;border:1px solid rgba(255,255,255,.04);object-fit:contain}
+    .brand-text .title{font-weight:800;font-size:clamp(1.1rem,3vw,2rem);line-height:1}
+    .brand-text .sub{color:var(--muted);margin-top:6px;font-size:0.95rem}
+
+    .header-actions{display:flex;align-items:center;gap:10px}
+    .pill{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);font-weight:600;color:var(--muted)}
+    .pill:hover{transform:translateY(-2px);transition:transform .14s ease}
+
+    /* HERO */
+    .hero{
+      margin-top:10px;
+      border-radius:18px;
+      overflow:hidden;
+      position:relative;
       background:
-        radial-gradient(1000px 600px at 80% -10%, rgba(230,57,70,0.05), transparent 60%),
-        radial-gradient(900px 500px at -10% 20%, rgba(230,57,70,0.03), transparent 60%),
-        var(--bg);
-      color:var(--ink);
-      line-height:1.6;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+        linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 100%),
+        url('/assets/hero.jpg?v=1') center/cover no-repeat;
+      min-height:320px;
+      display:flex;
+      align-items:center;
     }
+    .hero-inner{display:flex;align-items:center;gap:28px; padding:40px; width:100%}
+    .hero-left{flex:1;max-width:720px}
+    .hero-title{margin:0;font-size:clamp(1.6rem,5vw,3rem);line-height:1; font-weight:800}
+    .hero-sub{color:var(--muted);margin:12px 0 20px;font-size:1.05rem}
+    .cta-row{display:flex;gap:12px;align-items:center}
+    .btn-cta{background:var(--brand);color:#fff;padding:14px 22px;border-radius:12px;font-weight:800;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(230,57,70,.16);font-size:1rem}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.12);padding:12px 18px;border-radius:12px;color:var(--ink);font-weight:600}
 
-    a{color:inherit; text-decoration:none}
-    .wrap{max-width:1100px; margin:auto; padding:20px}
+    /* Services preview */
+    .services{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:22px}
+    .svc{background:rgba(255,255,255,.02);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.03);display:flex;gap:12px;align-items:flex-start}
+    .svc .icon{width:44px;height:44px;border-radius:10px;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:var(--brand);font-weight:800}
+    .svc h4{margin:0;font-size:1rem}
+    .svc p{margin:6px 0 0;color:var(--muted);font-size:0.92rem}
 
-    /* ---------------- Header (glossy top) ---------------- */
-    .site-header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:16px 14px; gap:16px; flex-wrap:wrap;
-    }
-    .glossy-header {
-      background: linear-gradient(135deg, #0b0b0d 0%, #151216 45%, rgba(230,57,70,0.08) 100%);
-      padding: 14px;
-      border-radius:12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-    }
+    /* Sticky mobile CTA */
+    .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:999;display:none}
+    .sticky-cta .btn{background:var(--brand);padding:12px 22px;border-radius:999px;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(230,57,70,.16)}
+    @media (max-width:780px){ .hero-inner{padding:22px} .hero{min-height:260px} .brand img{width:80px} .sticky-cta{display:block} }
 
-    .brand { display:flex; align-items:center; gap:16px; flex:1; min-width:200px; }
-    .brand img {
-      width: clamp(72px, 9.5vw, 120px);  /* responsive: min 72, fluid, max 120 */
-      height:auto; object-fit:contain; border-radius:10px;
-      background:#0f0f16; border:1px solid var(--border);
-    }
-    /* optional red glow for glossy header */
-    .glossy-header .brand img {
-      border-radius:12px;
-      border:1px solid rgba(230,57,70,0.25);
-      box-shadow: 0 6px 28px rgba(230,57,70,0.14), 0 2px 10px rgba(230,57,70,0.06);
-    }
+    /* Footer */
+    footer{color:var(--muted);text-align:center;padding:36px 0 90px;font-size:0.95rem}
 
-    .brand-text { display:flex; flex-direction:column; }
-    .brand-text .title {
-      font-weight:800; font-size: clamp(1.25rem, 3.2vw, 2rem); color: #fff;
-      line-height:1;
-    }
-    .brand-text .tagline { margin-top:4px; color:var(--muted); font-size:0.98rem; }
+    /* small utilities */
+    .muted{color:var(--muted)}
+    .center{text-align:center}
 
-    .header-actions { display:flex; align-items:center; gap:10px; }
-    .header-actions .pill {
-      padding:8px 12px; border-radius:999px; font-size:0.95rem;
-      background: rgba(255,255,255,0.03); color:var(--ink); border:1px solid rgba(255,255,255,0.04);
-    }
-    .header-actions .pill:hover { transform:translateY(-2px); }
-
-    /* theme toggle button */
-    #themeToggle {
-      cursor:pointer; border-radius:999px; padding:8px 10px; font-size:1.12rem;
-      background:var(--card); border:1px solid var(--border); color:var(--ink);
-    }
-
-    /* ---------------- Layout / hero ---------------- */
-    .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:stretch; margin-top:18px; }
-    @media (max-width:780px){ .hero { grid-template-columns:1fr; } }
-
-    .card { background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)), var(--card);
-      border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
-    .p24 { padding:24px; }
-
-    .hero h1 { margin:0 0 10px; font-size: clamp(22px, 3.4vw, 38px); line-height:1.05; }
-    .sub { color:var(--muted); margin:6px 0 18px; }
-
-    .grid{display:grid; gap:12px}
-    .two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-
-    label{font-weight:600; font-size:.95rem}
-    input, select, textarea {
-      width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
-      background:var(--card); color:var(--ink); outline:none; min-width:0;
-    }
-    input::placeholder, textarea::placeholder { color:var(--muted); }
-    select option { background:var(--card); color:var(--ink); }
-
-    /* uniform control heights */
-    #service, #date, #time { height:var(--control-h); min-height:var(--control-h); padding:0 12px; line-height:var(--control-h); }
-    input[type="date"], select{ -webkit-appearance:none; appearance:none; }
-
-    .help{font-size:.85rem; color:var(--muted)}
-    .price {
-      margin-top:10px; font-weight:800; font-size:1.05rem; background:var(--card); color:var(--ink);
-      border:1px dashed var(--border); padding:10px 12px; border-radius:12px;
-    }
-
-    .svc-desc{margin-top:6px; font-size:.92rem; color:var(--muted)}
-
-    .radio-row{display:flex; gap:8px; flex-wrap:wrap}
-    .radio {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      border:1px solid var(--border); padding:8px 12px; border-radius:10px; background:var(--card); color:var(--ink);
-      min-height:var(--control-h); flex:1 1 220px; text-align:center; font-size:.95rem;
-    }
-    .radio input[type="radio"]{margin:0; transform:translateY(1px)}
-
-    /* ---------------- Hero media sizing (prevent huge mobile hero) ---------------- */
-    .hero-media{ display:block; position:relative; border-radius:16px; border:1px solid var(--border); overflow:hidden; aspect-ratio:16/9; background:#0f0f16; max-height:420px; }
-    .hero-media img{ width:100%; height:100%; object-fit:cover; display:block; }
-    @media (max-width:480px){
-      .hero-media { max-height: 36vh; }
-      .brand img { width: clamp(60px, 18vw, 96px); }
-    }
-
-    /* ---------------- CTA button (Book Now / Confirm) ---------------- */
-    .btn { appearance:none; border-radius:12px; cursor:pointer; padding:10px 16px; font-weight:600; border:1px solid transparent; }
-    .btn.primary {
-      background: linear-gradient(180deg, var(--accent), #c8333f);
-      color:#fff; font-size:1.05rem; padding:14px 26px; border-radius:14px;
-      display:block; margin:20px auto; text-align:center; font-weight:800;
-      box-shadow: 0 10px 30px rgba(230,57,70,0.12), inset 0 -4px 18px rgba(0,0,0,0.08);
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .btn.primary:hover { transform:translateY(-3px); box-shadow: 0 18px 50px rgba(230,57,70,0.22); }
-
-    /* ---------------- Toast / confirmation ---------------- */
-    .toast {
-      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background: rgba(0,0,0,0.82); color:#fff; padding:22px 26px; border-radius:14px;
-      border:2px solid var(--accent); box-shadow:0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(6px);
-      max-width:92%; text-align:center; z-index:9999; display:none; font-size:1rem; line-height:1.4;
-    }
-    body.light .toast { background: rgba(255,255,255,0.95); color:#111; }
-    .toast.show { display:block; }
-    .toast .close-btn { position:absolute; top:8px; right:10px; cursor:pointer; color:var(--muted); }
-
-    /* ---------------- Footer ---------------- */
-    footer { opacity:.92; padding:28px 8px; text-align:center; color:var(--muted); margin-top:20px; }
-
-    /* small helpers */
-    .card.p24 { padding:20px; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="site-header glossy-header">
+    <header class="site-header">
       <div class="brand">
         <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
         <div class="brand-text">
           <div class="title">Kleenkars Car Wash</div>
-          <div class="tagline">Premium • Wash • Detailing</div>
+          <div class="sub muted">Premium • Wash • Detailing — Aligarh</div>
         </div>
       </div>
 
       <div class="header-actions">
-        <button id="themeToggle" aria-label="Toggle theme">🌙</button>
+        <!-- theme toggle here could later be wired to the same code used on booking.html -->
+        <a class="pill" href="/booking.html" aria-label="Book now">Book Now</a>
         <a class="pill" href="/admin.html">Admin Login</a>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="card p24">
-        <h1>Premium Car Wash & Detailing in Aligarh</h1>
-        <p class="sub">Shine, Protect & Revive Your Car — Bike, Sedan, SUV</p>
+    <!-- HERO -->
+    <section class="hero" role="banner" aria-label="Kleenkars — Premium Car Wash & Detailing">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <h1 class="hero-title">Premium Car Wash & Detailing in Aligarh</h1>
+          <p class="hero-sub">Shine, protect & revive your car — Bike, Sedan, SUV. Fast, professional, doorstep or wash center.</p>
 
-      <!-- START: main content / form (can be homepage CTA or quick booking) -->
-
-        <form id="booking" class="grid" autocomplete="on" novalidate>
-          <div class="grid two">
-            <div>
-              <label for="name">Customer name</label>
-              <input id="name" name="name" placeholder="Full name" required>
-            </div>
-            <div>
-              <label for="phone">Phone number</label>
-              <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" required>
-            </div>
+          <div class="cta-row">
+            <a class="btn-cta" href="/booking.html">Book Now</a>
+            <a class="btn-ghost" href="#services">Our Services</a>
           </div>
-
-          <div class="grid two">
-            <div>
-              <label for="vehicle">Vehicle type</label>
-              <select id="vehicle" name="vehicle" required>
-                <option value="" disabled selected>Select</option>
-                <option value="Bike">Bike</option>
-                <option value="Hatch/Sedan">Hatchback / Sedan</option>
-                <option value="SUV">SUV</option>
-              </select>
-            </div>
-            <div>
-              <label for="service">Service</label>
-              <select id="service" name="service" required>
-                <option value="" disabled selected>Select vehicle first</option>
-              </select>
-              <div class="help" id="serviceHelp">Choose a vehicle to see pricing.</div>
-              <div class="svc-desc" id="svcDesc"></div>
-            </div>
+        </div>
+        <!-- optional right-side image or badge -->
+        <div class="hero-right center" aria-hidden="true" style="min-width:160px;">
+          <!-- small badges / trust items -->
+          <div style="background:rgba(0,0,0,.25);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.03)">
+            <div style="font-weight:800;font-size:1.1rem">Open 10:00–20:00</div>
+            <div class="muted" style="margin-top:6px">Call: 9910578378</div>
           </div>
-
-          <div class="grid two">
-            <div>
-              <label for="date">Preferred date</label>
-              <input type="date" id="date" name="date" required>
-            </div>
-            <div>
-              <label for="time">Time slots</label>
-              <select id="time" name="time" required>
-                <option value="" disabled selected>Pick a time</option>
-                <!-- times omitted for brevity; keep your full list in your file -->
-                <option value="10:00">10:00 AM</option>
-                <option value="10:15">10:15 AM</option>
-                <option value="10:30">10:30 AM</option>
-                <option value="10:45">10:45 AM</option>
-                <option value="11:00">11:00 AM</option>
-                <option value="11:15">11:15 AM</option>
-                <option value="11:30">11:30 AM</option>
-                <option value="11:45">11:45 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="12:15">12:15 PM</option>
-                <option value="12:30">12:30 PM</option>
-                <option value="12:45">12:45 PM</option>
-                <option value="13:00">1:00 PM</option>
-                <option value="13:15">1:15 PM</option>
-                <option value="13:30">1:30 PM</option>
-                <option value="13:45">1:45 PM</option>
-                <option value="14:00">2:00 PM</option>
-                <option value="14:15">2:15 PM</option>
-                <option value="14:30">2:30 PM</option>
-                <option value="14:45">2:45 PM</option>
-                <option value="15:00">3:00 PM</option>
-                <option value="15:15">3:15 PM</option>
-                <option value="15:30">3:30 PM</option>
-                <option value="15:45">3:45 PM</option>
-                <option value="16:00">4:00 PM</option>
-                <option value="16:15">4:15 PM</option>
-                <option value="16:30">4:30 PM</option>
-                <option value="16:45">4:45 PM</option>
-                <option value="17:00">5:00 PM</option>
-                <option value="17:15">5:15 PM</option>
-                <option value="17:30">5:30 PM</option>
-                <option value="17:45">5:45 PM</option>
-                <option value="18:00">6:00 PM</option>
-                <option value="18:15">6:15 PM</option>
-                <option value="18:30">6:30 PM</option>
-                <option value="18:45">6:45 PM</option>
-                <option value="19:00">7:00 PM</option>
-                <option value="19:15">7:15 PM</option>
-                <option value="19:30">7:30 PM</option>
-                <option value="19:45">7:45 PM</option>
-                <option value="20:00">8:00 PM</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label>Visit type</label>
-            <div class="radio-row">
-              <label class="radio"><input type="radio" name="visit" value="Wash Center" checked> Wash Center</label>
-              <label class="radio"><input type="radio" name="visit" value="Home Visit"> Home Visit (+₹50)</label>
-            </div>
-          </div>
-
-          <div id="addressWrap" style="display:none;">
-            <label for="address">Address (for Home Visit)</label>
-            <textarea id="address" name="address" rows="2" placeholder="House/Flat, Street, Area, City"></textarea>
-          </div>
-
-          <div class="price" id="priceBox">Estimated price: —</div>
-
-          <!-- Homepage CTA (Book Now) -->
-          <button class="btn primary" type="button" id="confirm">Book Now</button>
-        </form>
+        </div>
       </div>
-
-      <picture class="hero-media" aria-label="Kleenkars foam wash in action">
-        <img src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
-      </picture>
     </section>
 
-    <footer>© <span id="yr"></span> Kleenkars • Aligarh • Open 10:00–20:00 Daily</footer>
+    <!-- SERVICES PREVIEW -->
+    <section id="services" style="margin-top:26px">
+      <h3 style="margin:0 0 14px;font-size:1.1rem">Main Services</h3>
+      <div class="services">
+        <div class="svc">
+          <div class="icon">🧽</div>
+          <div>
+            <h4>Exterior Wash</h4>
+            <p>Thorough exterior shampoo, tyre & wheel cleaning, microfiber dry.</p>
+          </div>
+        </div>
+
+        <div class="svc">
+          <div class="icon">🧼</div>
+          <div>
+            <h4>Interior Detailing</h4>
+            <p>Deep interior cleaning, vacuum, wipe, fabric & leather care.</p>
+          </div>
+        </div>
+
+        <div class="svc">
+          <div class="icon">✨</div>
+          <div>
+            <h4>Ceramic Coating</h4>
+            <p>Long-lasting protective coating for paint gloss & protection.</p>
+          </div>
+        </div>
+
+        <div class="svc">
+          <div class="icon">🛠️</div>
+          <div>
+            <h4>Engine Bay</h4>
+            <p>Degreasing & safe cleaning for engine bay components.</p>
+          </div>
+        </div>
+
+        <div class="svc">
+          <div class="icon">🏍️</div>
+          <div>
+            <h4>Bike Wash</h4>
+            <p>Fast & careful motorcycle cleaning and detailing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="yr"></span> Kleenkars • Aligarh • Open daily 10:00–20:00
+    </footer>
   </div>
 
-  <!-- Confirmation toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <span class="close-btn" onclick="document.getElementById('toast').classList.remove('show')">✖</span>
-    <div id="toastContent">✅ Booking confirmed!</div>
+  <!-- Sticky CTA for mobile -->
+  <div class="sticky-cta">
+    <a class="btn" href="/booking.html" style="background:var(--brand);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;display:inline-block">Book Now</a>
   </div>
 
-<script>
-/* ---------- Elements ---------- */
-const els = {
-  vehicle: document.getElementById('vehicle'),
-  service: document.getElementById('service'),
-  serviceHelp: document.getElementById('serviceHelp'),
-  svcDesc: document.getElementById('svcDesc'),
-  name: document.getElementById('name'),
-  phone: document.getElementById('phone'),
-  date: document.getElementById('date'),
-  time: document.getElementById('time'),
-  visitRadios: document.querySelectorAll('input[name="visit"]'),
-  addressWrap: document.getElementById('addressWrap'),
-  address: document.getElementById('address'),
-  priceBox: document.getElementById('priceBox'),
-  confirm: document.getElementById('confirm'),
-  toast: document.getElementById('toast'),
-  toastContent: document.getElementById('toastContent'),
-  themeToggle: document.getElementById('themeToggle')
-};
-
-/* ---------- Footer Year + Date Min ---------- */
-document.getElementById('yr').textContent = new Date().getFullYear();
-if (els.date) els.date.setAttribute('min', new Date().toISOString().split('T')[0]);
-
-/* ---------- Phone input cleanup ---------- */
-if (els.phone) els.phone.addEventListener('input', () => {
-  els.phone.value = els.phone.value.replace(/\D/g, '').slice(0, 10);
-});
-
-/* ---------- Theme Toggle (auto + manual) ---------- */
-function applyTheme(isDark){
-  if(isDark){
-    document.body.classList.remove('light');
-    els.themeToggle.textContent = '🌙';
-    localStorage.setItem('theme','dark');
-  } else {
-    document.body.classList.add('light');
-    els.themeToggle.textContent = '☀️';
-    localStorage.setItem('theme','light');
-  }
-}
-const savedTheme = localStorage.getItem('theme');
-if(savedTheme){
-  applyTheme(savedTheme === 'dark');
-} else {
-  const hour = new Date().getHours();
-  applyTheme(!(hour >= 6 && hour < 18));
-}
-if (els.themeToggle) els.themeToggle.addEventListener('click', ()=>{
-  const isCurrentlyDark = !document.body.classList.contains('light');
-  applyTheme(!isCurrentlyDark);
-});
-
-/* ---------- Services loading (unchanged) ---------- */
-let SERVICES = [];
-const FALLBACK = [
-  { name:"Basic Wash",       bike:50,   sedan:150,  suv:200,  position:1, visible:true, description:"Exterior wash & dry" },
-  { name:"Premium Car Wash", bike:null, sedan:200,  suv:250,  position:2, visible:true, description:"Foam wash + interior wipe" },
-  { name:"Detailing",        bike:null, sedan:1500, suv:2500, position:3, visible:true, description:"Deep interior & exterior treatment" }
-];
-
-async function tryFetch(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  const d = await r.json();
-  if(Array.isArray(d)) return d;
-  if(d && d.ok && Array.isArray(d.rows)) return d.rows;
-  throw new Error("Unexpected response");
-}
-
-async function loadServices(){
-  const candidates = [
-    "/.netlify/functions/admin-services?public=1",
-    "/.netlify/functions/site-settings?fn=services",
-    "/.netlify/functions/services"
-  ];
-  for(const url of candidates){
-    try{
-      const rows = await tryFetch(url);
-      if(rows && rows.length){
-        SERVICES = rows.slice().sort((a,b)=>{
-          const pa = a.position ?? 1e9, pb = b.position ?? 1e9;
-          if (pa !== pb) return pa - pb;
-          return String(a.name||"").localeCompare(String(b.name||""));
-        });
-        return;
-      }
-    }catch(e){ /* try next */ }
-  }
-  SERVICES = FALLBACK;
-}
-
-function parseIntLike(v){
-  if (v == null) return null;
-  const m = String(v).match(/\d+/);
-  if (!m) return null;
-  const n = parseInt(m[0], 10);
-  return Number.isFinite(n) ? n : null;
-}
-function priceFor(row, vehicle){
-  const key = vehicle === "Bike" ? "bike" : (vehicle === "SUV" ? "suv" : "sedan");
-  return parseIntLike(row?.[key]);
-}
-
-/* ---------- Bike => Basic-only ---------- */
-function servicesForVehicle(v){
-  if(!v) return [];
-  const list = SERVICES
-    .map(row => ({ name: String(row.name||""), price: priceFor(row, v), description: String(row.description||"") }))
-    .filter(x => x.name && x.price != null);
-
-  if(v === "Bike"){
-    const basic = list.find(x => /basic/i.test(x.name));
-    if(basic) return [basic];
-    if(list.length) return [list.sort((a,b)=>a.price-b.price)[0]];
-    return [];
-  }
-  return list;
-}
-
-/* ---------- UI helpers ---------- */
-function getVisit(){
-  const r = Array.from(els.visitRadios).find(r=>r.checked);
-  return r ? r.value : "Wash Center";
-}
-function populateServices(){
-  const v = (els.vehicle.value || "").trim();
-  els.service.innerHTML = `<option value="" disabled selected>${v ? "Select" : "Select vehicle first"}</option>`;
-  els.svcDesc.textContent = "";
-  const list = servicesForVehicle(v);
-  if(list.length===0){
-    els.serviceHelp.textContent = v ? "No services available for this vehicle." : "Choose a vehicle to see pricing.";
-    updatePriceUI(); return;
-  }
-  for(const item of list){
-    const opt = document.createElement("option");
-    opt.value = item.name;
-    opt.textContent = `${item.name} — ₹${item.price}`;
-    opt.dataset.price = item.price;
-    opt.dataset.description = item.description || "";
-    els.service.appendChild(opt);
-  }
-  els.serviceHelp.textContent = list.map(i=>`${i.name} ₹${i.price}`).join(" • ");
-  updateServiceDesc();
-  updatePriceUI();
-}
-function updateServiceDesc(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  if(!v || !s){ els.svcDesc.textContent=""; return; }
-  const list = servicesForVehicle(v);
-  const item = list.find(x=>x.name===s);
-  els.svcDesc.textContent = item?.description || "";
-}
-function computePrice(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  if(!v || !s) return null;
-  const list = servicesForVehicle(v);
-  const item = list.find(x=>x.name===s);
-  if(!item) return null;
-  let p = item.price;
-  if(getVisit()==="Home Visit") p += 50;
-  return p;
-}
-function updatePriceUI(){
-  const v = (els.vehicle.value || "").trim();
-  const s = (els.service.value || "").trim();
-  const p = computePrice();
-  if(p!=null){
-    els.priceBox.innerHTML = `Estimated price: <b>₹${p}</b> <span class="help">(${s} • ${v}${getVisit()==="Home Visit"?" +₹50":""})</span>`;
-  } else {
-    els.priceBox.textContent = "Estimated price: —";
-  }
-}
-function visitChanged(){
-  const v = getVisit();
-  els.addressWrap.style.display = v==="Home Visit" ? "block" : "none";
-  if(v==="Home Visit"){ els.address?.setAttribute('required','required'); }
-  else { els.address?.removeAttribute('required'); els.address.value=""; }
-}
-
-/* ---------- Init & bindings ---------- */
-async function init(){
-  await loadServices();
-  ['change','input'].forEach(ev=>{
-    if (els.vehicle) els.vehicle.addEventListener(ev, ()=>{ populateServices(); });
-    if (els.service) els.service.addEventListener(ev, ()=>{ updatePriceUI(); updateServiceDesc(); });
-    els.visitRadios.forEach(r=>r.addEventListener(ev, ()=>{ visitChanged(); updatePriceUI(); }));
-  });
-  visitChanged();
-  populateServices();
-}
-init();
-
-/* ---------- Booking submit (Book Now) ---------- */
-if (els.confirm) els.confirm.addEventListener('click', async ()=>{
-  const raw = els.phone.value.replace(/\D/g,'');
-  if(raw.length!==10){ alert("Enter a valid 10-digit number."); return; }
-
-  const payload = {
-    name: els.name.value.trim(),
-    phone: raw,
-    vehicle: (els.vehicle.value||"").trim(),
-    service: (els.service.value||"").trim(),
-    date: els.date.value,
-    time: els.time.value,
-    visit: getVisit(),
-    address: els.address?.value.trim(),
-    price: computePrice()
-  };
-
-  if(!payload.vehicle){ alert("Select a vehicle."); return; }
-  if(!payload.service){ alert("Select a service."); return; }
-  if(payload.price==null){ alert("Selected service is not available for this vehicle."); return; }
-
-  els.confirm.disabled = true; els.confirm.textContent = "Saving…";
-  try{
-    const r = await fetch("/.netlify/functions/saveBooking", {
-      method:"POST", headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await r.json();
-    if(!data.ok) throw new Error(data.error||"Save failed");
-
-    // show brand-styled toast in center
-    els.toastContent.innerHTML = `
-      ✅ Thank you, <strong>${payload.name || 'Customer'}</strong>!<br>
-      Your <strong>${payload.service || 'selected service'}</strong> is confirmed.<br>
-      We look forward to your arrival 🚗✨
-    `;
-    els.toast.classList.add('show');
-
-    // auto hide after 4s
-    setTimeout(()=> els.toast.classList.remove('show'), 4000);
-
-    const text = `KLEENKARS BOOKING\n\nName: ${payload.name}\nPhone: +91 ${payload.phone}\nVehicle: ${payload.vehicle}\nService: ${payload.service}\nVisit: ${payload.visit}\nPreferred: ${payload.date} ${payload.time}\nPrice: ₹${payload.price}`;
-    if(data.admin) window.open(`https://api.whatsapp.com/send?phone=${data.admin}&text=${encodeURIComponent(text)}`, "_blank");
-    if(data.manager) window.open(`https://api.whatsapp.com/send?phone=${data.manager}&text=${encodeURIComponent("NEW BOOKING ALERT\n\n"+text)}`, "_blank");
-
-  }catch(e){
-    alert(e.message);
-  }finally{
-    els.confirm.disabled=false; els.confirm.textContent="Book Now";
-  }
-});
-
-/* ---------- hero override loader (admin local upload) ---------- */
-(function(){
-  try{
-    var saved = localStorage.getItem('kleenkars.hero');
-    if(saved){
-      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
-      if(hero) hero.src = saved;
-    }
-  }catch(e){}
-})();
-</script>
-
+  <script>
+    // small script: set footer year
+    try{ document.getElementById('yr').textContent = new Date().getFullYear(); }catch(e){}
+  </script>
 </body>
 </html>
-    
