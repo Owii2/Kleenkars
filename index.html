@@ -9,10 +9,11 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
 
-  <!-- Fallback icons (keep your existing files) -->
+  <!-- Icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 
+  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
@@ -22,29 +23,74 @@
       --ink:#e9e9ef;
       --muted:#b8b8c6;
       --brand:#e63946; /* red */
-      --accent:#e63946;
+      --accent:var(--brand);
       --radius:14px;
       --container:1100px;
     }
+
+    /* Light mode override when body.light is toggled */
+    body.light {
+      --bg:#ffffff;
+      --card:#f9f9f9;
+      --ink:#111111;
+      --muted:#444444;
+    }
+
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+    }
     a{color:inherit;text-decoration:none}
     .wrap{max-width:var(--container);margin:0 auto;padding:20px}
 
     /* Header */
-    header.site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0}
+    header.site-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px 0;
+    }
     .brand{display:flex;align-items:center;gap:14px}
-    .brand img{width:clamp(72px,10vw,120px);height:auto;border-radius:12px;background:#000;border:1px solid rgba(255,255,255,.04);object-fit:contain}
-    .brand-text .title{font-weight:800;font-size:clamp(1.1rem,3vw,2rem);line-height:1}
+    .brand img{
+      width:clamp(72px,10vw,120px);
+      height:auto;
+      border-radius:12px;
+      background:#000;
+      border:1px solid rgba(255,255,255,.04);
+      object-fit:contain;
+    }
+    .brand-text .title{
+      font-weight:800;
+      font-size:clamp(1.1rem,3vw,2rem);
+      line-height:1;
+    }
     .brand-text .sub{color:var(--muted);margin-top:6px;font-size:0.95rem}
 
     .header-actions{display:flex;align-items:center;gap:10px}
     .pill{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);font-weight:600;color:var(--muted)}
     .pill:hover{transform:translateY(-2px);transition:transform .14s ease}
 
-    /* HERO */
+    /* Glossy header backdrop (wrap the header with class glossy-header) */
+    .glossy-header{
+      background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 45%, #b0212b 100%);
+      padding:14px 18px;
+      border-radius:12px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .glossy-header .title{ color:#fff }
+    .glossy-header .pill{ background: rgba(255,255,255,0.06); color:#fff; border-color: rgba(255,255,255,0.08) }
+
+    /* HERO - responsive background + content */
     .hero{
-      margin-top:10px;
+      margin-top:18px;
       border-radius:18px;
       overflow:hidden;
       position:relative;
@@ -55,25 +101,52 @@
       display:flex;
       align-items:center;
     }
-    .hero-inner{display:flex;align-items:center;gap:28px; padding:40px; width:100%}
-    .hero-left{flex:1;max-width:720px}
-    .hero-title{margin:0;font-size:clamp(1.6rem,5vw,3rem);line-height:1; font-weight:800}
+    .hero-inner{display:flex;align-items:center;gap:28px;padding:40px;width:100%}
+    .hero-left{flex:1;max-width:780px}
+    .hero-title{margin:0;font-size:clamp(1.6rem,5vw,3rem);line-height:1;font-weight:800}
     .hero-sub{color:var(--muted);margin:12px 0 20px;font-size:1.05rem}
     .cta-row{display:flex;gap:12px;align-items:center}
-    .btn-cta{background:var(--brand);color:#fff;padding:14px 22px;border-radius:12px;font-weight:800;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(230,57,70,.16);font-size:1rem}
-    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.12);padding:12px 18px;border-radius:12px;color:var(--ink);font-weight:600}
+    .btn-cta{
+      background:var(--brand);
+      color:#fff;
+      padding:14px 22px;
+      border-radius:12px;
+      font-weight:800;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 10px 30px rgba(230,57,70,.16);
+      font-size:1rem;
+    }
+    .btn-ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,.12);
+      padding:12px 18px;
+      border-radius:12px;
+      color:var(--ink);
+      font-weight:600;
+    }
 
-    /* Services preview */
+    /* Hero right-side small badges */
+    .hero-right{min-width:160px; display:flex;flex-direction:column; gap:10px; align-items:flex-end}
+    .badge{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+
+    /* SERVICES preview */
     .services{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:22px}
     .svc{background:rgba(255,255,255,.02);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.03);display:flex;gap:12px;align-items:flex-start}
     .svc .icon{width:44px;height:44px;border-radius:10px;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:var(--brand);font-weight:800}
     .svc h4{margin:0;font-size:1rem}
     .svc p{margin:6px 0 0;color:var(--muted);font-size:0.92rem}
 
-    /* Sticky mobile CTA */
+    /* sticky mobile CTA */
     .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:999;display:none}
     .sticky-cta .btn{background:var(--brand);padding:12px 22px;border-radius:999px;color:#fff;font-weight:800;box-shadow:0 10px 30px rgba(230,57,70,.16)}
-    @media (max-width:780px){ .hero-inner{padding:22px} .hero{min-height:260px} .brand img{width:80px} .sticky-cta{display:block} }
+    @media (max-width:780px){
+      .hero-inner{padding:22px;flex-direction:column;align-items:flex-start}
+      .hero-right{align-self:stretch; width:100%}
+      .hero{min-height:260px}
+      .brand img{width:80px}
+      .sticky-cta{display:block}
+    }
 
     /* Footer */
     footer{color:var(--muted);text-align:center;padding:36px 0 90px;font-size:0.95rem}
@@ -81,12 +154,12 @@
     /* small utilities */
     .muted{color:var(--muted)}
     .center{text-align:center}
-
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="site-header">
+    <!-- glossy header -->
+    <header class="site-header glossy-header" role="banner">
       <div class="brand">
         <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
         <div class="brand-text">
@@ -95,8 +168,7 @@
         </div>
       </div>
 
-      <div class="header-actions">
-        <!-- theme toggle here could later be wired to the same code used on booking.html -->
+      <div class="header-actions" role="navigation" aria-label="Top actions">
         <a class="pill" href="/booking.html" aria-label="Book now">Book Now</a>
         <a class="pill" href="/admin.html">Admin Login</a>
       </div>
@@ -114,23 +186,22 @@
             <a class="btn-ghost" href="#services">Our Services</a>
           </div>
         </div>
-        <!-- optional right-side image or badge -->
-        <div class="hero-right center" aria-hidden="true" style="min-width:160px;">
-          <!-- small badges / trust items -->
-          <div style="background:rgba(0,0,0,.25);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.03)">
-            <div style="font-weight:800;font-size:1.1rem">Open 10:00–20:00</div>
+        <div class="hero-right" aria-hidden="true">
+          <div class="badge">
+            <div style="font-weight:800">Open 10:00–20:00</div>
             <div class="muted" style="margin-top:6px">Call: 9910578378</div>
           </div>
+          <div class="badge muted" style="font-size:0.9rem">Doorstep Home Visit available (+₹50)</div>
         </div>
       </div>
     </section>
 
-    <!-- SERVICES PREVIEW -->
+      <!-- SERVICES PREVIEW -->
     <section id="services" style="margin-top:26px">
       <h3 style="margin:0 0 14px;font-size:1.1rem">Main Services</h3>
       <div class="services">
         <div class="svc">
-          <div class="icon">🧽</div>
+          <div class="icon" aria-hidden="true">🧽</div>
           <div>
             <h4>Exterior Wash</h4>
             <p>Thorough exterior shampoo, tyre & wheel cleaning, microfiber dry.</p>
@@ -138,23 +209,23 @@
         </div>
 
         <div class="svc">
-          <div class="icon">🧼</div>
+          <div class="icon" aria-hidden="true">🧼</div>
           <div>
             <h4>Interior Detailing</h4>
-            <p>Deep interior cleaning, vacuum, wipe, fabric & leather care.</p>
+            <p>Deep interior cleaning: vacuum, wipes, fabric & leather care.</p>
           </div>
         </div>
 
         <div class="svc">
-          <div class="icon">✨</div>
+          <div class="icon" aria-hidden="true">✨</div>
           <div>
             <h4>Ceramic Coating</h4>
-            <p>Long-lasting protective coating for paint gloss & protection.</p>
+            <p>Protective ceramic coating for paint gloss & long-term protection.</p>
           </div>
         </div>
 
         <div class="svc">
-          <div class="icon">🛠️</div>
+          <div class="icon" aria-hidden="true">🛠️</div>
           <div>
             <h4>Engine Bay</h4>
             <p>Degreasing & safe cleaning for engine bay components.</p>
@@ -162,7 +233,7 @@
         </div>
 
         <div class="svc">
-          <div class="icon">🏍️</div>
+          <div class="icon" aria-hidden="true">🏍️</div>
           <div>
             <h4>Bike Wash</h4>
             <p>Fast & careful motorcycle cleaning and detailing.</p>
@@ -171,19 +242,45 @@
       </div>
     </section>
 
-    <footer>
-      © <span id="yr"></span> Kleenkars • Aligarh • Open daily 10:00–20:00
+    <!-- QUICK CTA + short trust row (can be expanded later) -->
+    <section style="margin-top:26px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <div style="background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.03)">
+          <strong>Why choose Kleenkars?</strong>
+          <ul style="margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:0.95rem">
+            <li>Eco-friendly water & responsible cleaning</li>
+            <li>Professional-grade products</li>
+            <li>Experienced & trained staff</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="min-width:220px">
+        <a class="btn-cta" href="/booking.html">Book Now — Quick</a>
+      </div>
+    </section>
+
+    <footer style="margin-top:32px">
+      <div style="margin-bottom:12px" class="muted">© <span id="yr"></span> Kleenkars • Aligarh</div>
+      <div class="muted">Open daily 10:00–20:00 • Call: 9910578378</div>
     </footer>
   </div>
 
-  <!-- Sticky CTA for mobile -->
-  <div class="sticky-cta">
+  <!-- Sticky mobile CTA -->
+  <div class="sticky-cta" role="dialog" aria-hidden="false">
     <a class="btn" href="/booking.html" style="background:var(--brand);color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;display:inline-block">Book Now</a>
   </div>
 
   <script>
-    // small script: set footer year
-    try{ document.getElementById('yr').textContent = new Date().getFullYear(); }catch(e){}
+    // set footer year
+    try { document.getElementById('yr').textContent = new Date().getFullYear(); } catch(e){}
+
+    // Small accessibility: focus outline for keyboard users
+    (function(){
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Tab') document.documentElement.classList.add('show-focus');
+      });
+    })();
   </script>
 </body>
 </html>
