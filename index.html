@@ -184,7 +184,34 @@
     /* small utilities */
     .muted { color:var(--muted) }
     .center { text-align:center }
+.btn-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  justify-content: center; /* keeps them centered */
+}
 
+.btn.primary, .btn.secondary {
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  flex: 1 1 150px; /* equal width, responsive */
+  max-width: 220px; /* prevent stretching on big screens */
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn.secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
   </style>
 </head>
 <body>
