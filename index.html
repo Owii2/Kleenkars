@@ -221,6 +221,12 @@
     body.light .map-wrap iframe {
       filter: none;
     }
+    #kk-map {
+  width: 100%;
+  height: 300px;
+  display: block;
+  transition: filter .18s ease;
+}
 
     .contact-buttons {
       display:flex;
@@ -403,10 +409,7 @@
         <h2>Location & Contact</h2>
 
         <div class="map-wrap" aria-hidden="false">
-          <iframe
-            src="https://www.google.com/maps?q=27.9446834,78.0854261&hl=en&z=16&output=embed"
-            loading="lazy" allowfullscreen>
-          </iframe>
+          <div id="kk-map" style="width:100%;height:300px;border:0;"></div>
         </div>
 
         <div class="two grid" style="align-items:center">
@@ -545,5 +548,68 @@
       container.tabIndex = 0;
     })();
   </script>
+  <script>
+  const KK_COORDS = { lat: 27.9446834, lng: 78.0854261 };
+  const KK_MAP_ZOOM = 16;
+
+  const MAP_STYLE_LIGHT = [];
+  const MAP_STYLE_DARK = [
+    { "elementType": "geometry", "stylers": [{ "color": "#0f0f16" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#8a8a8a" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#0f0f16" }] },
+    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#9ca3af" }] },
+    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#111216" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#071428" }] },
+    { "featureType": "transit", "elementType": "geometry", "stylers": [{ "color": "#111214" }] }
+  ];
+
+  let __kk_map = null;
+  let __kk_marker = null;
+
+  function initKleenkarsMap() {
+    const mapEl = document.getElementById('kk-map');
+    if(!mapEl) return;
+
+    const isLight = document.body.classList.contains('light');
+    __kk_map = new google.maps.Map(mapEl, {
+      center: KK_COORDS,
+      zoom: KK_MAP_ZOOM,
+      disableDefaultUI: true,
+      zoomControl: true,
+      styles: isLight ? MAP_STYLE_LIGHT : MAP_STYLE_DARK,
+      gestureHandling: 'auto'
+    });
+
+    __kk_marker = new google.maps.Marker({
+      position: KK_COORDS,
+      map: __kk_map,
+      title: 'Kleenkars — Mustafa Market, Aligarh'
+    });
+
+    const infow = new google.maps.InfoWindow({
+      content: `<strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Aligarh`
+    });
+    __kk_marker.addListener('click', ()=> infow.open(__kk_map, __kk_marker));
+  }
+
+  (function loadGoogleMaps(){
+    if(document.getElementById('kk-maps-script')) return;
+    const s = document.createElement('script');
+    s.id = 'kk-maps-script';
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&callback=initKleenkarsMap';
+    s.async = true;
+    s.defer = true;
+    document.head.appendChild(s);
+  })();
+
+  (function watchThemeForMap(){
+    const observer = new MutationObserver(()=> {
+      if(!__kk_map) return;
+      const isLight = document.body.classList.contains('light');
+      __kk_map.setOptions({ styles: isLight ? MAP_STYLE_LIGHT : MAP_STYLE_DARK });
+    });
+    observer.observe(document.body, { attributes:true, attributeFilter:['class'] });
+  })();
+</script>
 </body>
 </html>
