@@ -1,54 +1,272 @@
-/* /assets/kk-header.css */
-/* KLEENKARS SHARED HEADER */
-:root{
-  --kk-bg: #0b0b12;
-  --kk-header-bg: #111018;
-  --kk-border: #242433;
-  --kk-ink: #e9e9ef;
-  --kk-muted: #b8b8c6;
-  --kk-accent: #e63946;
-}
+// /assets/kk-header-loader.js
+// Shared header loader that uses /assets/kk-header.css for visuals.
+// - logo clickable to /index.html
+// - no "Open site" button (removed)
+// - hero background implemented so we can move the image inside the tile (not the tile itself)
+// - runtime helpers: __kk_set_bg_pos_y, __kk_set_padding_top, __kk_set_margin_bottom, __kk_restore_header_defaults
+(function () {
+  if (window.__kk_header_loaded) return;
+  window.__kk_header_loaded = true;
 
-/* light mode overrides (body.light applied by JS) */
-body.light {
-  --kk-header-bg: #ffffff;
-  --kk-ink: #111;
-  --kk-muted: #4b5563;
-}
+  function el(tag, attr = {}, children = []) {
+    const e = document.createElement(tag);
+    for (const k in attr) {
+      if (k === "html") e.innerHTML = attr[k];
+      else if (k === "on" && Array.isArray(attr[k])) attr[k].forEach(([ev, fn]) => e.addEventListener(ev, fn));
+      else e.setAttribute(k, attr[k]);
+    }
+    (children || []).forEach(c => e.appendChild(c));
+    return e;
+  }
 
-/* header layout */
-.kk-header { background:var(--kk-header-bg); border-bottom:1px solid var(--kk-border); }
-.kk-header-inner { max-width:1120px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px; justify-content:space-between; }
+  function getHeroUrl() {
+    try {
+      const v = localStorage.getItem("kleenkars.hero");
+      if (v && v.startsWith("data:")) return v;
+    } catch (e) { /* ignore */ }
+    return "/assets/hero.jpg?v=1";
+  }
 
-/* brand */
-.kk-brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
-.kk-logo {
-  height:110px;              /* requested height */
-  width:auto; display:block;
-  object-fit:contain;
-  background:#0f0f16;
-  border:1px solid var(--kk-border);
-  border-radius:10px;
-  padding:6px;
-}
-.kk-brand-text { display:flex; flex-direction:column; line-height:1; }
-.kk-title { font-weight:800; font-size:26px; text-transform:uppercase; color:var(--kk-ink); }
-.kk-sub { color:var(--kk-muted); font-size:14px; margin-top:3px; }
+  /* If you want the header CSS separate (you provided it), ensure this file is included:
+     <link rel="stylesheet" href="/assets/kk-header.css">
+     We won't inject full CSS here — we only need a tiny override to wire the hero background.
+  */
+  (function ensureCssLink() {
+    try {
+      const href = "/assets/kk-header.css";
+      // If the stylesheet isn't already present, inject link
+      const found = Array.from(document.styleSheets).some(s => (s.href || "").endsWith("/assets/kk-header.css"));
+      if (!found) {
+        const link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    } catch (e) { /* ignore */ }
+  })();
 
-/* controls */
-.kk-controls { display:flex; align-items:center; gap:10px; }
-.kk-ctrl-btn { background:transparent; border:1px solid var(--kk-border); color:var(--kk-ink); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600; }
-.kk-ctrl-btn:focus { outline:2px solid rgba(0,0,0,0.08); }
-.kk-ctrl-link { display:inline-block; text-decoration:none; color:var(--kk-ink); padding:8px 10px; border-radius:10px; border:1px solid var(--kk-border); }
+  // small inline style used for precise hero background placement (kept minimal)
+  const overrideCss = `
+    /* minimal overrides used by loader */
+    .kk-hero-wrapper {
+      position: relative;
+      overflow: visible;
+    }
+    .kk-hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: url("${getHeroUrl()}");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center top; /* default show top */
+      filter: brightness(.35);
+      border-radius: inherit;
+      pointer-events: none;
+      transform-origin: center top;
+    }
+    .kk-header-contents {
+      position: relative;
+      z-index: 2; /* above the background */
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    /* ensure header uses your provided .kk-header container */
+    .kk-header { position: relative; }
+  `;
+  const styleEl = el('style', { html: overrideCss });
+  document.head.appendChild(styleEl);
 
-/* responsive adjustments */
-@media (max-width: 640px) {
-  .kk-header-inner { padding:10px 12px; }
-  .kk-logo { height:110px; } /* mobile 110 */
-  .kk-title { font-size:22px; }
-  .kk-sub { font-size:13px; }
-  .kk-ctrl-btn, .kk-ctrl-link { padding:7px 8px; font-size:14px; }
-}
+  // Remove previous injection if any
+  const prev = document.getElementById('kk-header-inject');
+  if (prev) prev.remove();
 
-/* protect against other page CSS clobbering header */
-.kk-header * { box-sizing: border-box; }
+  // Build the header markup (matches your CSS classes)
+  const rootHtml = `
+    <header class="kk-header" role="banner" aria-label="Kleenkars header">
+      <div class="kk-hero-wrapper" style="border-radius:12px; margin:12px;">
+        <div class="kk-hero-bg" aria-hidden="true"></div>
+
+        <div class="kk-header-inner kk-header-contents" style="padding:12px 20px;">
+          <a class="kk-brand" href="/index.html" aria-label="Kleenkars home" style="text-decoration:none;display:flex;align-items:center;gap:12px;">
+            <img class="kk-logo" src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+            <div class="kk-brand-text" style="line-height:1">
+              <div class="kk-title">KLEENKARS</div>
+              <div class="kk-sub">Clean cars. Happy customers.</div>
+            </div>
+          </a>
+
+          <div class="kk-controls" style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+            <button id="kk-theme-toggle" class="kk-ctrl-btn" title="Toggle theme" aria-pressed="false">🌙</button>
+            <!-- "Open site" removed on purpose -->
+          </div>
+        </div> <!-- .kk-header-inner -->
+      </div> <!-- .kk-hero-wrapper -->
+
+      <!-- small toolbar / nav under header (optional, styled by your kk-header CSS) -->
+      <div class="kk-header-inner" style="padding-top:8px;padding-bottom:6px;">
+        <nav class="kk-controls" aria-label="Site toolbar" style="gap:12px;">
+          <button class="kk-ctrl-btn kk-tab" data-target="/booking">Book</button>
+          <button class="kk-ctrl-btn kk-tab" data-target="/pricing">Pricing</button>
+          <button class="kk-ctrl-btn kk-tab" data-target="/contact">Contact</button>
+          <button class="kk-ctrl-btn kk-tab" data-target="/admin">Admin</button>
+        </nav>
+      </div>
+    </header>
+  `;
+
+  const container = el('div', { id: 'kk-header-inject', html: rootHtml });
+  // insert at top of body
+  document.body.insertBefore(container, document.body.firstChild);
+
+  // wire up dynamic elements
+  const heroBg = document.querySelector('#kk-header-inject .kk-hero-bg');
+  const heroWrapper = document.querySelector('#kk-header-inject .kk-hero-wrapper');
+  const themeToggle = document.getElementById('kk-theme-toggle');
+
+  // apply initial hero image and background-position defaults
+  function applyHeroDefaults() {
+    try {
+      const url = getHeroUrl();
+      if (heroBg) {
+        heroBg.style.backgroundImage = `url("${url}")`;
+        heroBg.style.backgroundPosition = 'center top'; // default show top of image
+      }
+      // set wrapper rounded corners to clip bg
+      if (heroWrapper) {
+        // keep default margins from your CSS, but you can override with runtime helpers
+        heroWrapper.style.marginLeft = '';
+        heroWrapper.style.marginRight = '';
+        heroWrapper.style.marginBottom = '';
+      }
+    } catch (e) { console.warn(e); }
+  }
+  applyHeroDefaults();
+
+  /* ---------- theme handling (persist under 'kleenkars.theme') ---------- */
+  const THEME_KEY = 'kleenkars.theme'; // "light" | "dark"
+
+  (function applySavedThemeEarly() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'light') {
+        document.documentElement.classList.add('light');
+        document.body && document.body.classList.add('light');
+      } else if (saved === 'dark') {
+        document.documentElement.classList.remove('light');
+        document.body && document.body.classList.remove('light');
+      }
+    } catch (e) {}
+  })();
+
+  function setTheme(isLight) {
+    try {
+      if (isLight) {
+        document.documentElement.classList.add('light');
+        if (document.body) document.body.classList.add('light');
+        localStorage.setItem(THEME_KEY, 'light');
+        if (themeToggle) { themeToggle.textContent = '☀️'; themeToggle.setAttribute('aria-pressed', 'true'); }
+      } else {
+        document.documentElement.classList.remove('light');
+        if (document.body) document.body.classList.remove('light');
+        localStorage.setItem(THEME_KEY, 'dark');
+        if (themeToggle) { themeToggle.textContent = '🌙'; themeToggle.setAttribute('aria-pressed', 'false'); }
+      }
+    } catch (e) { console.warn('kk-theme error', e); }
+  }
+
+  (function initTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'light') setTheme(true);
+      else if (saved === 'dark') setTheme(false);
+      else {
+        const hr = new Date().getHours();
+        setTheme(hr >= 7 && hr < 19);
+      }
+    } catch (e) { setTheme(false); }
+  })();
+
+  if (themeToggle) themeToggle.addEventListener('click', () => {
+    const isLightNow = document.body && document.body.classList.contains('light');
+    setTheme(!isLightNow);
+  });
+
+  // toolbar nav click handling
+  document.querySelectorAll('#kk-header-inject .kk-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.target || '/';
+      try { window.location.href = url; } catch (e) {}
+    });
+  });
+
+  /* ---------- conservative hide of any old headers (only those with obvious logo) ---------- */
+  try {
+    const candidates = document.querySelectorAll('header, .header, #header, .site-header, .site-hero');
+    candidates.forEach(node => {
+      if (!node) return;
+      // skip our injected header or any node that is inside it
+      if (node.id === 'kk-header-inject' || node.closest('#kk-header-inject')) return;
+      const hasLogo = node.querySelector && node.querySelector("img[src*='logo']");
+      if (hasLogo || node.classList.contains('site-header')) {
+        try { node.style.display = 'none'; } catch (e) { /* ignore */ }
+      }
+    });
+  } catch (e) {}
+
+  /* ---------- runtime helpers ---------- */
+  // Move image inside tile vertically (doesn't move the tile or content)
+  // Accepts "top", "center", "30%", "10%" etc.
+  window.__kk_set_bg_pos_y = function (val) {
+    try {
+      if (!heroBg) return;
+      heroBg.style.backgroundPosition = `center ${val}`;
+    } catch (e) { console.warn(e); }
+  };
+
+  // change top padding inside tile (push text/logo down)
+  // Accepts number (px) or CSS units string
+  window.__kk_set_padding_top = function (val) {
+    try {
+      if (!heroWrapper) return;
+      if (typeof val === 'number') val = val + 'px';
+      // we only set paddingTop inline to avoid overriding other paddings
+      const inner = document.querySelector('#kk-header-inject .kk-header-inner');
+      if (inner) inner.style.paddingTop = val;
+    } catch (e) { console.warn(e); }
+  };
+
+  // change margin-bottom under the tile (space below tile)
+  window.__kk_set_margin_bottom = function (val) {
+    try {
+      if (!heroWrapper) return;
+      if (typeof val === 'number') val = val + 'px';
+      heroWrapper.style.marginBottom = val;
+    } catch (e) { console.warn(e); }
+  };
+
+  // restore defaults (removes inline changes and reloads hero image)
+  window.__kk_restore_header_defaults = function () {
+    try {
+      if (!heroBg || !heroWrapper) return;
+      heroBg.style.backgroundPosition = 'center top';
+      heroBg.style.backgroundImage = `url("${getHeroUrl()}")`;
+      const inner = document.querySelector('#kk-header-inject .kk-header-inner');
+      if (inner) inner.style.paddingTop = '';
+      heroWrapper.style.marginBottom = '';
+    } catch (e) { console.warn(e); }
+  };
+
+  // allow admin hero uploader to update header
+  window.__kk_reload_hero = function () {
+    try {
+      const url = getHeroUrl();
+      if (heroBg) heroBg.style.backgroundImage = `url("${url}")`;
+    } catch (e) { console.warn(e); }
+  };
+
+  // run restore once to ensure consistent initial state
+  window.__kk_restore_header_defaults();
+
+})();
