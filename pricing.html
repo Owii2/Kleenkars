@@ -18,11 +18,11 @@
 
     /* HERO */
     .hero{position:relative;width:100%;height:180px;background:url('/assets/hero-bg.jpg') center/cover no-repeat;display:block;overflow:hidden}
-    .hero-header{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:12px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{height:90px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
-    .brand-title{font-weight:800;font-size:22px;text-transform:uppercase}
-    .brand-sub{color:var(--muted);font-size:12px}
+    .hero-header{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:14px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{height:110px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
+    .brand-title{font-weight:800;font-size:26px;text-transform:uppercase;line-height:1.2}
+    .brand-sub{color:var(--muted);font-size:14px;margin-top:2px}
     .hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(180deg,rgba(0,0,0,0)0%,rgba(0,0,0,0.65)100%)}
 
     /* Page container */
@@ -38,11 +38,11 @@
     .pkg-title { text-align:center; font-weight:800; font-size:18px; margin:6px 0 8px; }
     .pkg-desc  { text-align:center; color:#e0e0e0; font-size:13px; margin:0 0 12px; line-height:1.35; }
 
-    /* Two-column inner layout: left bike (narrow), right cars (wider) */
+    /* Two-column inner layout */
     .pkg-inner { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
 
     .tile-bike {
-      flex: 0 0 34%;      /* left tile ~1/3 on wide screens */
+      flex: 0 0 34%;
       min-width:160px;
       background:rgba(255,255,255,0.01);
       border-radius:10px;
@@ -56,7 +56,7 @@
     .bike-desc { color:#cfcfcf; font-size:13px; text-align:center; margin-top:6px; }
 
     .tile-cars {
-      flex: 1 1 60%;      /* right tile fills remaining width */
+      flex: 1 1 60%;
       min-width:200px;
       background:rgba(255,255,255,0.01);
       border-radius:10px;
@@ -66,7 +66,7 @@
       align-items:center;
       justify-content:flex-start;
     }
-    .cars-row { display:flex; gap:18px; align-items:flex-start; justify-content:center; width:100%; flex-wrap:nowrap; }
+    .cars-row { display:flex; gap:12px; align-items:flex-start; justify-content:center; width:100%; flex-wrap:nowrap; }
 
     .car-col {
       flex: 1 1 0;
@@ -74,11 +74,10 @@
       max-width:220px;
       padding:8px 10px;
       border-radius:8px;
-      background:rgba(0,0,0,0.0);
       text-align:center;
     }
-    .car-label { font-weight:800; font-size:16px; margin-bottom:8px; color:#fff; }
-    .car-price { color:var(--accent); font-weight:900; font-size:22px; }
+    .car-label { font-weight:800; font-size:16px; margin-bottom:6px; color:#fff; }
+    .car-price { color:var(--accent); font-weight:900; font-size:20px; }
 
     /* Book button */
     .book-wrap { text-align:center; margin-top:12px; }
@@ -88,33 +87,20 @@
     #loading { text-align:center; color:var(--muted); margin:12px 0; }
     #error { text-align:center; color:var(--accent); margin:8px 0; display:none; }
 
-    /* RESPONSIVE tweaks */
-    @media (max-width:900px){
-      .hero{height:160px}
-      .logo{height:78px}
-    }
-
-    /* On narrow screens stack inside the same card, but keep the three car columns side-by-side (they shrink) */
+    /* Responsive */
     @media (max-width:760px){
       .card { padding:10px; }
       .pkg-inner { flex-direction:column; }
-      .tile-bike { flex: 0 0 auto; width:100%; min-width:0; padding:10px; }
-      .tile-cars { flex: 0 0 auto; width:100%; min-width:0; padding:10px; }
-      .cars-row { gap:12px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px; }
-      .car-col { flex: 0 0 120px; min-width:120px; max-width:160px; }
-    }
-
-    /* very small phones: let columns shrink slightly more (but still side-by-side) */
-    @media (max-width:360px){
-      .car-col { flex: 0 0 100px; min-width:100px; }
-      .car-price { font-size:20px; }
+      .tile-bike,.tile-cars{flex:0 0 auto;width:100%;min-width:0;padding:10px}
+      .cars-row { gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .car-col { flex:0 0 100px; min-width:100px; }
     }
   </style>
 </head>
 <body>
 
   <!-- HERO -->
-  <section class="hero" role="banner" aria-label="Kleenkars hero">
+  <section class="hero" role="banner">
     <div class="hero-header">
       <div class="brand">
         <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
@@ -126,21 +112,19 @@
         </div>
       </div>
     </div>
-    <div class="hero-bottom-fade" aria-hidden="true"></div>
+    <div class="hero-bottom-fade"></div>
   </section>
 
-  <main class="container" role="main">
+  <main class="container">
     <h1 class="page-title">Exclusive Pricing</h1>
     <p class="page-sub">Prices are loaded from the admin-managed catalog. Choose your package and book.</p>
 
     <div id="loading">Loading pricing…</div>
     <div id="error"></div>
-
     <div id="packages-area"></div>
   </main>
 
   <script>
-    /* map row safely */
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
@@ -148,114 +132,49 @@
         description: row.description || '',
         prices: {
           bike: row.prices?.bike ?? null,
-          hatchback: row.prices?.hatchback ?? row.prices?.sedan ?? null,
+          hatchback: row.prices?.hatchback ?? null,
           sedan: row.prices?.sedan ?? null,
           suv: row.prices?.suv ?? null
         }
       };
     }
-
-    function formatPrice(v){
-      if (v === null || v === undefined || v === '') return '—';
-      const n = Number(v);
-      if (!Number.isFinite(n)) return '—';
-      return '₹ ' + n.toString();
-    }
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function formatPrice(v){ if(v==null||v==='')return '—';const n=Number(v);return Number.isFinite(n)?'₹ '+n:'—'; }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     async function loadCatalog(){
-      const loading = document.getElementById('loading');
-      const errorEl = document.getElementById('error');
-      const packagesArea = document.getElementById('packages-area');
-
-      loading.style.display = '';
-      errorEl.style.display = 'none';
-      errorEl.textContent = '';
-      packagesArea.innerHTML = '';
-
-      try {
-        const res = await fetch('/api/prices');
-        if (!res.ok) throw new Error('Server returned ' + res.status);
-        const data = await res.json();
-
-        const pk = (data.packages || []).map(mapToPkg);
-
-        if (!pk.length) {
-          loading.textContent = 'No packages available.';
-          return;
-        }
-
-        for (const p of pk) {
-          const card = document.createElement('section');
-          card.className = 'pkg';
-
-          const innerCard = document.createElement('div');
-          innerCard.className = 'card';
-
-          // Title + description (one per package)
-          const title = document.createElement('div');
-          title.className = 'pkg-title';
-          title.textContent = p.name;
-
-          const desc = document.createElement('div');
-          desc.className = 'pkg-desc';
-          desc.textContent = p.description || '';
-
-          // Two-tile area
-          const inner = document.createElement('div');
-          inner.className = 'pkg-inner';
-
-          const left = document.createElement('div');
-          left.className = 'tile-bike';
-          left.innerHTML = `<div class="bike-price">${formatPrice(p.prices.bike)}</div><div class="bike-desc">${escapeHtml(p.description)}</div>`;
-
-          const right = document.createElement('div');
-          right.className = 'tile-cars';
-          right.innerHTML = `
-            <div class="cars-row" role="group" aria-label="${escapeHtml(p.name)} vehicle prices">
+      const loading=document.getElementById('loading');
+      const errorEl=document.getElementById('error');
+      const packagesArea=document.getElementById('packages-area');
+      loading.style.display='';errorEl.style.display='none';packagesArea.innerHTML='';
+      try{
+        const res=await fetch('/api/prices');
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data=await res.json();
+        const pk=(data.packages||[]).map(mapToPkg);
+        if(!pk.length){loading.textContent='No packages available.';return;}
+        for(const p of pk){
+          const card=document.createElement('section');card.className='pkg';
+          const innerCard=document.createElement('div');innerCard.className='card';
+          const title=document.createElement('div');title.className='pkg-title';title.textContent=p.name;
+          const desc=document.createElement('div');desc.className='pkg-desc';desc.textContent=p.description||'';
+          const inner=document.createElement('div');inner.className='pkg-inner';
+          const left=document.createElement('div');left.className='tile-bike';left.innerHTML=`<div class="bike-price">${formatPrice(p.prices.bike)}</div>`;
+          const right=document.createElement('div');right.className='tile-cars';right.innerHTML=`
+            <div class="cars-row">
               <div class="car-col"><div class="car-label">Hatchback</div><div class="car-price">${formatPrice(p.prices.hatchback)}</div></div>
               <div class="car-col"><div class="car-label">Sedan</div><div class="car-price">${formatPrice(p.prices.sedan)}</div></div>
               <div class="car-col"><div class="car-label">SUV</div><div class="car-price">${formatPrice(p.prices.suv)}</div></div>
-            </div>
-          `;
-
-          inner.appendChild(left);
-          inner.appendChild(right);
-
-          // Book button
-          const bookWrap = document.createElement('div');
-          bookWrap.className = 'book-wrap';
-          bookWrap.innerHTML = `<button class="book-btn" data-pkg-id="${escapeHtml(p.id)}">Book</button>`;
-
-          // assemble
-          innerCard.appendChild(title);
-          if (p.description) innerCard.appendChild(desc);
-          innerCard.appendChild(inner);
-          innerCard.appendChild(bookWrap);
-
-          card.appendChild(innerCard);
-          packagesArea.appendChild(card);
+            </div>`;
+          inner.appendChild(left);inner.appendChild(right);
+          const bookWrap=document.createElement('div');bookWrap.className='book-wrap';bookWrap.innerHTML=`<button class="book-btn" data-pkg-id="${escapeHtml(p.id)}">Book</button>`;
+          innerCard.appendChild(title);if(p.description)innerCard.appendChild(desc);innerCard.appendChild(inner);innerCard.appendChild(bookWrap);
+          card.appendChild(innerCard);packagesArea.appendChild(card);
         }
-
-        // attach buttons
-        document.querySelectorAll('.book-btn').forEach(btn=>{
-          btn.addEventListener('click', ()=> {
-            const id = btn.getAttribute('data-pkg-id');
-            // TODO: hook to booking flow
-            alert('Book package: ' + id);
-          });
-        });
-
-        loading.style.display = 'none';
-      } catch (err) {
-        console.error(err);
-        loading.style.display = 'none';
-        errorEl.textContent = 'Unable to load pricing. WhatsApp +91 99105 78378 to book.';
-        errorEl.style.display = '';
-      }
+        document.querySelectorAll('.book-btn').forEach(btn=>{btn.addEventListener('click',()=>alert('Book package: '+btn.dataset.pkgId));});
+        loading.style.display='none';
+      }catch(err){console.error(err);loading.style.display='none';errorEl.textContent='Unable to load pricing. WhatsApp +91 99105 78378 to book.';errorEl.style.display='';}
     }
-
-    document.addEventListener('DOMContentLoaded', loadCatalog);
+    document.addEventListener('DOMContentLoaded',loadCatalog);
   </script>
 </body>
 </html>
