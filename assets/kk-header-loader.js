@@ -35,16 +35,16 @@
     gap:16px;
     background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
     background-position: top center;   /* ✅ always show top of photo */
-    background-size: cover;            /* ✅ fill tile */
+    background-size: cover;
     background-repeat: no-repeat;
     padding:20px;
     border-radius:12px;
     margin:12px 18px 8px 18px;
-    min-height:160px; /* ✅ original tile size */
+    min-height:160px;
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color: #fff;
   }
-  .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
+  .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; cursor:pointer }
   .kk-title{font-weight:800;font-size:1.4rem;line-height:1;color:#fff; text-transform:uppercase; margin-left:6px}
   .kk-sub{color:rgba(255,255,255,0.88); margin-top:6px; font-size:.95rem}
   .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
@@ -65,7 +65,9 @@
   const headerHtml = `
   <div class="kk-header-root">
     <div class="kk-header-hero" role="banner" aria-label="Kleenkars hero">
-      <img class="kk-logo" src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+      <a href="/index.html" title="Go to Home">
+        <img class="kk-logo" src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
+      </a>
       <div style="display:flex;flex-direction:column;justify-content:center;">
         <div class="kk-title">KLEENKARS</div>
         <div class="kk-sub">Clean cars. Happy customers.</div>
