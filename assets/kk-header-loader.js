@@ -65,7 +65,7 @@
   const headerHtml = `
   <div class="kk-header-root">
     <div class="kk-header-hero" role="banner" aria-label="Kleenkars hero">
-      <a href="/index.html" title="Go to Home">
+      <a href="/index" title="Go to Home">
         <img class="kk-logo" src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
       </a>
       <div style="display:flex;flex-direction:column;justify-content:center;">
