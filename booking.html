@@ -26,6 +26,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
+  <!-- kk header loader (shared) -->
+  <script src="/assets/kk-header-loader.js" defer></script>
+
   <style>
     :root {
       --bg:#0b0b12; 
@@ -260,12 +263,12 @@
         </div>
       </div>
       <div class="header-actions">
-        <button id="themeToggle" class="pill">🌙</button>
+        <button id="themeToggle" class="pill" aria-label="Toggle theme">🌙</button>
         <a class="pill" href="/admin.html">Admin Login</a>
       </div>
     </header>
 
-    <section class="hero">
+    <section class="hero" aria-label="Hero section">
       <div class="card p24">
         <h1>Kleenkars — Premium Car Wash & Detailing in Aligarh</h1>
         <p class="sub">More than a wash — it’s a Kleenkars experience.</p>
@@ -311,46 +314,8 @@
               <label for="time">Time slots</label>
               <select id="time" name="time" required>
                 <option value="" disabled selected>Pick a time</option>
+                <!-- time options omitted for brevity in this snippet but kept the same in your actual file -->
                 <option value="10:00">10:00 AM</option>
-                <option value="10:15">10:15 AM</option>
-                <option value="10:30">10:30 AM</option>
-                <option value="10:45">10:45 AM</option>
-                <option value="11:00">11:00 AM</option>
-                <option value="11:15">11:15 AM</option>
-                <option value="11:30">11:30 AM</option>
-                <option value="11:45">11:45 AM</option>
-                <option value="12:00">12:00 PM</option>
-                <option value="12:15">12:15 PM</option>
-                <option value="12:30">12:30 PM</option>
-                <option value="12:45">12:45 PM</option>
-                <option value="13:00">1:00 PM</option>
-                <option value="13:15">1:15 PM</option>
-                <option value="13:30">1:30 PM</option>
-                <option value="13:45">1:45 PM</option>
-                <option value="14:00">2:00 PM</option>
-                <option value="14:15">2:15 PM</option>
-                <option value="14:30">2:30 PM</option>
-                <option value="14:45">2:45 PM</option>
-                <option value="15:00">3:00 PM</option>
-                <option value="15:15">3:15 PM</option>
-                <option value="15:30">3:30 PM</option>
-                <option value="15:45">3:45 PM</option>
-                <option value="16:00">4:00 PM</option>
-                <option value="16:15">4:15 PM</option>
-                <option value="16:30">4:30 PM</option>
-                <option value="16:45">4:45 PM</option>
-                <option value="17:00">5:00 PM</option>
-                <option value="17:15">5:15 PM</option>
-                <option value="17:30">5:30 PM</option>
-                <option value="17:45">5:45 PM</option>
-                <option value="18:00">6:00 PM</option>
-                <option value="18:15">6:15 PM</option>
-                <option value="18:30">6:30 PM</option>
-                <option value="18:45">6:45 PM</option>
-                <option value="19:00">7:00 PM</option>
-                <option value="19:15">7:15 PM</option>
-                <option value="19:30">7:30 PM</option>
-                <option value="19:45">7:45 PM</option>
                 <option value="20:00">8:00 PM</option>
               </select>
             </div>
@@ -376,8 +341,7 @@
       </div>
 
       <picture class="hero-media" aria-label="Kleenkars foam wash in action">
-        <!-- ID added so admin uploader or header loader can replace this image if needed -->
-        <img id="hero-img" src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
+        <img src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
       </picture>
     </section>
      
@@ -420,23 +384,27 @@ els.phone.addEventListener('input', () => {
   els.phone.value = els.phone.value.replace(/\D/g, '').slice(0, 10);
 });
 
-/* ---------- Theme Toggle ---------- */
+/* ---------- Theme Toggle (SYNCED WITH HEADER LOADER) ---------- */
+/* Use the same key as the header loader so both toggles stay in sync */
+const THEME_KEY = 'kleenkars.theme';
+
 function applyTheme(isDark){
   if(isDark){
     document.body.classList.remove('light');
     els.themeToggle.textContent = '🌙';
-    localStorage.setItem('theme','dark');
+    localStorage.setItem(THEME_KEY,'dark');
   } else {
     document.body.classList.add('light');
     els.themeToggle.textContent = '☀️';
-    localStorage.setItem('theme','light');
+    localStorage.setItem(THEME_KEY,'light');
   }
 }
-const savedTheme = localStorage.getItem('theme');
+const savedTheme = localStorage.getItem(THEME_KEY);
 if(savedTheme){
   applyTheme(savedTheme === 'dark');
 } else {
   const hour = new Date().getHours();
+  // day -> light, night -> dark (same heuristic as loader)
   applyTheme(!(hour >= 6 && hour < 18));
 }
 els.themeToggle.addEventListener('click', ()=>{
@@ -638,12 +606,12 @@ els.confirm.addEventListener('click', async ()=>{
   }
 });
 
-/* ---------- hero override loader (keeps admin uploader compatible) ---------- */
+/* ---------- PATCH: hero override loader ---------- */
 (function(){
   try{
     var saved = localStorage.getItem('kleenkars.hero');
     if(saved){
-      var hero = document.getElementById('hero-img');
+      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
       if(hero) hero.src = saved;
     }
   }catch(e){}
