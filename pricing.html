@@ -1,203 +1,200 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pricing — Kleenkars Car Wash & Detailing | Aligarh</title>
-  <meta name="description" content="Kleenkars pricing: transparent car & bike wash, detailing, waxing, ceramic coating, interior shampoo, engine cleaning. Book online or on-site home visit." />
-<style>
-  /* Hero Section */
-  .hero {
-    position: relative;
-    width: 100%;
-    height: 220px; /* adjust height as you like */
-    background: url('/assets/hero-bg.jpg') center/cover no-repeat; /* your background photo */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kleenkars — Pricing</title>
 
-  .hero-overlay {
-    background: rgba(0,0,0,0.5); /* dark overlay for contrast */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-    border-radius: 12px;
-  }
+  <!-- Kleenkars Theme + Hero CSS -->
+  <style>
+    /* Global Theme */
+    body {
+      margin: 0;
+      background: #000; /* black background */
+      color: #fff;      /* white text */
+      font-family: Inter, Arial, sans-serif;
+    }
+    a, button {
+      background: #e50914; /* red buttons */
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    a:hover, button:hover {
+      opacity: 0.85;
+    }
 
-  .hero-logo {
-    height: 80px;
-    width: auto;
-    margin-bottom: 10px;
-  }
+    /* Hero Section */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: url('/assets/hero-bg.jpg') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-overlay {
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .hero-logo {
+      height: 80px;
+      width: auto;
+      margin-bottom: 10px;
+    }
+    .hero-title {
+      color: #fff;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
 
-  .hero-title {
-    color: #fff;
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1.2;
-    text-transform: uppercase;
-  }
-
-  /* Global Theme */
-  body {
-    background: #000; /* black */
-    color: #fff;      /* white text */
-    font-family: Inter, Arial, sans-serif;
-  }
-  a, button {
-    background: #e50914; /* red */
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 16px;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  a:hover, button:hover {
-    opacity: 0.85;
-  }
-</style>
+    /* Content */
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+    h2 {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 22px;
+      border-bottom: 2px solid #e50914;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .card {
+      background: #111;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #222;
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+    .card p {
+      margin: 0 0 10px;
+      color: #ccc;
+      font-size: 14px;
+    }
+    .price {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e50914;
+    }
+    .book-btn {
+      margin-top: 8px;
+    }
+    select {
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      font-size: 15px;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
+
   <!-- Hero Section -->
-<section class="hero">
-  <div class="hero-overlay">
-    <img class="hero-logo" src="/assets/logo.png" alt="Kleenkars Carwash Logo" />
-    <h1 class="hero-title">KLEENKARS<br/>CARWASH</h1>
+  <section class="hero">
+    <div class="hero-overlay">
+      <img class="hero-logo" src="/assets/logo.png" alt="Kleenkars Carwash Logo" />
+      <h1 class="hero-title">KLEENKARS<br/>CARWASH</h1>
+    </div>
+  </section>
+
+  <!-- Pricing Content -->
+  <div class="container">
+    <h2>Pricing</h2>
+    <p>Prices are loaded from our catalog and depend on your vehicle type.</p>
+
+    <div style="margin: 16px 0;">
+      Vehicle:
+      <select id="vehicle">
+        <option value="bike">Bike</option>
+        <option value="hatchback">Hatchback</option>
+        <option value="sedan" selected>Sedan</option>
+        <option value="suv">SUV</option>
+      </select>
+      <span>Home visit: + ₹50</span>
+    </div>
+
+    <div id="loading">Loading pricing…</div>
+    <div id="error" style="color:#e50914; display:none;"></div>
+    <div id="content" style="display:none;">
+      <h2>Packages</h2>
+      <div id="packages"></div>
+
+      <h2>A la carte</h2>
+      <div id="alacarte"></div>
+    </div>
   </div>
-</section>
-  <main class="wrap">
-    <header style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <h1 style="margin:0">Kleenkars — Pricing</h1>
-        <p class="muted" style="margin:4px 0 0">Prices are loaded from the admin-managed catalog.</p>
-      </div>
-      <div>
-        <a class="btn" href="/admin/pricing">Admin</a>
-        <a class="btn" href="/booking" style="margin-left:8px">Open Booking</a>
-      </div>
-    </header>
 
-    <section id="main" style="margin-top:18px">
-      <div id="loading" class="card">Loading pricing…</div>
+  <script>
+    async function loadCatalog() {
+      const loading = document.getElementById('loading');
+      const content = document.getElementById('content');
+      const errorEl = document.getElementById('error');
+      const packagesDiv = document.getElementById('packages');
+      const alacarteDiv = document.getElementById('alacarte');
+      const vehicleSel = document.getElementById('vehicle');
 
-      <div id="content" style="display:none">
-        <div class="card">
-          <label for="vehicle" class="muted">Vehicle</label>
-          <select id="vehicle" aria-label="Vehicle type" style="margin-left:8px;padding:6px;border-radius:6px;">
-            <option value="bike">Bike</option>
-            <option value="hatchback" selected>Hatchback</option>
-            <option value="sedan">Sedan</option>
-            <option value="suv">SUV</option>
-          </select>
-          <span class="muted" style="margin-left:12px">Home visit: <strong>+ ₹50</strong></span>
-        </div>
+      loading.style.display = '';
+      content.style.display = 'none';
+      errorEl.style.display = 'none';
 
-        <div class="card">
-          <h2 style="margin-top:0">Packages</h2>
-          <div id="packages" class="pkg-grid" aria-live="polite"></div>
-        </div>
+      try {
+        const res = await fetch('/api/prices');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
 
-        <div class="card">
-          <h3 style="margin-top:0">A la carte</h3>
-          <div id="alacarte" class="pkg-grid"></div>
-        </div>
-      </div>
+        function renderList(list, container) {
+          container.innerHTML = '';
+          list.forEach(pkg => {
+            const price = pkg.prices[vehicleSel.value];
+            if (price == null) return;
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+              <h3>${pkg.name}</h3>
+              <p>${pkg.description || ''}</p>
+              <div class="price">₹ ${price}</div>
+              <button class="book-btn" onclick="alert('Booking ${pkg.name}')">Book</button>
+            `;
+            container.appendChild(div);
+          });
+        }
 
-      <div id="error" class="card" style="display:none;color:#ffb3b3"></div>
-    </section>
-  </main>
+        renderList(data.packages || [], packagesDiv);
+        renderList(data.alacarte || [], alacarteDiv);
 
-<script>
-(async function(){
-  const loading = document.getElementById('loading');
-  const content = document.getElementById('content');
-  const error = document.getElementById('error');
-  const packagesEl = document.getElementById('packages');
-  const alacarteEl = document.getElementById('alacarte');
-  const vehicleSel = document.getElementById('vehicle');
-
-  // fetch catalog
-  async function loadCatalog(){
-    loading.style.display = '';
-    content.style.display = 'none';
-    error.style.display = 'none';
-    try{
-      const res = await fetch('/api/prices');
-      if(!res.ok) throw new Error('Failed to load pricing ('+res.status+')');
-      const data = await res.json();
-      renderCatalog(data);
-      loading.style.display = 'none';
-      content.style.display = '';
-    }catch(err){
-      loading.style.display = 'none';
-      error.style.display = '';
-      error.textContent = 'Unable to load pricing: ' + err.message + '. You can WhatsApp +91 99105 78378 to book.';
+        loading.style.display = 'none';
+        content.style.display = '';
+      } catch (e) {
+        console.error(e);
+        loading.style.display = 'none';
+        errorEl.style.display = '';
+        errorEl.textContent = 'Unable to load pricing. Contact +91 99105 78378 to book.';
+      }
     }
-  }
 
-  function priceForVehicle(item, vehicle){
-    // each item has prices: {bike:..., hatchback:..., sedan:..., suv:...}
-    // fallback to item.base or item.price
-    if(item.prices && item.prices[vehicle] != null) return item.prices[vehicle];
-    if(item.price != null) return item.price;
-    return '—';
-  }
-
-  function renderCatalog(catalog){
-    // catalog = { packages: [...], alacarte: [...] }
-    packagesEl.innerHTML = '';
-    alacarteEl.innerHTML = '';
-
-    catalog.packages.forEach(pkg=>{
-      const p = document.createElement('div'); p.className='pkg';
-      const name = document.createElement('h3'); name.textContent = pkg.name; p.appendChild(name);
-      const desc = document.createElement('div'); desc.className='muted'; desc.style.marginBottom='8px'; desc.textContent = pkg.description || ''; p.appendChild(desc);
-
-      const priceWrap = document.createElement('div'); priceWrap.style.display='flex'; priceWrap.style.justifyContent='space-between'; priceWrap.style.alignItems='center';
-      const priceSpan = document.createElement('div'); priceSpan.innerHTML = '<strong>₹ ' + priceForVehicle(pkg, vehicleSel.value) + '</strong>';
-      priceWrap.appendChild(priceSpan);
-
-      const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Book';
-      btn.addEventListener('click', ()=> {
-        // redirect to booking page prefilled
-        const url = new URL(window.location.origin + '/booking');
-        url.searchParams.set('vehicle', vehicleSel.value);
-        url.searchParams.set('service', pkg.name);
-        const price = priceForVehicle(pkg, vehicleSel.value);
-        if(price && price !== '—') url.searchParams.set('price', price);
-        window.location.href = url.toString();
-      });
-      priceWrap.appendChild(btn);
-      p.appendChild(priceWrap);
-
-      packagesEl.appendChild(p);
-    });
-
-    catalog.alacarte.forEach(item=>{
-      const p = document.createElement('div'); p.className='pkg';
-      const name = document.createElement('div'); name.textContent = item.name; name.style.fontWeight='700'; p.appendChild(name);
-      const desc = document.createElement('div'); desc.className='muted'; desc.textContent = item.description || ''; p.appendChild(desc);
-      const price = document.createElement('div'); price.style.marginTop='8px'; price.innerHTML = '<strong>₹ ' + priceForVehicle(item, vehicleSel.value) + '</strong>';
-      p.appendChild(price);
-      alacarteEl.appendChild(p);
-    });
-  }
-
-  // when vehicle changes update prices in-place
-  vehicleSel.addEventListener('change', async ()=>{
-    // get current catalog from server (or cache) - simplest: reload
-    await loadCatalog();
-  });
-
-  // initial
-  await loadCatalog();
-})();
-</script>
+    document.addEventListener('DOMContentLoaded', loadCatalog);
+    document.getElementById('vehicle').addEventListener('change', loadCatalog);
+  </script>
 </body>
 </html>
