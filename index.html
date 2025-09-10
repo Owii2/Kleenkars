@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kleenkars Car Wash — Premium Car Wash & Detailing in Aligarh</title>
-  <meta name="description" content="Kleenkars Car Wash — Premium car wash & detailing in Aligarh. Bike, Sedan & SUV. Open 10:00–20:00. Call 9910578378.">
+  <meta name="description" content="Kleenkars Car Wash — Premium car wash & detailing in Aligarh. Bike, Sedan & SUV. Open daily 10:00–20:00. Call 9910578378">
   <link rel="canonical" href="https://kleenkars.in/">
 
   <!-- PWA / manifest (keep as-is in site) -->
@@ -94,14 +94,17 @@
       background: rgba(0,0,0,0.25);
       box-shadow: 0 6px 20px rgba(0,0,0,.4);
     }
+
+    /* ---------- IMPORTANT: keep title & tagline original color ALWAYS ---------- */
+    /* original color = white (explicit) */
     .brand-text { display:flex; flex-direction:column }
     .brand-text .title {
       font-weight:800; letter-spacing:.3px;
       font-size: clamp(1.2rem, 3.5vw, 2.0rem);
-      color: var(--ink);             /* dynamic color */
+      color: #ffffff !important;             /* fixed to original white */
     }
     .brand-text .tagline {
-      color: var(--muted);           /* dynamic */
+      color: rgba(255,255,255,0.9) !important; /* fixed to original white */
       font-size: .95rem;
       margin-top:4px;
     }
@@ -112,7 +115,7 @@
     .pill {
       display:inline-block;
       padding:8px 12px; border-radius:999px;
-      background: rgba(255,255,255,0.06); color:var(--ink);  /* dynamic color */
+      background: rgba(255,255,255,0.06); color:var(--ink);
       border:1px solid rgba(255,255,255,0.08);
       font-weight:600;
     }
@@ -154,6 +157,9 @@
     .pkg { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
     .pkg h3 { margin:6px 0 6px; color:var(--ink) }
     .pkg .price { font-weight:800; font-size:1.1rem; color:var(--accent); }
+
+    /* center the Packages & Pricing heading when specifically targeted */
+    .center-h2 { text-align:center; }
 
     /* Gallery placeholder and slider container */
     .gallery { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
@@ -202,11 +208,25 @@
     /* Map / contact */
     .location .map-wrap { border-radius:12px; overflow:hidden; border:1px solid var(--border); margin-bottom:12px; }
 
+    /* Make embedded map darker in dark mode, normal in light mode */
+    .map-wrap iframe {
+      width:100%;
+      height:300px;
+      border:0;
+      display:block;
+      transition: filter .18s ease;
+      /* dark-mode friendly default (slight dim + desaturate) */
+      filter: grayscale(.02) contrast(.95) brightness(.82);
+    }
+    body.light .map-wrap iframe {
+      filter: none;
+    }
+
     .contact-buttons {
       display:flex;
       gap:10px;
       align-items:center;
-      justify-content:flex-start;
+      justify-content:center; /* center aligned as requested */
       flex-wrap:wrap;
       margin-bottom:12px;
     }
@@ -230,48 +250,52 @@
     /* small utilities */
     .muted { color:var(--muted) }
     .center { text-align:center }
-.btn-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-  justify-content: center; /* keeps them centered */
-}
 
-.btn.primary, .btn.secondary {
-  padding: 14px 22px;
-  border-radius: 12px;
-  font-weight: 700;
-  text-align: center;
-  text-decoration: none;
-  flex: 1 1 150px; /* equal width, responsive */
-  max-width: 220px; /* prevent stretching on big screens */
-}
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      justify-content: center; /* keeps them centered */
+    }
 
-.btn.primary {
-  background: var(--accent);
-  color: var(--ink);
-}
+    .btn.primary, .btn.secondary {
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      flex: 1 1 150px; /* equal width, responsive */
+      max-width: 220px; /* prevent stretching on big screens */
+    }
 
-.btn.secondary {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--ink);
-}
+    .btn.primary {
+      background: var(--accent);
+      color: var(--ink);
+    }
+
+    .btn.secondary {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--ink);
+    }
+
+    /* dynamic pill style = employee login color/pattern */
     .pill.dynamic {
-  background: var(--card);
-  color: var(--ink);
-  border: 1px solid var(--border);
-  font-weight: 600;
-  padding: 10px 16px;
-  border-radius: 999px;
-  display: inline-block;
-  transition: background 0.25s, color 0.25s;
-}
-.pill.dynamic:hover {
-  background: var(--ink);
-  color: var(--bg);
-}
+      background: var(--card);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 999px;
+      display: inline-block;
+      transition: background 0.25s, color 0.25s;
+    }
+    .pill.dynamic:hover {
+      background: var(--ink);
+      color: var(--bg);
+    }
+
   </style>
 </head>
 <body>
@@ -300,7 +324,7 @@
         <p class="muted" style="margin:0 0 12px">Shine, protect & revive your ride — Bike, Sedan & SUV. Open daily 10:00–20:00.</p>
         <div class="btn-group">
           <a class="pill" href="/customer.html" style="background:var(--accent); color:#fff; font-weight:800; padding:12px 18px; border-radius:999px; box-shadow:0 6px 20px rgba(230,57,70,.12)">Customer Login</a>
-          <a class="pill" href="/admin.html" style="background:var(--card); color:var(--ink); font-weight:800; padding:12px 18px; border-radius:999px; border:1px solid var(--border);">Employee Login</a>
+          <a class="pill dynamic" href="/admin.html" style="font-weight:800; padding:12px 18px; border-radius:999px;">Employee Login</a>
         </div>
       </section>
 
@@ -333,7 +357,7 @@
 
       <!-- Pricing / Packages -->
       <section class="section">
-        <h2>Packages & Pricing</h2>
+        <h2 class="center-h2">Packages & Pricing</h2>
         <div class="packages">
           <div class="pkg">
             <h3>Basic Wash</h3>
@@ -357,20 +381,21 @@
           </div>
         </div>
         <div style="margin-top:12px" class="center">
+          <!-- Price list pill uses employee-login colour (dynamic) -->
           <a class="pill dynamic" href="/pricing.html">See Full Price List</a>
         </div>
       </section>
 
       <!-- Gallery / Before-After slider (placeholder images) -->
       <section class="section">
-        <h2>Gallery — Before & After</h2>
+        <h2 class="center-h2">Before &amp; After</h2>
         <div class="gallery" aria-hidden="false">
           <img src="/assets/gallery1.jpg" alt="Before - Exterior" loading="lazy">
           <img src="/assets/gallery1-after.jpg" alt="After - Exterior" loading="lazy">
           <img src="/assets/gallery2.jpg" alt="Before - Interior" loading="lazy">
           <img src="/assets/gallery2-after.jpg" alt="After - Interior" loading="lazy">
         </div>
-        <p class="muted" style="margin-top:8px">Tip: Replace the placeholder images with your real before/after photos for maximum impact.</p>
+        <!-- Tip removed as requested -->
       </section>
 
       <!-- Pricing + contact strip (moved above testimonials as requested) -->
@@ -380,7 +405,6 @@
         <div class="map-wrap" aria-hidden="false">
           <iframe
             src="https://www.google.com/maps?q=27.9446834,78.0854261&hl=en&z=16&output=embed"
-            width="100%" height="300" style="border:0; display:block;"
             loading="lazy" allowfullscreen>
           </iframe>
         </div>
@@ -392,14 +416,15 @@
           </div>
 
           <div class="center">
-            <!-- Buttons in the same row -->
+            <!-- Buttons center-aligned and same-row -->
             <div class="contact-buttons" role="group" aria-label="Directions and WhatsApp">
               <a class="pill dynamic" target="_blank" rel="noopener"
                  href="https://www.google.com/maps/dir/?api=1&destination=27.9446834,78.0854261">
                  Get Directions
               </a>
-              <!-- using the exact string you requested -->
-              <a class="pill dynamic" href="https://wa.me/919910578378" target="_blank">WhatsApp</a>
+              <!-- using the exact string you requested (with +) -->
+              <a class="pill dynamic" href="https://wa.me/+919910578378" target="_blank">WhatsApp</a>
+            </div>
           </div>
         </div>
       </section>
@@ -472,8 +497,7 @@
           localStorage.setItem('theme','light');
         }
 
-        // Ensure any elements relying on computed colors reflow:
-        // (not strictly necessary, but safe)
+        // quick reflow/transition for map and other elements
         document.body.style.transition = 'background-color 120ms ease';
         setTimeout(()=>document.body.style.transition = '', 160);
       }
@@ -486,12 +510,11 @@
       btn.addEventListener('click', ()=> applyTheme(document.body.classList.contains('light')));
     })();
 
-    // hero image override if admin uploaded a data: URL (keeps behavior you had)
+    // hero image override if admin uploaded a data: URL
     (function(){
       try{
         const saved = localStorage.getItem('kleenkars.hero');
         if(saved){
-          // update hero <header>::before by injecting small override style
           let s = document.getElementById('kk-hero-override');
           if(!s){
             s = document.createElement('style');
