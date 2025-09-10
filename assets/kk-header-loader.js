@@ -11,7 +11,7 @@
   // Move photo inside tile (px). Positive -> photo moves down (shows more top).
   let BG_OFFSET_PX = 0;
   // Move the whole tile (px). Positive -> tile moves down on the page.
-  let TILE_OFFSET_PX = 5;
+  let TILE_OFFSET_PX = 2;
 
   /* ---------- helpers ---------- */
   function el(tag, attr = {}, children = []) {
