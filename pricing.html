@@ -7,100 +7,107 @@
 
   <style>
     :root{
-      --bg: #000;
-      --card: #0f1113;
-      --muted: #9aa4b2;
-      --accent: #e50914;
-      --text: #ffffff;
+      --bg:#000;
+      --card:#0f1113;
+      --muted:#9aa4b2;
+      --accent:#e50914;
+      --text:#fff;
     }
-
+    *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
 
     /* HERO */
-    .hero{position:relative;width:100%;height:220px;background:url('/assets/hero-bg.jpg') center/cover no-repeat;display:block;overflow:hidden}
-    .hero-header{position:absolute;top:14px;left:16px;right:16px;display:flex;align-items:center;gap:18px}
-    .brand{display:flex;align-items:center;gap:14px}
-    .logo{height:110px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
-    .brand-text{display:flex;flex-direction:column}
-    .brand-title{font-weight:800;font-size:28px;letter-spacing:1px;text-transform:uppercase}
-    .brand-sub{color:var(--muted);margin-top:6px;font-size:13px}
-    .hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(180deg,rgba(0,0,0,0)0%,rgba(0,0,0,0.65)100%)}
+    .hero{position:relative;width:100%;height:180px;background:url('/assets/hero-bg.jpg') center/cover no-repeat;display:block;overflow:hidden}
+    .hero-header{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{height:90px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
+    .brand-title{font-weight:800;font-size:22px;text-transform:uppercase}
+    .brand-sub{color:var(--muted);font-size:12px}
+    .hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(180deg,rgba(0,0,0,0)0%,rgba(0,0,0,0.65)100%)}
 
-    /* Container and headings */
-    .container{max-width:980px;margin:20px auto 80px;padding:0 16px}
-    .page-title{text-align:center;font-size:28px;font-weight:800;margin:10px 0 6px}
-    .page-sub{text-align:center;color:var(--muted);margin-bottom:18px}
+    /* Page container */
+    .container{max-width:980px;margin:14px auto 40px;padding:0 14px}
+    .page-title{text-align:center;font-size:24px;font-weight:800;margin:8px 0 6px}
+    .page-sub{text-align:center;color:var(--muted);margin-bottom:12px;font-size:14px}
 
-    /* Package block */
-    .pkg { margin-bottom:22px; }
-    .pkg-inner { display:flex; gap:16px; flex-wrap:wrap; align-items:stretch; }
+    /* Package card */
+    .pkg { margin-bottom:14px; }
+    .card { background:var(--card); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 6px 14px rgba(0,0,0,0.45); }
 
-    /* Left: Bike tile */
+    /* Title/description (single per package) */
+    .pkg-title { text-align:center; font-weight:800; font-size:18px; margin:6px 0 8px; }
+    .pkg-desc  { text-align:center; color:#e0e0e0; font-size:13px; margin:0 0 12px; line-height:1.35; }
+
+    /* Two-column inner layout: left bike (narrow), right cars (wider) */
+    .pkg-inner { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+
     .tile-bike {
-      background:var(--card); border-radius:12px; padding:18px; border:1px solid rgba(255,255,255,0.03);
-      flex: 1 1 260px; min-width:220px; display:flex; flex-direction:column; justify-content:space-between;
-    }
-    .bike-title { text-align:center; font-weight:800; font-size:18px; margin-bottom:10px; color:var(--text) }
-    .bike-price { text-align:center; color:var(--accent); font-weight:900; font-size:20px; margin:6px 0; }
-    .bike-desc { text-align:center; color:#cfcfcf; font-size:13px; margin-top:8px; }
-
-    /* Right: Cars tile (title + description + 3 columns row) */
-    .tile-cars {
-      background:var(--card); border-radius:12px; padding:18px; border:1px solid rgba(255,255,255,0.03);
-      flex: 2 1 520px; min-width:260px; display:flex; flex-direction:column; justify-content:flex-start;
-    }
-    .pkg-name { text-align:center; font-weight:900; font-size:20px; margin-bottom:8px; color:var(--text) }
-    .pkg-desc { text-align:center; color:#e6e6e6; font-size:18px; margin-bottom:14px; }
-
-    /* cars row side-by-side */
-    .cars-row {
-      display:flex;
-      gap:40px;
-      align-items:flex-start;
-      justify-content:center;
-    }
-    .car-col {
-      flex: 0 1 160px;
-      min-width:120px;
+      flex: 0 0 34%;      /* left tile ~1/3 on wide screens */
+      min-width:160px;
       background:rgba(255,255,255,0.01);
-      border-radius:8px;
-      padding:6px 8px;
-      text-align:center;
+      border-radius:10px;
+      padding:12px;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:flex-start;
     }
-    .car-label { color:#fff; font-weight:900; font-size:20px; margin-bottom:10px; text-align:center; }
-    .car-price { color:var(--accent); font-weight:900; font-size:28px; margin-bottom:6px; text-align:center; }
+    .bike-price { color:var(--accent); font-weight:900; font-size:20px; margin:8px 0; text-align:center; }
+    .bike-desc { color:#cfcfcf; font-size:13px; text-align:center; margin-top:6px; }
 
-    /* Book button centered below tiles */
-    .book-wrap { text-align:center; margin-top:18px; }
-    .book-btn { background:var(--accent); color:#fff; padding:10px 28px; border-radius:999px; border:0; font-weight:800; cursor:pointer; }
+    .tile-cars {
+      flex: 1 1 60%;      /* right tile fills remaining width */
+      min-width:200px;
+      background:rgba(255,255,255,0.01);
+      border-radius:10px;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .cars-row { display:flex; gap:18px; align-items:flex-start; justify-content:center; width:100%; flex-wrap:nowrap; }
 
-    /* loading / error */
-    #loading { text-align:center; color:var(--muted); margin-top:12px }
-    #error { text-align:center; color:var(--accent); margin-top:12px; display:none }
+    .car-col {
+      flex: 1 1 0;
+      min-width:88px;
+      max-width:220px;
+      padding:8px 10px;
+      border-radius:8px;
+      background:rgba(0,0,0,0.0);
+      text-align:center;
+    }
+    .car-label { font-weight:800; font-size:16px; margin-bottom:8px; color:#fff; }
+    .car-price { color:var(--accent); font-weight:900; font-size:22px; }
 
-    /* Responsive: stack tiles but keep car columns side-by-side with horizontal scroll */
-    @media (max-width:800px){
-      .pkg-inner { flex-direction: column; }
+    /* Book button */
+    .book-wrap { text-align:center; margin-top:12px; }
+    .book-btn { background:var(--accent); color:#fff; padding:8px 22px; border-radius:999px; border:0; font-weight:800; cursor:pointer; }
 
-      .cars-row {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 12px;
-        justify-content: flex-start;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 6px;
-      }
+    /* Loading / error */
+    #loading { text-align:center; color:var(--muted); margin:12px 0; }
+    #error { text-align:center; color:var(--accent); margin:8px 0; display:none; }
 
-      .car-col {
-        flex: 0 0 140px;
-        min-width: 140px;
-        max-width: 220px;
-      }
+    /* RESPONSIVE tweaks */
+    @media (max-width:900px){
+      .hero{height:160px}
+      .logo{height:78px}
+    }
+
+    /* On narrow screens stack inside the same card, but keep the three car columns side-by-side (they shrink) */
+    @media (max-width:760px){
+      .card { padding:10px; }
+      .pkg-inner { flex-direction:column; }
+      .tile-bike { flex: 0 0 auto; width:100%; min-width:0; padding:10px; }
+      .tile-cars { flex: 0 0 auto; width:100%; min-width:0; padding:10px; }
+      .cars-row { gap:12px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px; }
+      .car-col { flex: 0 0 120px; min-width:120px; max-width:160px; }
+    }
+
+    /* very small phones: let columns shrink slightly more (but still side-by-side) */
+    @media (max-width:360px){
+      .car-col { flex: 0 0 100px; min-width:100px; }
+      .car-price { font-size:20px; }
     }
   </style>
 </head>
@@ -113,17 +120,15 @@
         <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
           <img class="logo" src="/assets/logo.png" alt="Kleenkars logo" />
         </a>
-        <div class="brand-text">
+        <div>
           <div class="brand-title">Kleenkars</div>
           <div class="brand-sub">Clean cars. Happy customers.</div>
         </div>
       </div>
-      <div style="margin-left:auto"></div>
     </div>
     <div class="hero-bottom-fade" aria-hidden="true"></div>
   </section>
 
-  <!-- MAIN -->
   <main class="container" role="main">
     <h1 class="page-title">Exclusive Pricing</h1>
     <p class="page-sub">Prices are loaded from the admin-managed catalog. Choose your package and book.</p>
@@ -135,6 +140,7 @@
   </main>
 
   <script>
+    /* map row safely */
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
@@ -142,7 +148,7 @@
         description: row.description || '',
         prices: {
           bike: row.prices?.bike ?? null,
-          hatchback: row.prices?.hatchback ?? null,
+          hatchback: row.prices?.hatchback ?? row.prices?.sedan ?? null,
           sedan: row.prices?.sedan ?? null,
           suv: row.prices?.suv ?? null
         }
@@ -180,70 +186,71 @@
         }
 
         for (const p of pk) {
-          const pkgWrap = document.createElement('section');
-          pkgWrap.className = 'pkg';
+          const card = document.createElement('section');
+          card.className = 'pkg';
 
+          const innerCard = document.createElement('div');
+          innerCard.className = 'card';
+
+          // Title + description (one per package)
+          const title = document.createElement('div');
+          title.className = 'pkg-title';
+          title.textContent = p.name;
+
+          const desc = document.createElement('div');
+          desc.className = 'pkg-desc';
+          desc.textContent = p.description || '';
+
+          // Two-tile area
           const inner = document.createElement('div');
           inner.className = 'pkg-inner';
 
-          // tile: bike (left)
-          const tileBike = document.createElement('div');
-          tileBike.className = 'tile-bike';
-          tileBike.innerHTML = `
-            <div class="bike-title">${escapeHtml(p.name)}</div>
-            <div>
-              <div class="bike-price">${formatPrice(p.prices.bike)}</div>
-              <div class="bike-desc">${escapeHtml(p.description)}</div>
-            </div>
-          `;
+          const left = document.createElement('div');
+          left.className = 'tile-bike';
+          left.innerHTML = `<div class="bike-price">${formatPrice(p.prices.bike)}</div><div class="bike-desc">${escapeHtml(p.description)}</div>`;
 
-          // tile: cars (right)
-          const tileCars = document.createElement('div');
-          tileCars.className = 'tile-cars';
-          tileCars.innerHTML = `
-            <div class="pkg-name">${escapeHtml(p.name)}</div>
-            <div class="pkg-desc">${escapeHtml(p.description)}</div>
+          const right = document.createElement('div');
+          right.className = 'tile-cars';
+          right.innerHTML = `
             <div class="cars-row" role="group" aria-label="${escapeHtml(p.name)} vehicle prices">
-              <div class="car-col">
-                <div class="car-label">Hatchback</div>
-                <div class="car-price">${formatPrice(p.prices.hatchback)}</div>
-              </div>
-              <div class="car-col">
-                <div class="car-label">Sedan</div>
-                <div class="car-price">${formatPrice(p.prices.sedan)}</div>
-              </div>
-              <div class="car-col">
-                <div class="car-label">SUV</div>
-                <div class="car-price">${formatPrice(p.prices.suv)}</div>
-              </div>
+              <div class="car-col"><div class="car-label">Hatchback</div><div class="car-price">${formatPrice(p.prices.hatchback)}</div></div>
+              <div class="car-col"><div class="car-label">Sedan</div><div class="car-price">${formatPrice(p.prices.sedan)}</div></div>
+              <div class="car-col"><div class="car-label">SUV</div><div class="car-price">${formatPrice(p.prices.suv)}</div></div>
             </div>
           `;
 
-          inner.appendChild(tileBike);
-          inner.appendChild(tileCars);
+          inner.appendChild(left);
+          inner.appendChild(right);
 
+          // Book button
           const bookWrap = document.createElement('div');
           bookWrap.className = 'book-wrap';
           bookWrap.innerHTML = `<button class="book-btn" data-pkg-id="${escapeHtml(p.id)}">Book</button>`;
 
-          pkgWrap.appendChild(inner);
-          pkgWrap.appendChild(bookWrap);
-          packagesArea.appendChild(pkgWrap);
+          // assemble
+          innerCard.appendChild(title);
+          if (p.description) innerCard.appendChild(desc);
+          innerCard.appendChild(inner);
+          innerCard.appendChild(bookWrap);
+
+          card.appendChild(innerCard);
+          packagesArea.appendChild(card);
         }
 
-        // wire booking buttons
+        // attach buttons
         document.querySelectorAll('.book-btn').forEach(btn=>{
           btn.addEventListener('click', ()=> {
             const id = btn.getAttribute('data-pkg-id');
-            alert('Book package: ' + id); // placeholder
+            // TODO: hook to booking flow
+            alert('Book package: ' + id);
           });
         });
 
         loading.style.display = 'none';
       } catch (err) {
-        console.error('pricing load error', err);
+        console.error(err);
         loading.style.display = 'none';
-        errorEl.textContent = 'Unable to load pricing. You can WhatsApp +91 99105 78378 to book.';
+        errorEl.textContent = 'Unable to load pricing. WhatsApp +91 99105 78378 to book.';
         errorEl.style.display = '';
       }
     }
