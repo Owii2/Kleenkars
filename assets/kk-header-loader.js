@@ -1,5 +1,5 @@
 // /assets/kk-header-loader.js
-// Shared header loader for Kleenkars — hero image fitted (contain) to avoid cropping
+// Shared header loader for Kleenkars — background-size: cover so image fills tile
 (function () {
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
@@ -24,31 +24,32 @@
   }
 
   const css = `
-  /* kk-header-loader styles (contain background: fits whole image, no cropping) */
+  /* kk-header-loader styles (cover background: fills tile, centered-right) */
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
     display:flex;
     align-items:center;
     gap:16px;
-    /* use a background color so empty areas look intentional */
-    background-color: #0b0b0d;
-    /* use contain so the full image is visible (no cropping) */
+
+    /* COVER mode: fill the tile */
     background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
-    background-position: center;
-    background-size: contain;
+    background-position: center right; /* bias to right where car usually sits; change to 'center' if needed */
+    background-size: cover;            /* fill tile */
     background-repeat: no-repeat;
-    padding:22px; /* a little more breathing room */
+
+    padding:20px;
     border-radius:12px;
     margin:12px 18px 8px 18px;
-    min-height:140px;
+    min-height:160px; /* taller so less vertical crop on mobile */
     box-shadow:0 6px 18px rgba(0,0,0,.4);
+    color: #fff;
   }
 
   /* Logo: removed background square, fixed width to 110px */
   .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
 
   .kk-title{font-weight:800;font-size:1.4rem;line-height:1;color:#fff; text-transform:uppercase; margin-left:6px}
-  .kk-sub{color:rgba(255,255,255,0.78); margin-top:6px; font-size:.95rem}
+  .kk-sub{color:rgba(255,255,255,0.88); margin-top:6px; font-size:.95rem}
   .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
   .kk-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;font-weight:600;cursor:pointer}
   .kk-primary{background:linear-gradient(90deg,#e63946,#c42b36);border-color:transparent;color:#fff}
@@ -87,6 +88,11 @@
 
   const styleEl = el("style", { html: css });
   document.head.appendChild(styleEl);
+
+  // remove any prior injected container (safe reload)
+  const prev = document.getElementById("kk-header-inject");
+  if (prev) prev.remove();
+
   const container = el("div", { id: "kk-header-inject", html: headerHtml });
   document.body.insertBefore(container, document.body.firstChild);
 
@@ -124,6 +130,7 @@
     });
   } catch (e) {}
 
+  // allow reload after hero is changed
   window.__kk_reload_hero = function () {
     try {
       const hero = getHeroUrl();
