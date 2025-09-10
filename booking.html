@@ -376,7 +376,8 @@
       </div>
 
       <picture class="hero-media" aria-label="Kleenkars foam wash in action">
-        <img src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
+        <!-- ID added so admin uploader or header loader can replace this image if needed -->
+        <img id="hero-img" src="/assets/hero.jpg?v=1" alt="Kleenkars foam wash in action" loading="lazy" decoding="async">
       </picture>
     </section>
      
@@ -637,12 +638,12 @@ els.confirm.addEventListener('click', async ()=>{
   }
 });
 
-/* ---------- PATCH: hero override loader ---------- */
+/* ---------- hero override loader (keeps admin uploader compatible) ---------- */
 (function(){
   try{
     var saved = localStorage.getItem('kleenkars.hero');
     if(saved){
-      var hero = document.querySelector('.hero-media img') || document.getElementById('hero-img');
+      var hero = document.getElementById('hero-img');
       if(hero) hero.src = saved;
     }
   }catch(e){}
