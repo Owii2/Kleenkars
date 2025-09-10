@@ -1,13 +1,17 @@
 // /assets/kk-header-loader.js
-// Shared header loader for Kleenkars — control background shift via BG_OFFSET_PX
+// Shared header loader for Kleenkars with two options to control vertical placement:
+//  - BG_OFFSET_PX: shifts the background image inside the hero tile (photo moves)
+//  - TILE_OFFSET_PX: shifts the hero tile itself (tile moves on page)
+// Use runtime helpers __kk_set_bg_offset(px) and __kk_move_tile(px) to test quickly.
 (function () {
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
 
-  /* ---------- config: adjust this number to move the background vertically ---------- */
-  // Positive -> move image down (reveals more of the top of the photo)
-  // Negative -> move image up   (reveals more of the bottom of the photo)
-  const BG_OFFSET_PX = 30; // <-- tweak this value, then save file (or use runtime helper below)
+  /* ---------- CONFIG: tweak these defaults ---------- */
+  // Move photo inside tile (px). Positive -> photo moves down (shows more top).
+  let BG_OFFSET_PX = 20;
+  // Move the whole tile (px). Positive -> tile moves down on the page.
+  let TILE_OFFSET_PX = 0;
 
   /* ---------- helpers ---------- */
   function el(tag, attr = {}, children = []) {
@@ -30,7 +34,6 @@
   }
 
   /* ---------- CSS / HTML ---------- */
-  // background-position-y uses dynamic offset inserted below
   const css = `
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
@@ -38,19 +41,23 @@
     align-items:center;
     gap:16px;
 
-    /* background image with top alignment and runtime offset */
+    /* background image (cover). we'll set vertical position at runtime */
     background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
-    background-position: center /*offsetY*/;
+    background-position: center 0px;
     background-size: cover;
     background-repeat: no-repeat;
 
-    /* ORIGINAL padding restored so logo/title don't move */
-    padding:20px; /* top right bottom left */
+    /* original padding restored so logo/title don't move */
+    padding:20px;
     border-radius:12px;
     margin:18px 18px 12px 18px;
     min-height:160px;
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color: #fff;
+
+    /* allow tile movement via transform (set at runtime) */
+    transform: translateY(0);
+    transition: transform 220ms ease, box-shadow 180ms ease;
   }
 
   .kk-logo{
@@ -74,6 +81,7 @@
     text-transform:uppercase;
     margin-left:6px;
   }
+
   .kk-sub{
     color: rgba(255,255,255,0.9);
     margin-top:6px;
@@ -125,35 +133,49 @@
   const styleEl = el("style", { html: css });
   document.head.appendChild(styleEl);
 
-  // remove prior injection (safe reload)
   const prev = document.getElementById("kk-header-inject");
   if (prev) prev.remove();
 
   const container = el("div", { id: "kk-header-inject", html: headerHtml });
   document.body.insertBefore(container, document.body.firstChild);
 
-  /* ---------- apply the vertical offset to the background (runtime) ---------- */
-  // we set it after the element exists so we can compute style reliably
-  (function applyBgOffset(px) {
+  /* ---------- runtime setters ---------- */
+  function applyBgOffset(px) {
     try {
       const hero = document.querySelector(".kk-header-hero");
       if (!hero) return;
-      // Use CSS background-position with explicit y offset
-      // "center <n>px" moves the image vertically relative to the element
+      // set background vertical position to center + px
       hero.style.backgroundPosition = `center ${px}px`;
     } catch (e) { console.warn(e); }
-  })(BG_OFFSET_PX);
+  }
 
-  // helper to change offset in console for quick tuning:
+  function applyTileOffset(px) {
+    try {
+      const hero = document.querySelector(".kk-header-hero");
+      if (!hero) return;
+      hero.style.transform = `translateY(${px}px)`;
+    } catch (e) { console.warn(e); }
+  }
+
+  // apply initial configured offsets
+  applyBgOffset(BG_OFFSET_PX);
+  applyTileOffset(TILE_OFFSET_PX);
+
+  // helpers available in console for quick tuning
   window.__kk_set_bg_offset = function (px) {
     const n = Number(px) || 0;
-    const hero = document.querySelector(".kk-header-hero");
-    if (hero) hero.style.backgroundPosition = `center ${n}px`;
-    // also update stored constant for debugging (not persisted)
+    BG_OFFSET_PX = n;
+    applyBgOffset(n);
     console.log("kk-header: background offset set to", n);
   };
+  window.__kk_move_tile = function (px) {
+    const n = Number(px) || 0;
+    TILE_OFFSET_PX = n;
+    applyTileOffset(n);
+    console.log("kk-header: tile translateY set to", n);
+  };
 
-  /* ---------- theme toggle ---------- */
+  /* ---------- theme toggle (robust) ---------- */
   const THEME_KEY = "kleenkars.theme";
   (function applySavedThemeEarly() {
     try {
@@ -169,6 +191,7 @@
   })();
 
   const themeToggle = document.getElementById("kk-theme-toggle");
+
   function setTheme(isLight) {
     try {
       if (isLight) {
@@ -186,6 +209,7 @@
       }
     } catch (e) { console.warn(e); }
   }
+
   (function initThemeButton() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
@@ -197,6 +221,7 @@
       }
     } catch (e) { setTheme(false); }
   })();
+
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
       const isLight = document.body ? document.body.classList.contains("light") : document.documentElement.classList.contains("light");
