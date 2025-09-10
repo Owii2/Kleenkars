@@ -7,7 +7,7 @@
   <meta name="description" content="Kleenkars Car Wash — Premium car wash & detailing in Aligarh. Bike, Sedan & SUV. Open 10:00–20:00. Call 9910578378.">
   <link rel="canonical" href="https://kleenkars.in/">
 
-  <!-- PWA / manifest (keep as-is in site) -->
+  <!-- PWA / manifest -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b0b12">
 
@@ -24,7 +24,7 @@
       --card:#13131b;
       --ink:#e9e9ef;
       --muted:#b8b8c6;
-      --accent:#e63946; /* red accent */
+      --accent:#e63946;
       --accent-2:#111016;
       --border:#242433;
       --radius:16px;
@@ -32,7 +32,6 @@
       --control-h:48px;
       --max-width:1100px;
     }
-    /* Light mode overrides */
     body.light {
       --bg:#fff;
       --card:#f9f9f9;
@@ -52,15 +51,13 @@
     a{color:inherit; text-decoration:none}
     .wrap{max-width:var(--max-width); margin:0 auto; padding:20px}
 
-    /* ---------- HEADER / HERO (combined) ---------- */
+    /* ---------- HEADER / HERO ---------- */
     .site-header {
       border-radius:12px;
       overflow:hidden;
       position:relative;
       margin-bottom:20px;
     }
-
-    /* Hero background (use hero image as background for header) */
     .site-header::before{
       content:"";
       position:absolute;
@@ -72,7 +69,7 @@
       z-index:0;
     }
     .site-header .header-inner{
-      position:relative; /* above background */
+      position:relative;
       z-index:1;
       display:flex;
       align-items:center;
@@ -81,12 +78,7 @@
       padding:20px;
       background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.12));
     }
-
-    .brand {
-      display:flex; align-items:center; gap:14px;
-      min-width:0;
-    }
-    /* Desktop logo larger; mobile later forced to 110px */
+    .brand { display:flex; align-items:center; gap:14px; min-width:0; }
     .brand img {
       width: clamp(120px, 14vw, 160px);
       height:auto; object-fit:contain; border-radius:10px;
@@ -100,318 +92,163 @@
       font-size: clamp(1.2rem, 3.5vw, 2.0rem);
       color: #fff;
     }
-    .brand-text .tagline {
-      color: rgba(255,255,255,0.9);
-      font-size: .95rem;
-      margin-top:4px;
-    }
+    .brand-text .tagline { color: rgba(255,255,255,0.9); font-size: .95rem; margin-top:4px; }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .mode-toggle { cursor:pointer; font-size:1.1rem; background:transparent; border:none; color:#fff; }
 
-    .header-actions {
-      display:flex; align-items:center; gap:10px;
-    }
-    .pill {
-      display:inline-block;
-      padding:8px 12px; border-radius:999px;
-      background: rgba(255,255,255,0.06); color:#fff;
-      border:1px solid rgba(255,255,255,0.08);
-      font-weight:600;
-    }
-    .pill.secondary { background:transparent; border:1px solid rgba(255,255,255,0.12) }
-
-    .mode-toggle {
-      cursor:pointer; font-size:1.1rem; background:transparent; border:none; color:#fff;
-      padding:6px 8px; display:inline-flex; align-items:center; gap:8px;
-    }
-
-    /* Make header compact on small screens + logo size rule for mobile 110px */
     @media (max-width:600px){
-      .brand img { width: 110px; } /* mobile requested */
+      .brand img { width: 110px; }
       .brand-text .title { font-size: 1.0rem; }
       .site-header::before{ filter: brightness(.4); background-position: center 30%; }
       .header-inner { padding:14px; gap:10px; }
     }
 
-    /* ---------- MAIN CONTENT ---------- */
+    /* ---------- MAIN ---------- */
     main { margin-top:18px; }
-
     .section { margin-bottom:26px; }
     .section h2 { margin:0 0 10px; font-size:1.25rem; color:var(--ink) }
     .grid { display:grid; gap:12px }
     .two { grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
 
-    /* Services cards */
     .services { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
     .svc-card {
       background:var(--card); border:1px solid var(--border); padding:14px; border-radius:12px;
-      display:flex; flex-direction:column; gap:8px; align-items:flex-start;
+      display:flex; flex-direction:column; gap:8px;
     }
-    .svc-card .svc-icon { width:44px; height:44px; border-radius:10px; background:rgba(0,0,0,0.12); display:flex; align-items:center; justify-content:center; }
-    .svc-card h3 { margin:0; font-size:1rem }
+    .svc-card h3 { margin:0; font-size:1rem; color:var(--ink) }
     .svc-card p { margin:0; color:var(--muted); font-size:.92rem }
 
-    /* Pricing / packages */
     .packages { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
     .pkg { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
-    .pkg h3 { margin:6px 0 6px }
+    .pkg h3 { margin:6px 0; color:var(--ink); }
     .pkg .price { font-weight:800; font-size:1.1rem; color:var(--accent); }
 
-    /* Gallery placeholder and slider container */
     .gallery { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
     .gallery img { width:100%; height:160px; object-fit:cover; border-radius:10px; border:1px solid var(--border); }
 
-    /* Testimonials */
-    .testimonials { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
-    .review { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; }
+    /* Testimonials swipe carousel */
+    .test-swiper { overflow:hidden; width:100%; position:relative; margin-top:12px; }
+    .test-track { display:flex; gap:12px; transition:transform 260ms cubic-bezier(.2,.9,.2,1); will-change:transform; }
+    .test-slide {
+      flex:0 0 86%;
+      max-width:740px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+    }
+    .test-slide strong { display:block; margin-bottom:6px; color:var(--ink); }
+    .test-slide p { margin:0; color:var(--muted); }
 
     /* Map / contact */
     .location .map-wrap { border-radius:12px; overflow:hidden; border:1px solid var(--border) }
+    .btn-row { display:flex; gap:12px; margin-top:12px; justify-content:center; flex-wrap:wrap; }
 
-    /* Footer */
     footer { margin-top:18px; padding:18px 0; color:var(--muted); text-align:center; font-size:.95rem; }
 
-    /* Floating Book Now button (single) — centered bottom */
-    .floating-book {
-      position:fixed; left:50%; transform:translateX(-50%);
-      bottom:18px; z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .floating-book .pill {
-      background:var(--accent); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700;
-      box-shadow: 0 8px 30px rgba(230,57,70,.15), 0 2px 8px rgba(0,0,0,.2);
-      border:none;
-    }
+    .floating-book { position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9999; }
+    .floating-book .pill { background:var(--accent); color:#fff; padding:12px 20px; border-radius:999px; font-weight:700; border:none; }
 
-    /* small utilities */
+    .pill { display:inline-block; padding:8px 12px; border-radius:999px; font-weight:600; }
+    .pill.secondary { background:var(--card); border:1px solid var(--border); color:var(--ink); }
     .muted { color:var(--muted) }
     .center { text-align:center }
-.btn-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-  justify-content: center; /* keeps them centered */
-}
-
-.btn.primary, .btn.secondary {
-  padding: 14px 22px;
-  border-radius: 12px;
-  font-weight: 700;
-  text-align: center;
-  text-decoration: none;
-  flex: 1 1 150px; /* equal width, responsive */
-  max-width: 220px; /* prevent stretching on big screens */
-}
-
-.btn.primary {
-  background: var(--accent);
-  color: var(--ink);
-}
-
-.btn.secondary {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--ink);
-}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- Header / hero combined -->
-    <header class="site-header glossy-header" role="banner">
+    <header class="site-header" role="banner">
       <div class="header-inner">
-        <div class="brand" role="img" aria-label="Kleenkars Car Wash logo">
+        <div class="brand">
           <img src="/assets/logo.png" alt="Kleenkars logo" onerror="this.src='/logo.svg'">
-          <div class="brand-text">
-            <div class="title">KLEENKARS CARWASH</div>
+          <div class="brand-text"><div class="title">KLEENKARS CARWASH</div></div>
         </div>
-
-        <div class="header-actions" role="navigation" aria-label="Top actions">
+        <div class="header-actions">
           <button id="themeToggle" class="mode-toggle" aria-label="Toggle theme">🌙</button>
         </div>
       </div>
     </header>
 
     <main>
-      <!-- HERO copy & CTA -->
       <section class="section center">
-        <h1 style="margin:0 0 8px">Premium Car Wash & Detailing in Aligarh</h1>
-        <p class="muted" style="margin:0 0 12px">Shine, protect & revive your ride — Bike, Sedan & SUV. Open daily 10:00–20:00.</p>
-        <!-- single CTA on homepage -> floating Book Now (so we don't include inline booking) -->
-        <div class="btn-group">
-  <a class="pill" href="/customer.html" style="background:var(--accent); color:#fff; font-weight:800; padding:12px 18px; border-radius:999px; box-shadow:0 6px 20px rgba(230,57,70,.12)">Customer Login</a>
-  <a class="pill" href="/admin.html" style="background:var(--card); color:var(--ink); font-weight:800; padding:12px 18px; border-radius:999px; border:1px solid var(--border);">Employee Login</a>
-</div>
+        <h1>Premium Car Wash & Detailing in Aligarh</h1>
+        <p class="muted">Shine, protect & revive your ride — Bike, Sedan & SUV. Open daily 10:00–20:00.</p>
       </section>
 
-      <!-- Services -->
       <section class="section">
         <h2>Our Services</h2>
-        <div class="services" aria-hidden="false">
-          <div class="svc-card">
-            <div class="svc-icon">🚿</div>
-            <h3>Exterior Wash</h3>
-            <p>Foam, rinse & spot-free dry for a showroom shine.</p>
-          </div>
-          <div class="svc-card">
-            <div class="svc-icon">🪑</div>
-            <h3>Interior Detailing</h3>
-            <p>Deep clean, vacuum, polish & odor removal.</p>
-          </div>
-          <div class="svc-card">
-            <div class="svc-icon">💎</div>
-            <h3>Ceramic Coating</h3>
-            <p>Long-lasting protection & gloss boost.</p>
-          </div>
-          <div class="svc-card">
-            <div class="svc-icon">🧽</div>
-            <h3>Engine Bay Cleaning</h3>
-            <p>Safe, effective degreasing and dressing.</p>
-          </div>
+        <div class="services">
+          <div class="svc-card"><h3>Exterior Wash</h3><p>Foam, rinse & spot-free dry.</p></div>
+          <div class="svc-card"><h3>Interior Detailing</h3><p>Deep clean, vacuum, polish.</p></div>
+          <div class="svc-card"><h3>Ceramic Coating</h3><p>Long-lasting protection.</p></div>
+          <div class="svc-card"><h3>Engine Bay Cleaning</h3><p>Safe, effective degreasing.</p></div>
         </div>
       </section>
 
-      <!-- Pricing / Packages -->
       <section class="section">
         <h2>Packages & Pricing</h2>
         <div class="packages">
-          <div class="pkg">
-            <h3>Basic Wash</h3>
-            <div class="price">₹150 – ₹350</div>
-            <p class="muted">Exterior wash, dry, quick interior tidy.</p>
-          </div>
-          <div class="pkg">
-            <h3>Premium Wash</h3>
-            <div class="price">₹250 – ₹600</div>
-            <p class="muted">Foam wash, interior wipe, wheel clean.</p>
-          </div>
-          <div class="pkg">
-            <h3>Full Detailing</h3>
-            <div class="price">₹1500 – ₹2500</div>
-            <p class="muted">Deep interior + exterior restoration.</p>
-          </div>
-          <div class="pkg">
-            <h3>Ceramic Coating</h3>
-            <div class="price">Custom pricing</div>
-            <p class="muted">Professional ceramic protection packages.</p>
-          </div>
-        </div>
-        <div style="margin-top:12px" class="center">
-          <a class="pill" href="/pricing.html">See Full Price List</a>
-        </div>
-      </section>
-            <!-- Gallery / Before-After slider (placeholder images) -->
-      <section class="section">
-        <h2>Gallery — Before & After</h2>
-        <div class="gallery" aria-hidden="false">
-          <!-- Replace these with real before/after images; keep same aspect ratio -->
-          <img src="/assets/gallery1.jpg" alt="Before - Exterior" loading="lazy">
-          <img src="/assets/gallery1-after.jpg" alt="After - Exterior" loading="lazy">
-          <img src="/assets/gallery2.jpg" alt="Before - Interior" loading="lazy">
-          <img src="/assets/gallery2-after.jpg" alt="After - Interior" loading="lazy">
-        </div>
-        <p class="muted" style="margin-top:8px">Tip: Replace the placeholder images with your real before/after photos for maximum impact.</p>
-      </section>
-
-      <!-- Testimonials -->
-      <section class="section">
-        <h2>What customers say</h2>
-        <div class="testimonials">
-          <div class="review">
-            <strong>Rohit K.</strong>
-            <p class="muted">“Great service and arrived on time — car looks brand new!”</p>
-          </div>
-          <div class="review">
-            <strong>Priya S.</strong>
-            <p class="muted">“Professional team. Highly recommended for full detailing.”</p>
-          </div>
-          <div class="review">
-            <strong>Ajay M.</strong>
-            <p class="muted">“Ceramic job lasted months. Really happy with the gloss.”</p>
-          </div>
+          <div class="pkg"><h3>Basic Wash</h3><div class="price">₹150 – ₹350</div></div>
+          <div class="pkg"><h3>Premium Wash</h3><div class="price">₹250 – ₹600</div></div>
+          <div class="pkg"><h3>Full Detailing</h3><div class="price">₹1500 – ₹2500</div></div>
+          <div class="pkg"><h3>Ceramic Coating</h3><div class="price">Custom pricing</div></div>
         </div>
       </section>
 
-      <!-- Location & Contact -->
+      <!-- Map + Contact (moved above testimonials) -->
       <section class="section location">
         <h2>Location & Contact</h2>
-        <div class="map-wrap" style="margin-bottom:12px">
-          <!-- Google Embed — uses provided coordinates -->
-          <!-- Replace YOUR_GOOGLE_MAPS_API_KEY with your API key or use the provided "directions" link only -->
-          <iframe
-  src="https://www.google.com/maps?q=27.9446834,78.0854261&hl=en&z=16&output=embed"
-  width="100%" height="300" style="border:0; display:block;"
-  loading="lazy" allowfullscreen>
-</iframe>
+        <div class="map-wrap">
+          <iframe src="https://www.google.com/maps?q=27.9446834,78.0854261&hl=en&z=16&output=embed"
+            width="100%" height="300" style="border:0; display:block;" loading="lazy" allowfullscreen></iframe>
         </div>
-
-        <div class="two grid" style="align-items:center">
-          <div>
-            <p style="margin:0"><strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Maheshpur, Aligarh, Uttar Pradesh 202001</p>
-            <p class="muted" style="margin:6px 0 0">Phone: <a href="tel:+919910578378">+91 9910578378</a></p>
-          </div>
-          <div class="center">
-            <!-- Get directions button uses Google Maps directions URL to provided coords -->
-            <a class="pill" target="_blank" rel="noopener"
-               href="https://www.google.com/maps/dir/?api=1&destination=27.9446834,78.0854261">
-              Get Directions
-            </a>
-            <div style="margin-top:8px">
-              <a class="pill secondary" href="https://wa.me/919910578378" target="_blank">WhatsApp</a>
-            </div>
-          </div>
+        <p><strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Maheshpur, Aligarh</p>
+        <p class="muted">Phone: <a href="tel:+919910578378">+91 9910578378</a></p>
+        <div class="btn-row">
+          <a class="pill" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=27.9446834,78.0854261">Get Directions</a>
+          <a class="pill secondary" target="_blank" href="https://wa.me/+919910578378">WhatsApp</a>
         </div>
       </section>
 
-      <!-- Footer -->
-      <footer>
-        <div style="margin-bottom:8px">Kleenkars — Bringing Shine Back to Your Ride</div>
-        <div style="font-size:.9rem">
-          <a href="/about.html" class="muted">About</a> •
-          <a href="/services.html" class="muted">Services</a> •
-          <a href="/pricing.html" class="muted">Pricing</a> •
-          <a href="/gallery.html" class="muted">Gallery</a> •
-          <a href="/contact.html" class="muted">Contact</a>
+      <!-- Testimonials swipe -->
+      <section class="section">
+        <h2>What customers say</h2>
+        <div class="test-swiper">
+          <div class="test-track" id="testTrack">
+            <article class="test-slide"><strong>Rohit K.</strong><p>“Great service and arrived on time — car looks brand new!”</p></article>
+            <article class="test-slide"><strong>Priya S.</strong><p>“Professional team. Highly recommended for full detailing.”</p></article>
+            <article class="test-slide"><strong>Ajay M.</strong><p>“Ceramic job lasted months. Really happy with the gloss.”</p></article>
+          </div>
         </div>
-        <div style="margin-top:8px" class="muted">© <span id="yr"></span> Kleenkars • Open 10:00–20:00 Daily</div>
+        <div class="muted center" style="margin-top:6px">Swipe left / right</div>
+      </section>
+
+      <footer>
+        © <span id="yr"></span> Kleenkars • Open 10:00–20:00 Daily
       </footer>
     </main>
   </div>
 
-  <!-- Floating Book Now button (single, bottom center) -->
-  <div class="floating-book" role="navigation" aria-label="Book Now">
-    <a class="pill" href="/booking.html">Book Now</a>
-  </div>
-
-  <!-- Minimal toast (kept for consistency if any scripts use it) -->
-  <div id="toast" style="display:none; position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:12px;color:var(--ink);z-index:9999">✅ Saved</div>
+  <div class="floating-book"><a class="pill" href="/booking.html">Book Now</a></div>
 
   <script>
-    // Footer year
     document.getElementById('yr').textContent = new Date().getFullYear();
+    const btn=document.getElementById('themeToggle');
+    function applyTheme(dark){document.body.classList.toggle('light',!dark);btn.textContent=dark?'🌙':'☀️';localStorage.setItem('theme',dark?'dark':'light')}
+    const saved=localStorage.getItem('theme');if(saved)applyTheme(saved==='dark');else applyTheme(!(new Date().getHours()>=7&&new Date().getHours()<19));
+    btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light')));
 
-    // Theme toggle: persist and auto by time
+    // Swipe for testimonials
     (function(){
-      const btn = document.getElementById('themeToggle');
-      if(!btn) return;
-      function applyTheme(isDark){
-        if(isDark){ document.body.classList.remove('light'); btn.textContent='🌙'; localStorage.setItem('theme','dark'); }
-        else { document.body.classList.add('light'); btn.textContent='☀️'; localStorage.setItem('theme','light'); }
-      }
-      const saved = localStorage.getItem('theme');
-      if(saved) applyTheme(saved !== 'light');
-      else {
-        const h = new Date().getHours();
-        applyTheme(!(h >= 7 && h < 19)); // day=light (7–18)
-      }
-      btn.addEventListener('click', ()=> applyTheme(document.body.classList.contains('light')));
-    })();
-
-    // Accessibility: ensure only one Book Now visible to screenreaders
-    (function(){
-      const floating = document.querySelector('.floating-book .pill');
-      if(floating) floating.setAttribute('aria-label','Open booking page');
+      const track=document.getElementById('testTrack');let startX=0,scroll=0;
+      track.addEventListener('pointerdown',e=>{startX=e.clientX;track.style.transition='none';});
+      track.addEventListener('pointerup',e=>{
+        const dx=e.clientX-startX;
+        const slideW=track.children[0].offsetWidth+12;
+        scroll=Math.min(Math.max(scroll-Math.round(dx/slideW),0),track.children.length-1);
+        track.style.transition='transform .3s';track.style.transform=`translateX(${-scroll*slideW}px)`;
+      });
     })();
   </script>
 </body>
 </html>
-      
