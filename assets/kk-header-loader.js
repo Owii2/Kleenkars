@@ -1,5 +1,6 @@
 // /assets/kk-header-loader.js
-// Shared header loader for Kleenkars — hero anchored to top, logo 110px, robust theme toggle
+// Shared header loader for Kleenkars — background-size: cover so image fills tile
+// Includes robust theme toggle that updates body.classList and documentElement and persists to localStorage
 (function () {
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
@@ -26,31 +27,24 @@
 
   /* ---------- CSS / HTML ---------- */
   const css = `
-  /* kk-header-loader styles (cover background: fills tile, anchored to top) */
-  :root{ --kk-hero-position: top center; } /* tweak: top center | center right | center center */
+  /* kk-header-loader styles */
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
     display:flex;
     align-items:center;
     gap:16px;
-
-    /* COVER mode: fill the tile but anchored to top so top of image is preserved */
     background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
-    background-position: var(--kk-hero-position);
-    background-size: cover;
+    background-position: top center;   /* ✅ always show top of photo */
+    background-size: cover;            /* ✅ fill tile */
     background-repeat: no-repeat;
-
     padding:20px;
     border-radius:12px;
     margin:12px 18px 8px 18px;
-    min-height:180px; /* slightly taller for better framing */
+    min-height:160px; /* ✅ original tile size */
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color: #fff;
   }
-
-  /* Logo: fixed width 110px, no square tile behind it */
-  .kk-logo{ width:110px !important; height:auto; border-radius:0; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
-
+  .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
   .kk-title{font-weight:800;font-size:1.4rem;line-height:1;color:#fff; text-transform:uppercase; margin-left:6px}
   .kk-sub{color:rgba(255,255,255,0.88); margin-top:6px; font-size:.95rem}
   .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
@@ -62,9 +56,8 @@
 
   /* small screens */
   @media (max-width:640px){
-    .kk-header-hero{flex-direction:column;align-items:flex-start;min-height:160px;padding:14px;gap:12px}
-    .kk-title{font-size:1.15rem}
-    .kk-sub{font-size:.9rem}
+    .kk-title{font-size:1.1rem}
+    .kk-header-hero{min-height:140px;padding:14px;gap:12px}
     .kk-logo{ width:110px !important; }
   }
   `;
@@ -102,10 +95,9 @@
   const container = el("div", { id: "kk-header-inject", html: headerHtml });
   document.body.insertBefore(container, document.body.firstChild);
 
-  /* ---------- theme toggle (robust) ---------- */
+  /* ---------- theme toggle ---------- */
   const THEME_KEY = "kleenkars.theme"; // value: "light" or "dark"
 
-  // apply saved theme early (keeps CSS in sync)
   (function applySavedThemeEarly() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
@@ -116,7 +108,7 @@
         document.documentElement.classList.remove("light");
         document.body && document.body.classList.remove("light");
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {}
   })();
 
   const themeToggle = document.getElementById("kk-theme-toggle");
@@ -141,7 +133,6 @@
     }
   }
 
-  // initialize button state (reads saved value or defaults by time)
   (function initThemeButton() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
@@ -156,7 +147,6 @@
     }
   })();
 
-  // Toggle on click
   themeToggle.addEventListener("click", () => {
     const isLight = document.body ? document.body.classList.contains("light") : document.documentElement.classList.contains("light");
     setTheme(!isLight);
@@ -170,7 +160,7 @@
     });
   });
 
-  /* ---------- best-effort: hide old headers to avoid duplicates ---------- */
+  /* ---------- hide old headers ---------- */
   try {
     const selectorsToHide = ["header", ".header", "#header", ".site-header", ".site-hero"];
     selectorsToHide.forEach(sel => {
@@ -184,7 +174,7 @@
     });
   } catch (e) {}
 
-  /* ---------- allow reload after hero changed ---------- */
+  /* ---------- reload hero ---------- */
   window.__kk_reload_hero = function () {
     try {
       const hero = getHeroUrl();
