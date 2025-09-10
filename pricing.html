@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kleenkars — Exclusive Pricing</title>
 
+  <!-- Shared header CSS + loader (shared header will be injected by the loader) -->
+  <link rel="stylesheet" href="/assets/kk-header.css">
+  <script src="/assets/kk-header-loader.js" defer></script>
+
   <style>
     :root{
       --bg:#000;
@@ -17,14 +21,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
 
-    /* HERO */
-    .hero{position:relative;width:100%;height:180px;background:url('/assets/hero-bg.jpg') center/cover no-repeat;display:block;overflow:hidden}
-    .hero-header{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:14px}
-    .brand{display:flex;align-items:center;gap:14px}
-    .logo{height:110px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
-    .brand-title{font-weight:800;font-size:26px;text-transform:uppercase;line-height:1.1}
-    .brand-sub{color:var(--muted);font-size:14px;margin-top:2px}
-    .hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(180deg,rgba(0,0,0,0)0%,rgba(0,0,0,0.65)100%)}
+    /* NOTE: header/hero removed from page body because shared header loader handles it */
 
     /* Page container */
     .container{max-width:980px;margin:14px auto 40px;padding:0 14px}
@@ -107,30 +104,13 @@
   </style>
 </head>
 <body>
-  <script src="/assets/kk-header-loader.js" defer></script>
 
-  <!-- HERO -->
-  <section class="hero" role="banner" aria-label="Kleenkars hero">
-    <div class="hero-header">
-      <div class="brand">
-        <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
-          <img class="logo" src="/assets/logo.png" alt="Kleenkars logo" />
-        </a>
-        <div>
-          <div class="brand-title">Kleenkars</div>
-          <div class="brand-sub">Clean cars. Happy customers.</div>
-        </div>
-      </div>
-    </div>
-    <div class="hero-bottom-fade" aria-hidden="true"></div>
-  </section>
-
-  <main class="container" role="main">
+  <main class="container" role="main" id="main">
     <h1 class="page-title">Exclusive Pricing</h1>
     <p class="page-sub">Prices are loaded from the admin-managed catalog. Choose your package and book.</p>
 
     <div id="loading">Loading pricing…</div>
-    <div id="error"></div>
+    <div id="error" role="status" aria-live="polite"></div>
 
     <div id="packages-area" aria-live="polite"></div>
   </main>
@@ -192,6 +172,7 @@
       packagesArea.innerHTML = '';
 
       try {
+        // Keep the same endpoint you had previously — adjust if your function path differs
         const res = await fetch('/api/prices');
         if (!res.ok) throw new Error('Server returned ' + res.status);
         const data = await res.json();
