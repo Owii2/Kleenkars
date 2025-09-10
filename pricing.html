@@ -5,19 +5,72 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pricing — Kleenkars Car Wash & Detailing | Aligarh</title>
   <meta name="description" content="Kleenkars pricing: transparent car & bike wash, detailing, waxing, ceramic coating, interior shampoo, engine cleaning. Book online or on-site home visit." />
-  <style>
-    /* (same lightweight styling as before, abbreviated) */
-    :root{--accent:#00b894;--text:#eef2f5;--muted:#9aa4b2;--card:#0f1720;}
-    body{font-family:Inter,system-ui,Arial;background:#071426;color:var(--text);margin:0;padding:20px}
-    .wrap{max-width:1100px;margin:0 auto}
-    .card{background:rgba(255,255,255,0.02);padding:16px;border-radius:10px;margin-bottom:12px}
-    .pkg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-    .pkg{padding:12px;border-radius:8px;background:rgba(255,255,255,0.01)}
-    .muted{color:var(--muted)}
-    .btn{padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer}
-  </style>
+<style>
+  /* Hero Section */
+  .hero {
+    position: relative;
+    width: 100%;
+    height: 220px; /* adjust height as you like */
+    background: url('/assets/hero-bg.jpg') center/cover no-repeat; /* your background photo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-overlay {
+    background: rgba(0,0,0,0.5); /* dark overlay for contrast */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .hero-logo {
+    height: 80px;
+    width: auto;
+    margin-bottom: 10px;
+  }
+
+  .hero-title {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  /* Global Theme */
+  body {
+    background: #000; /* black */
+    color: #fff;      /* white text */
+    font-family: Inter, Arial, sans-serif;
+  }
+  a, button {
+    background: #e50914; /* red */
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  a:hover, button:hover {
+    opacity: 0.85;
+  }
+</style>
 </head>
 <body>
+  <!-- Hero Section -->
+<section class="hero">
+  <div class="hero-overlay">
+    <img class="hero-logo" src="/assets/logo.png" alt="Kleenkars Carwash Logo" />
+    <h1 class="hero-title">KLEENKARS<br/>CARWASH</h1>
+  </div>
+</section>
   <main class="wrap">
     <header style="display:flex;justify-content:space-between;align-items:center">
       <div>
