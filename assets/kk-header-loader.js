@@ -3,7 +3,6 @@
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
 
-  /* ---------- helpers ---------- */
   function el(tag, attr = {}, children = []) {
     const e = document.createElement(tag);
     for (const k in attr) {
@@ -23,9 +22,9 @@
     return "/assets/hero.jpg";
   }
 
-  /* ---------- CSS / HTML ---------- */
+  /* ---------- CSS ---------- */
   const css = `
-  .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
+  .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
   .kk-header-hero{
     display:flex;
     align-items:center;
@@ -36,30 +35,16 @@
     background-repeat: no-repeat;
     padding:20px;
     border-radius:12px;
-    margin:12px 18px 8px 18px;
+    margin:12px 18px 20px 18px;
     min-height:160px;
     box-shadow:0 6px 18px rgba(0,0,0,.4);
-    color: #fff;
+    color:#fff;
   }
   .kk-logo{ width:110px !important; height:auto; border-radius:50%; display:block; object-fit:contain; cursor:pointer }
-  .kk-title{
-    font-weight:800;
-    font-size:1.6rem;        /* slightly larger */
-    line-height:1.2;
-    color:#fff;
-    text-transform:uppercase;
-  }
-  .kk-sub{
-    color:rgba(200,200,210,0.9); /* lighter gray tone */
-    margin-top:6px;
-    font-size:1rem;          /* slightly smaller */
-    font-weight:400;
-  }
+  .kk-title{font-weight:800;font-size:1.6rem;line-height:1.2;color:#fff;text-transform:uppercase}
+  .kk-sub{color:rgba(200,200,210,0.9); margin-top:6px; font-size:1rem; font-weight:400}
   .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
   .kk-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;font-weight:600;cursor:pointer}
-  .kk-toolbar{display:flex;gap:10px;padding:8px 18px;margin-bottom:12px;flex-wrap:wrap}
-  .kk-toolbar .kk-tab{background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;color:#fff;font-weight:700;cursor:pointer}
-  .kk-toolbar .kk-tab.active{background:#e63946;color:white;box-shadow:0 4px 12px rgba(230,57,70,0.18)}
 
   @media (max-width:640px){
     .kk-title{font-size:1.2rem}
@@ -68,6 +53,7 @@
   }
   `;
 
+  /* ---------- HTML ---------- */
   const headerHtml = `
   <div class="kk-header-root">
     <div class="kk-header-hero" role="banner" aria-label="Kleenkars hero">
@@ -82,12 +68,6 @@
         <button id="kk-theme-toggle" class="kk-btn" title="Toggle theme" aria-pressed="false">🌙</button>
       </div>
     </div>
-    <nav class="kk-toolbar" aria-label="site toolbar">
-      <div class="kk-tab" data-target="/booking">Book</div>
-      <div class="kk-tab" data-target="/pricing">Pricing</div>
-      <div class="kk-tab" data-target="/contact">Contact</div>
-      <div class="kk-tab" data-target="/admin">Admin</div>
-    </nav>
   </div>
   `;
 
@@ -144,12 +124,5 @@
   themeToggle.addEventListener("click", () => {
     const isLight = document.body.classList.contains("light");
     setTheme(!isLight);
-  });
-
-  /* ---------- toolbar nav handlers ---------- */
-  document.querySelectorAll(".kk-toolbar .kk-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      window.location.href = tab.dataset.target || "/";
-    });
   });
 })();
