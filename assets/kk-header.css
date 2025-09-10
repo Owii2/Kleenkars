@@ -1,0 +1,54 @@
+/* /assets/kk-header.css */
+/* KLEENKARS SHARED HEADER */
+:root{
+  --kk-bg: #0b0b12;
+  --kk-header-bg: #111018;
+  --kk-border: #242433;
+  --kk-ink: #e9e9ef;
+  --kk-muted: #b8b8c6;
+  --kk-accent: #e63946;
+}
+
+/* light mode overrides (body.light applied by JS) */
+body.light {
+  --kk-header-bg: #ffffff;
+  --kk-ink: #111;
+  --kk-muted: #4b5563;
+}
+
+/* header layout */
+.kk-header { background:var(--kk-header-bg); border-bottom:1px solid var(--kk-border); }
+.kk-header-inner { max-width:1120px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px; justify-content:space-between; }
+
+/* brand */
+.kk-brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
+.kk-logo {
+  height:110px;              /* requested height */
+  width:auto; display:block;
+  object-fit:contain;
+  background:#0f0f16;
+  border:1px solid var(--kk-border);
+  border-radius:10px;
+  padding:6px;
+}
+.kk-brand-text { display:flex; flex-direction:column; line-height:1; }
+.kk-title { font-weight:800; font-size:26px; text-transform:uppercase; color:var(--kk-ink); }
+.kk-sub { color:var(--kk-muted); font-size:14px; margin-top:3px; }
+
+/* controls */
+.kk-controls { display:flex; align-items:center; gap:10px; }
+.kk-ctrl-btn { background:transparent; border:1px solid var(--kk-border); color:var(--kk-ink); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600; }
+.kk-ctrl-btn:focus { outline:2px solid rgba(0,0,0,0.08); }
+.kk-ctrl-link { display:inline-block; text-decoration:none; color:var(--kk-ink); padding:8px 10px; border-radius:10px; border:1px solid var(--kk-border); }
+
+/* responsive adjustments */
+@media (max-width: 640px) {
+  .kk-header-inner { padding:10px 12px; }
+  .kk-logo { height:110px; } /* mobile 110 */
+  .kk-title { font-size:22px; }
+  .kk-sub { font-size:13px; }
+  .kk-ctrl-btn, .kk-ctrl-link { padding:7px 8px; font-size:14px; }
+}
+
+/* protect against other page CSS clobbering header */
+.kk-header * { box-sizing: border-box; }
