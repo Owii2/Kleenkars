@@ -24,8 +24,11 @@
 
   /* ---------- CSS ---------- */
   const css = `
-  .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0}
-  .kk-header-hero{
+  .kk-header-root {
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    margin:0;
+  }
+  .kk-header-hero {
     display:flex;
     align-items:center;
     gap:16px;
@@ -33,22 +36,53 @@
     background-position: top center;
     background-size: cover;
     background-repeat: no-repeat;
-    padding:20px;
+    padding:40px 30px 20px 30px;  /* ⬆️ top + sides increased */
     border-radius:12px;
     margin:12px 18px 20px 18px;
-    min-height:160px;
+    min-height:180px; /* ⬆️ give it more height too */
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color:#fff;
   }
-  .kk-logo{ width:110px !important; height:auto; border-radius:50%; display:block; object-fit:contain; cursor:pointer }
-  .kk-title{font-weight:800;font-size:1.6rem;line-height:1.2;color:#fff;text-transform:uppercase}
-  .kk-sub{color:rgba(200,200,210,0.9); margin-top:6px; font-size:1rem; font-weight:400}
-  .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
-  .kk-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;font-weight:600;cursor:pointer}
+  .kk-logo {
+    width:110px !important;
+    height:auto;
+    border-radius:50%;
+    display:block;
+    object-fit:contain;
+    cursor:pointer;
+  }
+  .kk-title {
+    font-weight:800;
+    font-size:1.6rem;
+    line-height:1.2;
+    color:#fff;
+    text-transform:uppercase;
+  }
+  .kk-sub {
+    color:rgba(200,200,210,0.9);
+    margin-top:6px;
+    font-size:1rem;
+    font-weight:400;
+  }
+  .kk-header-controls {
+    margin-left:auto;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .kk-btn {
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:transparent;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+  }
 
   @media (max-width:640px){
     .kk-title{font-size:1.2rem}
-    .kk-header-hero{min-height:140px;padding:14px;gap:12px}
+    .kk-header-hero{min-height:160px;padding:30px 20px 14px 20px}
     .kk-logo{ width:110px !important; }
   }
   `;
