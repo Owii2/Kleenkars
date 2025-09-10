@@ -21,7 +21,7 @@
     .hero-header{position:absolute;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:14px}
     .brand{display:flex;align-items:center;gap:14px}
     .logo{height:110px;width:auto;border-radius:6px;background:rgba(0,0,0,0.25);padding:6px}
-    .brand-title{font-weight:800;font-size:26px;text-transform:uppercase;line-height:1.2}
+    .brand-title{font-weight:800;font-size:26px;text-transform:uppercase;line-height:1.1}
     .brand-sub{color:var(--muted);font-size:14px;margin-top:2px}
     .hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(180deg,rgba(0,0,0,0)0%,rgba(0,0,0,0.65)100%)}
 
@@ -93,14 +93,20 @@
       .pkg-inner { flex-direction:column; }
       .tile-bike,.tile-cars{flex:0 0 auto;width:100%;min-width:0;padding:10px}
       .cars-row { gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .car-col { flex:0 0 120px; min-width:120px; }
+    }
+
+    /* very small */
+    @media (max-width:360px){
       .car-col { flex:0 0 100px; min-width:100px; }
+      .car-price { font-size:18px; }
     }
   </style>
 </head>
 <body>
 
   <!-- HERO -->
-  <section class="hero" role="banner">
+  <section class="hero" role="banner" aria-label="Kleenkars hero">
     <div class="hero-header">
       <div class="brand">
         <a href="/" style="display:flex;align-items:center;text-decoration:none;color:inherit;">
@@ -112,19 +118,21 @@
         </div>
       </div>
     </div>
-    <div class="hero-bottom-fade"></div>
+    <div class="hero-bottom-fade" aria-hidden="true"></div>
   </section>
 
-  <main class="container">
+  <main class="container" role="main">
     <h1 class="page-title">Exclusive Pricing</h1>
     <p class="page-sub">Prices are loaded from the admin-managed catalog. Choose your package and book.</p>
 
     <div id="loading">Loading pricing…</div>
     <div id="error"></div>
-    <div id="packages-area"></div>
+
+    <div id="packages-area" aria-live="polite"></div>
   </main>
 
   <script>
+    // helpers
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
@@ -138,43 +146,154 @@
         }
       };
     }
-    function formatPrice(v){ if(v==null||v==='')return '—';const n=Number(v);return Number.isFinite(n)?'₹ '+n:'—'; }
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    function hasAnyPrice(prices) {
+      return (prices.bike !== null && prices.bike !== undefined && String(prices.bike).trim() !== '') ||
+             (prices.hatchback !== null && prices.hatchback !== undefined && String(prices.hatchback).trim() !== '') ||
+             (prices.sedan !== null && prices.sedan !== undefined && String(prices.sedan).trim() !== '') ||
+             (prices.suv !== null && prices.suv !== undefined && String(prices.suv).trim() !== '');
+    }
+
+    function formatPrice(v){
+      if (v === null || v === undefined || v === '') return '—';
+      const n = Number(v);
+      if (!Number.isFinite(n)) return '—';
+      return '₹ ' + n.toString();
+    }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
     async function loadCatalog(){
-      const loading=document.getElementById('loading');
-      const errorEl=document.getElementById('error');
-      const packagesArea=document.getElementById('packages-area');
-      loading.style.display='';errorEl.style.display='none';packagesArea.innerHTML='';
-      try{
-        const res=await fetch('/api/prices');
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data=await res.json();
-        const pk=(data.packages||[]).map(mapToPkg);
-        if(!pk.length){loading.textContent='No packages available.';return;}
-        for(const p of pk){
-          const card=document.createElement('section');card.className='pkg';
-          const innerCard=document.createElement('div');innerCard.className='card';
-          const title=document.createElement('div');title.className='pkg-title';title.textContent=p.name;
-          const desc=document.createElement('div');desc.className='pkg-desc';desc.textContent=p.description||'';
-          const inner=document.createElement('div');inner.className='pkg-inner';
-          const left=document.createElement('div');left.className='tile-bike';left.innerHTML=`<div class="bike-price">${formatPrice(p.prices.bike)}</div>`;
-          const right=document.createElement('div');right.className='tile-cars';right.innerHTML=`
-            <div class="cars-row">
-              <div class="car-col"><div class="car-label">Hatchback</div><div class="car-price">${formatPrice(p.prices.hatchback)}</div></div>
-              <div class="car-col"><div class="car-label">Sedan</div><div class="car-price">${formatPrice(p.prices.sedan)}</div></div>
-              <div class="car-col"><div class="car-label">SUV</div><div class="car-price">${formatPrice(p.prices.suv)}</div></div>
-            </div>`;
-          inner.appendChild(left);inner.appendChild(right);
-          const bookWrap=document.createElement('div');bookWrap.className='book-wrap';bookWrap.innerHTML=`<button class="book-btn" data-pkg-id="${escapeHtml(p.id)}">Book</button>`;
-          innerCard.appendChild(title);if(p.description)innerCard.appendChild(desc);innerCard.appendChild(inner);innerCard.appendChild(bookWrap);
-          card.appendChild(innerCard);packagesArea.appendChild(card);
+      const loading = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      const packagesArea = document.getElementById('packages-area');
+
+      loading.style.display = '';
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+      packagesArea.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/prices');
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        const data = await res.json();
+
+        const pk = (data.packages || []).map(mapToPkg);
+
+        // iterate packages and only render ones with any price
+        for (const p of pk) {
+          if (!hasAnyPrice(p.prices)) {
+            // skip packages with no prices
+            continue;
+          }
+
+          const cardSection = document.createElement('section');
+          cardSection.className = 'pkg';
+
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          // Title + description
+          const title = document.createElement('div');
+          title.className = 'pkg-title';
+          title.textContent = p.name;
+
+          const desc = document.createElement('div');
+          desc.className = 'pkg-desc';
+          desc.textContent = p.description || '';
+
+          card.appendChild(title);
+          if (p.description) card.appendChild(desc);
+
+          const inner = document.createElement('div');
+          inner.className = 'pkg-inner';
+
+          // Bike tile - only if bike price exists
+          if (p.prices.bike !== null && p.prices.bike !== undefined && String(p.prices.bike).trim() !== '') {
+            const tileBike = document.createElement('div');
+            tileBike.className = 'tile-bike';
+            tileBike.innerHTML = `
+              <div class="bike-price">${formatPrice(p.prices.bike)}</div>
+              <div class="bike-desc">${escapeHtml(p.description)}</div>
+            `;
+            inner.appendChild(tileBike);
+          }
+
+          // Cars tile - only if at least one car price exists
+          const carHas = (p.prices.hatchback !== null && p.prices.hatchback !== undefined && String(p.prices.hatchback).trim() !== '') ||
+                         (p.prices.sedan !== null && p.prices.sedan !== undefined && String(p.prices.sedan).trim() !== '') ||
+                         (p.prices.suv !== null && p.prices.suv !== undefined && String(p.prices.suv).trim() !== '');
+
+          if (carHas) {
+            const tileCars = document.createElement('div');
+            tileCars.className = 'tile-cars';
+
+            // create cars row, but only append columns that have prices
+            const carsRow = document.createElement('div');
+            carsRow.className = 'cars-row';
+            carsRow.setAttribute('role', 'group');
+            carsRow.setAttribute('aria-label', p.name + ' vehicle prices');
+
+            if (p.prices.hatchback !== null && p.prices.hatchback !== undefined && String(p.prices.hatchback).trim() !== '') {
+              const col = document.createElement('div');
+              col.className = 'car-col';
+              col.innerHTML = `<div class="car-label">Hatchback</div><div class="car-price">${formatPrice(p.prices.hatchback)}</div>`;
+              carsRow.appendChild(col);
+            }
+            if (p.prices.sedan !== null && p.prices.sedan !== undefined && String(p.prices.sedan).trim() !== '') {
+              const col = document.createElement('div');
+              col.className = 'car-col';
+              col.innerHTML = `<div class="car-label">Sedan</div><div class="car-price">${formatPrice(p.prices.sedan)}</div>`;
+              carsRow.appendChild(col);
+            }
+            if (p.prices.suv !== null && p.prices.suv !== undefined && String(p.prices.suv).trim() !== '') {
+              const col = document.createElement('div');
+              col.className = 'car-col';
+              col.innerHTML = `<div class="car-label">SUV</div><div class="car-price">${formatPrice(p.prices.suv)}</div>`;
+              carsRow.appendChild(col);
+            }
+
+            tileCars.appendChild(carsRow);
+            inner.appendChild(tileCars);
+          }
+
+          // Book button (show if any price exists)
+          const bookWrap = document.createElement('div');
+          bookWrap.className = 'book-wrap';
+          const btn = document.createElement('button');
+          btn.className = 'book-btn';
+          btn.textContent = 'Book';
+          btn.dataset.pkgId = p.id;
+          btn.addEventListener('click', ()=> {
+            // placeholder - replace with real booking flow if needed
+            alert('Book package: ' + p.name);
+          });
+          bookWrap.appendChild(btn);
+
+          card.appendChild(inner);
+          card.appendChild(bookWrap);
+          cardSection.appendChild(card);
+          packagesArea.appendChild(cardSection);
         }
-        document.querySelectorAll('.book-btn').forEach(btn=>{btn.addEventListener('click',()=>alert('Book package: '+btn.dataset.pkgId));});
-        loading.style.display='none';
-      }catch(err){console.error(err);loading.style.display='none';errorEl.textContent='Unable to load pricing. WhatsApp +91 99105 78378 to book.';errorEl.style.display='';}
+
+        // if no packages showed, show friendly message
+        if (!packagesArea.children.length) {
+          const msg = document.createElement('div');
+          msg.style.textAlign = 'center';
+          msg.style.color = 'var(--muted)';
+          msg.textContent = 'No packages are currently available.';
+          packagesArea.appendChild(msg);
+        }
+
+        loading.style.display = 'none';
+      } catch (err) {
+        console.error('pricing load error', err);
+        loading.style.display = 'none';
+        errorEl.textContent = 'Unable to load pricing. WhatsApp +91 99105 78378 to book.';
+        errorEl.style.display = '';
+      }
     }
-    document.addEventListener('DOMContentLoaded',loadCatalog);
+
+    document.addEventListener('DOMContentLoaded', loadCatalog);
   </script>
 </body>
 </html>
