@@ -1,5 +1,5 @@
 // /assets/kk-header-loader.js
-// Shared header loader for Kleenkars (updated: logo fixed 110px, removed logo square)
+// Shared header loader for Kleenkars — hero image fitted (contain) to avoid cropping
 (function () {
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
@@ -24,16 +24,28 @@
   }
 
   const css = `
-  /* kk-header-loader styles (updated) */
+  /* kk-header-loader styles (contain background: fits whole image, no cropping) */
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
-    display:flex;align-items:center;gap:16px;
-    background:linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}") center/cover no-repeat;
-    padding:18px;border-radius:12px;margin:12px 18px 8px 18px;min-height:120px;box-shadow:0 6px 18px rgba(0,0,0,.4);
+    display:flex;
+    align-items:center;
+    gap:16px;
+    /* use a background color so empty areas look intentional */
+    background-color: #0b0b0d;
+    /* use contain so the full image is visible (no cropping) */
+    background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding:22px; /* a little more breathing room */
+    border-radius:12px;
+    margin:12px 18px 8px 18px;
+    min-height:140px;
+    box-shadow:0 6px 18px rgba(0,0,0,.4);
   }
 
   /* Logo: removed background square, fixed width to 110px */
-  .kk-logo{ width:110px !important; height:auto; border-radius:50%; /* keep circular logo if asset is circular */ border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
+  .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
 
   .kk-title{font-weight:800;font-size:1.4rem;line-height:1;color:#fff; text-transform:uppercase; margin-left:6px}
   .kk-sub{color:rgba(255,255,255,0.78); margin-top:6px; font-size:.95rem}
@@ -44,11 +56,10 @@
   .kk-toolbar .kk-tab{background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;color:#fff;font-weight:700;cursor:pointer}
   .kk-toolbar .kk-tab.active{background:#e63946;color:white;box-shadow:0 4px 12px rgba(230,57,70,0.18)}
 
-  /* mobile tweaks */
   @media (max-width:640px){
     .kk-title{font-size:1.1rem}
-    .kk-header-hero{min-height:140px;padding:12px;gap:12px}
-    .kk-logo{ width:110px !important; } /* ensure 110px on mobile too */
+    .kk-header-hero{min-height:140px;padding:14px;gap:12px}
+    .kk-logo{ width:110px !important; }
   }
   `;
 
