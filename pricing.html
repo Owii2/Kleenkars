@@ -13,7 +13,9 @@
       --accent: #e50914;
       --text: #ffffff;
     }
+
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
     /* HERO */
     .hero{position:relative;width:100%;height:220px;background:url('/assets/hero-bg.jpg') center/cover no-repeat;display:block;overflow:hidden}
     .hero-header{position:absolute;top:14px;left:16px;right:16px;display:flex;align-items:center;gap:18px}
@@ -29,64 +31,68 @@
     .page-title{text-align:center;font-size:28px;font-weight:800;margin:10px 0 6px}
     .page-sub{text-align:center;color:var(--muted);margin-bottom:18px}
 
-    /* Cards grid for packages */
-    .pkg { margin-bottom:18px; }
+    /* Package block */
+    .pkg { margin-bottom:22px; }
     .pkg-inner { display:flex; gap:16px; flex-wrap:wrap; align-items:stretch; }
-    /* Two-tile layout: left tile (bike) & right tile (3 cols) */
+
+    /* Left: Bike tile */
     .tile-bike {
-      background:var(--card); border-radius:10px; padding:14px; border:1px solid rgba(255,255,255,0.03);
+      background:var(--card); border-radius:12px; padding:18px; border:1px solid rgba(255,255,255,0.03);
       flex: 1 1 260px; min-width:220px; display:flex; flex-direction:column; justify-content:space-between;
     }
-    .tile-cars {
-      background:var(--card); border-radius:10px; padding:14px; border:1px solid rgba(255,255,255,0.03);
-      flex: 2 1 520px; min-width:260px; display:flex; flex-direction:column; justify-content:space-between;
-    }
-
-    .pkg-name { text-align:center; font-weight:800; font-size:18px; margin-bottom:10px; color:var(--text) }
-
-    /* Bike tile content */
+    .bike-title { text-align:center; font-weight:800; font-size:18px; margin-bottom:10px; color:var(--text) }
     .bike-price { text-align:center; color:var(--accent); font-weight:900; font-size:20px; margin:6px 0; }
-    .bike-desc { text-align:center; color:#cfcfcf; font-size:13px; margin-top:6px; }
+    .bike-desc { text-align:center; color:#cfcfcf; font-size:13px; margin-top:8px; }
 
-    /* Cars tile: three columns EXACTLY side-by-side with gaps */
+    /* Right: Cars tile (title + description + 3 columns row) */
+    .tile-cars {
+      background:var(--card); border-radius:12px; padding:18px; border:1px solid rgba(255,255,255,0.03);
+      flex: 2 1 520px; min-width:260px; display:flex; flex-direction:column; justify-content:flex-start;
+    }
+    .pkg-name { text-align:center; font-weight:900; font-size:20px; margin-bottom:8px; color:var(--text) }
+    .pkg-desc { text-align:center; color:#e6e6e6; font-size:18px; margin-bottom:14px; }
+
+    /* cars row side-by-side */
     .cars-row {
       display:flex;
-      gap:18px;                 /* gap between columns */
-      align-items:stretch;
+      gap:40px;                 /* horizontal gap */
+      align-items:flex-start;
       justify-content:center;   /* center the group */
     }
     .car-col {
-      flex: 1 1 0;
-      min-width: 110px;
-      max-width: 180px;
+      flex: 0 1 160px;          /* fixed-ish columns */
+      min-width:120px;
       background:rgba(255,255,255,0.01);
       border-radius:8px;
-      padding:12px;
+      padding:6px 8px;
       text-align:center;
       display:flex;
       flex-direction:column;
+      align-items:center;
       justify-content:flex-start;
     }
-    .car-label { color:var(--muted); font-weight:700; font-size:13px; margin-bottom:6px; text-align:center; }
-    .car-price { color:var(--accent); font-weight:900; font-size:18px; margin-bottom:6px; text-align:center; }
-    .car-desc { color:#cfcfcf; font-size:12px; margin-top:6px; text-align:center; }
+    .car-label { color:#fff; font-weight:900; font-size:20px; margin-bottom:10px; text-align:center; }
+    .car-price { color:var(--accent); font-weight:900; font-size:28px; margin-bottom:6px; text-align:center; }
+    /* small muted description under price if you want (kept small) */
+    .car-desc { color:#cfcfcf; font-size:13px; text-align:center; margin-top:6px; }
 
-    /* Book button centered for the package */
-    .book-wrap { text-align:center; margin-top:12px; }
-    .book-btn { background:var(--accent); color:#fff; padding:10px 22px; border-radius:999px; border:0; font-weight:800; cursor:pointer; }
+    /* Book button centered below tiles */
+    .book-wrap { text-align:center; margin-top:18px; }
+    .book-btn { background:var(--accent); color:#fff; padding:10px 28px; border-radius:999px; border:0; font-weight:800; cursor:pointer; }
 
-    /* small text or fallback */
+    /* loading / error */
     #loading { text-align:center; color:var(--muted); margin-top:12px }
     #error { text-align:center; color:var(--accent); margin-top:12px; display:none }
 
-    /* Responsive: on narrow screens stack tiles vertically and car columns become rows */
-    @media (max-width:720px){
+    /* responsive: stack on smaller screens, ensure car columns wrap into rows */
+    @media (max-width:800px){
       .pkg-inner { flex-direction:column; }
-      .cars-row { flex-direction:row; flex-wrap:wrap; gap:10px; }
-      .car-col { flex: 1 1 40%; min-width: 140px; max-width: none; }
+      .cars-row { gap:12px; justify-content:space-between; flex-wrap:wrap; }
+      .car-col { flex: 1 1 45%; min-width:120px; max-width:48%; }
     }
-    @media (max-width:460px){
-      .car-col { flex-basis: 100%; } /* stack on very small screens */
+    @media (max-width:420px){
+      .car-col { flex-basis:100%; max-width:100%; }
+      .cars-row { gap:8px; }
     }
   </style>
 </head>
@@ -121,7 +127,7 @@
   </main>
 
   <script>
-    // safe map helper
+    // safe mapping helper
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
@@ -166,7 +172,6 @@
           return;
         }
 
-        // Build DOM: each package => .pkg
         for (const p of pk) {
           const pkgWrap = document.createElement('section');
           pkgWrap.className = 'pkg';
@@ -174,37 +179,35 @@
           const inner = document.createElement('div');
           inner.className = 'pkg-inner';
 
-          // Left tile: Bike
+          // tile: bike (left)
           const tileBike = document.createElement('div');
           tileBike.className = 'tile-bike';
           tileBike.innerHTML = `
-            <div class="pkg-name" aria-hidden="true">${escapeHtml(p.name)}</div>
+            <div class="bike-title">${escapeHtml(p.name)}</div>
             <div>
               <div class="bike-price">${formatPrice(p.prices.bike)}</div>
               <div class="bike-desc">${escapeHtml(p.description)}</div>
             </div>
           `;
 
-          // Right tile: 3-column group for Hatchback / Sedan / SUV side-by-side
+          // tile: cars (right) with centered title & single description above the 3 columns
           const tileCars = document.createElement('div');
           tileCars.className = 'tile-cars';
           tileCars.innerHTML = `
-            <div style="text-align:center;font-weight:700;margin-bottom:8px;color:var(--text);">${escapeHtml(p.name)}</div>
+            <div class="pkg-name">${escapeHtml(p.name)}</div>
+            <div class="pkg-desc">${escapeHtml(p.description)}</div>
             <div class="cars-row" role="group" aria-label="${escapeHtml(p.name)} vehicle prices">
               <div class="car-col">
                 <div class="car-label">Hatchback</div>
                 <div class="car-price">${formatPrice(p.prices.hatchback)}</div>
-                <div class="car-desc">${escapeHtml(p.description)}</div>
               </div>
               <div class="car-col">
                 <div class="car-label">Sedan</div>
                 <div class="car-price">${formatPrice(p.prices.sedan)}</div>
-                <div class="car-desc">${escapeHtml(p.description)}</div>
               </div>
               <div class="car-col">
                 <div class="car-label">SUV</div>
                 <div class="car-price">${formatPrice(p.prices.suv)}</div>
-                <div class="car-desc">${escapeHtml(p.description)}</div>
               </div>
             </div>
           `;
@@ -212,7 +215,6 @@
           inner.appendChild(tileBike);
           inner.appendChild(tileCars);
 
-          // Book button centered
           const bookWrap = document.createElement('div');
           bookWrap.className = 'book-wrap';
           bookWrap.innerHTML = `<button class="book-btn" data-pkg-id="${escapeHtml(p.id)}">Book</button>`;
@@ -226,7 +228,7 @@
         document.querySelectorAll('.book-btn').forEach(btn=>{
           btn.addEventListener('click', ()=> {
             const id = btn.getAttribute('data-pkg-id');
-            // TODO: Replace with your real booking flow
+            // placeholder action — replace with your booking flow later
             alert('Book package: ' + id);
           });
         });
