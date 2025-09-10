@@ -1,6 +1,5 @@
 // /assets/kk-header-loader.js
-// Shared header loader for Kleenkars — background-size: cover so image fills tile
-// Includes robust theme toggle that updates body.classList and documentElement and persists to localStorage
+// Shared header loader for Kleenkars — hero anchored to top, logo 110px, robust theme toggle
 (function () {
   if (window.__kk_header_loaded) return;
   window.__kk_header_loaded = true;
@@ -27,24 +26,31 @@
 
   /* ---------- CSS / HTML ---------- */
   const css = `
-  /* kk-header-loader styles (cover background: fills tile, centered-right) */
+  /* kk-header-loader styles (cover background: fills tile, anchored to top) */
+  :root{ --kk-hero-position: top center; } /* tweak: top center | center right | center center */
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
     display:flex;
     align-items:center;
     gap:16px;
+
+    /* COVER mode: fill the tile but anchored to top so top of image is preserved */
     background-image: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25)), url("${getHeroUrl()}");
-    background-position: center right;
+    background-position: var(--kk-hero-position);
     background-size: cover;
     background-repeat: no-repeat;
+
     padding:20px;
     border-radius:12px;
     margin:12px 18px 8px 18px;
-    min-height:160px;
+    min-height:180px; /* slightly taller for better framing */
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color: #fff;
   }
-  .kk-logo{ width:110px !important; height:auto; border-radius:50%; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
+
+  /* Logo: fixed width 110px, no square tile behind it */
+  .kk-logo{ width:110px !important; height:auto; border-radius:0; border:0; padding:0; background:transparent; box-shadow:none; display:block; object-fit:contain; }
+
   .kk-title{font-weight:800;font-size:1.4rem;line-height:1;color:#fff; text-transform:uppercase; margin-left:6px}
   .kk-sub{color:rgba(255,255,255,0.88); margin-top:6px; font-size:.95rem}
   .kk-header-controls{margin-left:auto;display:flex;gap:10px;align-items:center}
@@ -56,8 +62,9 @@
 
   /* small screens */
   @media (max-width:640px){
-    .kk-title{font-size:1.1rem}
-    .kk-header-hero{min-height:140px;padding:14px;gap:12px}
+    .kk-header-hero{flex-direction:column;align-items:flex-start;min-height:160px;padding:14px;gap:12px}
+    .kk-title{font-size:1.15rem}
+    .kk-sub{font-size:.9rem}
     .kk-logo{ width:110px !important; }
   }
   `;
@@ -96,10 +103,9 @@
   document.body.insertBefore(container, document.body.firstChild);
 
   /* ---------- theme toggle (robust) ---------- */
-  // Shared localStorage key (used across pages)
   const THEME_KEY = "kleenkars.theme"; // value: "light" or "dark"
 
-  // Apply saved theme early if possible (this runs after DOM created but before user sees header)
+  // apply saved theme early (keeps CSS in sync)
   (function applySavedThemeEarly() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
@@ -142,12 +148,10 @@
       if (saved === "light") setTheme(true);
       else if (saved === "dark") setTheme(false);
       else {
-        // default heuristics: daytime -> light, else dark
         const hr = new Date().getHours();
         setTheme(hr >= 7 && hr < 19);
       }
     } catch (e) {
-      // fallback dark
       setTheme(false);
     }
   })();
@@ -172,7 +176,6 @@
     selectorsToHide.forEach(sel => {
       document.querySelectorAll(sel).forEach(n => {
         if (n.id === "kk-header-inject") return;
-        // avoid hiding elements that are not site headers — be conservative
         const maybeLogo = n.querySelector && n.querySelector("img[src*='logo']");
         if (maybeLogo || n.classList.contains("site-header") || n.tagName.toLowerCase() === "header") {
           try { n.style.display = "none"; } catch (e) {}
