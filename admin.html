@@ -26,7 +26,28 @@
 <title>Kleenkars — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0b0b12;--card:#13131b;--ink:#e9e9ef;--muted:#b8b8c6;--border:#242433;--accent:#7a3cff}
+  /* Core colors (dark default) */
+  :root{
+    --bg:#0b0b12;
+    --card:#13131b;
+    --ink:#e9e9ef;
+    --muted:#b8b8c6;
+    --border:#242433;
+    --accent:#e63946; /* brand red */
+    --accent-2:#111016;
+  }
+
+  /* Light mode overrides */
+  body.light{
+    --bg:#ffffff;
+    --card:#f7f7f8;
+    --ink:#111111;
+    --muted:#4b5563;
+    --border:#e6e6e6;
+    --accent:#e63946;
+    --accent-2:#f2f2f5;
+  }
+
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink)}
   /* Header with logo */
@@ -34,12 +55,24 @@
     display:flex;align-items:center;justify-content:space-between;
     padding:12px 20px;background:#111018;border-bottom:1px solid var(--border)
   }
+  /* responsive logo/title */
   .logo-title{display:flex;align-items:center;gap:12px;min-height:56px}
   .logo{
-    width:100px;height:100px;object-fit:contain;display:block;
+    width: clamp(80px, 18vw, 110px); /* mobile target ≈110px, scales on desktop */
+    height: auto;
+    object-fit:contain;display:block;
     background:#0f0f16;border:1px solid var(--border);border-radius:10px;
   }
   .title{font-weight:800;font-size:1.2rem}
+
+  /* Header controls (theme toggle & quick link) */
+  .header-controls{display:flex;align-items:center;gap:10px}
+  .ctrl-btn{
+    background:transparent;border:1px solid var(--border);
+    color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600;
+  }
+  .ctrl-btn.primary{background:linear-gradient(90deg,var(--accent),#c42b36);color:#fff;border-color:transparent}
+  .ctrl-btn:focus{outline:2px solid rgba(0,0,0,0.08)}
 
   /* Toolbar directly under header */
   .toolbar{
@@ -58,7 +91,7 @@
   .muted{color:var(--muted)}
   .section{display:none}
   .section.active{display:block}
-  input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0f0f16;color:#fff}
+  input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--accent-2);color:var(--ink)}
   table{width:100%;border-collapse:collapse;margin-top:8px}
   th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
   thead th{background:#1a1a25;position:sticky;top:0}
@@ -74,15 +107,30 @@
 
   .bar{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
   .pill{display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.8rem}
-  canvas{width:100%;max-width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:#0f0f16}
+  canvas{width:100%;max-width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)}
+
+  /* Small responsive tweaks */
+  @media (max-width:640px){
+    header{padding:10px}
+    .title{font-size:1rem}
+    .logo{width:110px} /* explicit mobile guidance */
+    .toolbar{padding:8px}
+  }
 </style>
 </head>
 <body>
-  <!-- HEADER: only logo + title -->
+  <!-- HEADER: logo + title + theme toggle -->
   <header>
     <div class="logo-title">
       <img src="/assets/logo.png" alt="Kleenkars logo" class="logo" onerror="this.src='/logo.svg'">
       <span class="title">Admin</span>
+    </div>
+
+    <div class="header-controls">
+      <!-- Theme toggle -->
+      <button id="themeToggle" class="ctrl-btn" title="Toggle theme">🌙</button>
+      <!-- Quick link to main site -->
+      <a class="ctrl-btn" href="/" target="_blank" rel="noopener">Open site</a>
     </div>
   </header>
 
@@ -240,28 +288,28 @@
     <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:12px">
       <div class="card p24">
         <div class="muted">Revenue Trend</div>
-        <canvas id="chTrend" style="width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+        <canvas id="chTrend" style="width:100%;height:320px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)"></canvas>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="card p24">
           <div class="muted">By Service</div>
-          <canvas id="chService" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+          <canvas id="chService" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)"></canvas>
         </div>
         <div class="card p24">
           <div class="muted">By Vehicle</div>
-          <canvas id="chVehicle" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+          <canvas id="chVehicle" style="width:100%;height:280px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)"></canvas>
         </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="card p24">
           <div class="muted">Peak Hours</div>
-          <canvas id="chHour" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+          <canvas id="chHour" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)"></canvas>
         </div>
         <div class="card p24">
           <div class="muted">Days of Week</div>
-          <canvas id="chDow" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:#0f0f16"></canvas>
+          <canvas id="chDow" style="width:100%;height:240px;border:1px solid var(--border);border-radius:10px;background:var(--accent-2)"></canvas>
         </div>
       </div>
     </div>
@@ -905,6 +953,35 @@ if(token()){ showApp(); tabTo('bookings'); loadBookings(); } else showLogin();
       }catch(e){}
     };
   }
+})();
+</script>
+
+<!-- ✅ NEW: Theme toggle persistence for admin -->
+<script>
+(function(){
+  const btn = document.getElementById('themeToggle');
+  if(!btn) return;
+  function apply(isLight){
+    document.body.classList.toggle('light', !!isLight);
+    btn.textContent = isLight ? '☀️' : '🌙';
+    try{ localStorage.setItem('kleenkars.adminTheme', isLight ? 'light' : 'dark'); }catch(e){}
+  }
+  // initial: saved or auto by time
+  try{
+    const saved = localStorage.getItem('kleenkars.adminTheme');
+    if(saved) apply(saved === 'light');
+    else {
+      const h = new Date().getHours();
+      apply(h >= 7 && h < 19);
+    }
+  }catch(e){
+    // fallback
+    apply(false);
+  }
+  btn.addEventListener('click', ()=>{
+    const isLight = document.body.classList.contains('light');
+    apply(!isLight);
+  });
 })();
 </script>
 </body>
