@@ -25,11 +25,7 @@ function normalizeRow(row){
   };
 }
 
-/**
- * Map a kleenkars_services row -> the package shape expected by clients.
- * kleenkars_services columns: name (PK), bike, sedan, suv, position, visible, description
- * We'll use name as id (string), hatchback will fall back to sedan.
- */
+/* Map kleenkars_services row -> package shape */
 function mapServiceRowToPackage(row){
   return {
     id: String(row.name),
@@ -37,6 +33,7 @@ function mapServiceRowToPackage(row){
     description: row.description || '',
     prices: {
       bike: row.bike == null ? null : Number(row.bike),
+      // if you later add hatchback column to kleenkars_services, change this line
       hatchback: (row.hatchback !== undefined && row.hatchback !== null) ? Number(row.hatchback) : (row.sedan == null ? null : Number(row.sedan)),
       sedan: row.sedan == null ? null : Number(row.sedan),
       suv: row.suv == null ? null : Number(row.suv)
@@ -55,42 +52,42 @@ export const handler = async (event) => {
 
     // GET: public
     if (method === 'GET') {
-      // If client asked for a specific table, return that table from Neon as before
+      // If client requested specific table (packages/alacarte), return those Neon tables as before
       if (tableParam) {
         if (isAlacarte) {
           const rows = await sql`SELECT * FROM alacarte ORDER BY created_at ASC`;
           return { statusCode: 200, body: JSON.stringify({ alacarte: rows.map(normalizeRow) }) };
         } else {
           const rows = await sql`SELECT * FROM packages ORDER BY created_at ASC`;
+          // If you want to prefer services even when table=packages is explicitly requested, change this behavior.
           return { statusCode: 200, body: JSON.stringify({ packages: rows.map(normalizeRow) }) };
         }
       }
 
-      // No table param -> return both packages & alacarte.
-      const [pk, al] = await Promise.all([
-        sql`SELECT * FROM packages ORDER BY created_at ASC`,
-        sql`SELECT * FROM alacarte ORDER BY created_at ASC`
-      ]);
-
-      let packages = pk.map(normalizeRow);
-      const alacarte = al.map(normalizeRow);
-
-      // If packages is empty, fallback to kleenkars_services so frontend shows services
-      if ((!packages || packages.length === 0)) {
-        try {
-          const svcRows = await sql`
-            SELECT name, bike, sedan, suv, position, visible, description, updated_at
-            FROM kleenkars_services
-            WHERE visible = TRUE
-            ORDER BY position ASC, name ASC
-          `;
-          if (Array.isArray(svcRows) && svcRows.length > 0) {
-            packages = svcRows.map(mapServiceRowToPackage);
-          }
-        } catch (fallbackErr) {
-          console.warn('prices: fallback to kleenkars_services failed', fallbackErr);
-          // ignore fallback error — we'll return the (possibly empty) packages list
+      // No table param -> return packages from kleenkars_services (visible) and alacarte from alacarte table
+      let packages = [];
+      try {
+        const svcRows = await sql`
+          SELECT name, bike, sedan, suv, position, visible, description, updated_at
+          FROM kleenkars_services
+          WHERE visible = TRUE
+          ORDER BY position ASC, name ASC
+        `;
+        if (Array.isArray(svcRows) && svcRows.length > 0) {
+          packages = svcRows.map(mapServiceRowToPackage);
         }
+      } catch (e) {
+        console.warn('prices: reading kleenkars_services failed', e);
+        // fallback: leave packages empty
+      }
+
+      // still populate alacarte from table if present
+      let alacarte = [];
+      try {
+        const al = await sql`SELECT * FROM alacarte ORDER BY created_at ASC`;
+        alacarte = al.map(normalizeRow);
+      } catch (e) {
+        console.warn('prices: reading alacarte failed', e);
       }
 
       return {
@@ -99,12 +96,12 @@ export const handler = async (event) => {
       };
     }
 
-    // All modifying endpoints require admin token
+    // modifying endpoints require admin token
     if (!checkAdmin(event)) {
       return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     }
 
-    // POST -> create
+    // POST -> create (same as before)
     if (method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       if (!body.name) return { statusCode: 400, body: JSON.stringify({ error: 'name required' }) };
@@ -127,7 +124,7 @@ export const handler = async (event) => {
       }
     }
 
-    // PUT/PATCH -> update by id (partial)
+    // PUT/PATCH -> update by id (same as before)
     if (method === 'PUT' || method === 'PATCH') {
       const id = q.id;
       if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Missing id' }) };
@@ -172,7 +169,7 @@ export const handler = async (event) => {
       }
     }
 
-    // DELETE
+    // DELETE -> same as before
     if (method === 'DELETE') {
       const id = q.id;
       if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Missing id' }) };
