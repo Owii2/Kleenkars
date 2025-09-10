@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pricing — Kleenkars Car Wash & Detailing | Aligarh</title>
+  <meta name="description" content="Kleenkars pricing: transparent car & bike wash, detailing, waxing, ceramic coating, interior shampoo, engine cleaning. Book online or on-site home visit." />
+  <style>
+    /* (same lightweight styling as before, abbreviated) */
+    :root{--accent:#00b894;--text:#eef2f5;--muted:#9aa4b2;--card:#0f1720;}
+    body{font-family:Inter,system-ui,Arial;background:#071426;color:var(--text);margin:0;padding:20px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{background:rgba(255,255,255,0.02);padding:16px;border-radius:10px;margin-bottom:12px}
+    .pkg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .pkg{padding:12px;border-radius:8px;background:rgba(255,255,255,0.01)}
+    .muted{color:var(--muted)}
+    .btn{padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h1 style="margin:0">Kleenkars — Pricing</h1>
+        <p class="muted" style="margin:4px 0 0">Prices are loaded from the admin-managed catalog.</p>
+      </div>
+      <div>
+        <a class="btn" href="/admin/pricing">Admin</a>
+        <a class="btn" href="/booking" style="margin-left:8px">Open Booking</a>
+      </div>
+    </header>
+
+    <section id="main" style="margin-top:18px">
+      <div id="loading" class="card">Loading pricing…</div>
+
+      <div id="content" style="display:none">
+        <div class="card">
+          <label for="vehicle" class="muted">Vehicle</label>
+          <select id="vehicle" aria-label="Vehicle type" style="margin-left:8px;padding:6px;border-radius:6px;">
+            <option value="bike">Bike</option>
+            <option value="hatchback" selected>Hatchback</option>
+            <option value="sedan">Sedan</option>
+            <option value="suv">SUV</option>
+          </select>
+          <span class="muted" style="margin-left:12px">Home visit: <strong>+ ₹50</strong></span>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top:0">Packages</h2>
+          <div id="packages" class="pkg-grid" aria-live="polite"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">A la carte</h3>
+          <div id="alacarte" class="pkg-grid"></div>
+        </div>
+      </div>
+
+      <div id="error" class="card" style="display:none;color:#ffb3b3"></div>
+    </section>
+  </main>
+
+<script>
+(async function(){
+  const loading = document.getElementById('loading');
+  const content = document.getElementById('content');
+  const error = document.getElementById('error');
+  const packagesEl = document.getElementById('packages');
+  const alacarteEl = document.getElementById('alacarte');
+  const vehicleSel = document.getElementById('vehicle');
+
+  // fetch catalog
+  async function loadCatalog(){
+    loading.style.display = '';
+    content.style.display = 'none';
+    error.style.display = 'none';
+    try{
+      const res = await fetch('/api/prices');
+      if(!res.ok) throw new Error('Failed to load pricing ('+res.status+')');
+      const data = await res.json();
+      renderCatalog(data);
+      loading.style.display = 'none';
+      content.style.display = '';
+    }catch(err){
+      loading.style.display = 'none';
+      error.style.display = '';
+      error.textContent = 'Unable to load pricing: ' + err.message + '. You can WhatsApp +91 99105 78378 to book.';
+    }
+  }
+
+  function priceForVehicle(item, vehicle){
+    // each item has prices: {bike:..., hatchback:..., sedan:..., suv:...}
+    // fallback to item.base or item.price
+    if(item.prices && item.prices[vehicle] != null) return item.prices[vehicle];
+    if(item.price != null) return item.price;
+    return '—';
+  }
+
+  function renderCatalog(catalog){
+    // catalog = { packages: [...], alacarte: [...] }
+    packagesEl.innerHTML = '';
+    alacarteEl.innerHTML = '';
+
+    catalog.packages.forEach(pkg=>{
+      const p = document.createElement('div'); p.className='pkg';
+      const name = document.createElement('h3'); name.textContent = pkg.name; p.appendChild(name);
+      const desc = document.createElement('div'); desc.className='muted'; desc.style.marginBottom='8px'; desc.textContent = pkg.description || ''; p.appendChild(desc);
+
+      const priceWrap = document.createElement('div'); priceWrap.style.display='flex'; priceWrap.style.justifyContent='space-between'; priceWrap.style.alignItems='center';
+      const priceSpan = document.createElement('div'); priceSpan.innerHTML = '<strong>₹ ' + priceForVehicle(pkg, vehicleSel.value) + '</strong>';
+      priceWrap.appendChild(priceSpan);
+
+      const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Book';
+      btn.addEventListener('click', ()=> {
+        // redirect to booking page prefilled
+        const url = new URL(window.location.origin + '/booking');
+        url.searchParams.set('vehicle', vehicleSel.value);
+        url.searchParams.set('service', pkg.name);
+        const price = priceForVehicle(pkg, vehicleSel.value);
+        if(price && price !== '—') url.searchParams.set('price', price);
+        window.location.href = url.toString();
+      });
+      priceWrap.appendChild(btn);
+      p.appendChild(priceWrap);
+
+      packagesEl.appendChild(p);
+    });
+
+    catalog.alacarte.forEach(item=>{
+      const p = document.createElement('div'); p.className='pkg';
+      const name = document.createElement('div'); name.textContent = item.name; name.style.fontWeight='700'; p.appendChild(name);
+      const desc = document.createElement('div'); desc.className='muted'; desc.textContent = item.description || ''; p.appendChild(desc);
+      const price = document.createElement('div'); price.style.marginTop='8px'; price.innerHTML = '<strong>₹ ' + priceForVehicle(item, vehicleSel.value) + '</strong>';
+      p.appendChild(price);
+      alacarteEl.appendChild(p);
+    });
+  }
+
+  // when vehicle changes update prices in-place
+  vehicleSel.addEventListener('change', async ()=>{
+    // get current catalog from server (or cache) - simplest: reload
+    await loadCatalog();
+  });
+
+  // initial
+  await loadCatalog();
+})();
+</script>
+</body>
+</html>
