@@ -10,3 +10,16 @@
 
 [functions]
   node_bundler = "esbuild"     # bundle all deps; no externals
+
+# Route /api/prices to the Netlify function "prices"
+[[redirects]]
+  from = "/api/prices"
+  to = "/.netlify/functions/prices"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/prices/*"
+  to = "/.netlify/functions/prices"
+  status = 200
+  force = true
