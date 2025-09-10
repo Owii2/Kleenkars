@@ -258,6 +258,20 @@
   border: 1px solid var(--border);
   color: var(--ink);
 }
+    .pill.dynamic {
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 999px;
+  display: inline-block;
+  transition: background 0.25s, color 0.25s;
+}
+.pill.dynamic:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
   </style>
 </head>
 <body>
@@ -343,7 +357,7 @@
           </div>
         </div>
         <div style="margin-top:12px" class="center">
-          <a class="pill" href="/pricing.html">See Full Price List</a>
+          <a class="pill dynamic" href="/pricing.html">See Full Price List</a>
         </div>
       </section>
 
@@ -380,13 +394,12 @@
           <div class="center">
             <!-- Buttons in the same row -->
             <div class="contact-buttons" role="group" aria-label="Directions and WhatsApp">
-              <a class="pill" target="_blank" rel="noopener"
+              <a class="pill dynamic" target="_blank" rel="noopener"
                  href="https://www.google.com/maps/dir/?api=1&destination=27.9446834,78.0854261">
-                📍 Get Directions
+                 Get Directions
               </a>
               <!-- using the exact string you requested -->
-              <a class="pill secondary" href="https://wa.me/+919910578378" target="_blank" rel="noopener">💬 WhatsApp</a>
-            </div>
+              <a class="pill dynamic" href="https://wa.me/919910578378" target="_blank">WhatsApp</a>
           </div>
         </div>
       </section>
