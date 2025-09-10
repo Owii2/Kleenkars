@@ -12,6 +12,7 @@
       --muted:#9aa4b2;
       --accent:#e50914;
       --text:#fff;
+      --badge-bg:#e33;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
@@ -35,7 +36,9 @@
     .card { background:var(--card); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 6px 14px rgba(0,0,0,0.45); }
 
     /* Title/description (single per package) */
-    .pkg-title { text-align:center; font-weight:800; font-size:18px; margin:6px 0 8px; }
+    .pkg-head { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:6px; }
+    .pkg-title { text-align:center; font-weight:800; font-size:18px; margin:6px 0; }
+    .badge-new { background:var(--badge-bg); color:#fff; padding:4px 8px; border-radius:999px; font-weight:700; font-size:12px; line-height:1; }
     .pkg-desc  { text-align:center; color:#e0e0e0; font-size:13px; margin:0 0 12px; line-height:1.35; }
 
     /* Two-column inner layout */
@@ -81,7 +84,7 @@
 
     /* Book button */
     .book-wrap { text-align:center; margin-top:12px; }
-    .book-btn { background:var(--accent); color:#fff; padding:8px 22px; border-radius:999px; border:0; font-weight:800; cursor:pointer; }
+    .book-btn { background:var(--accent); color:#fff; padding:8px 22px; border-radius:999px; border:0; font-weight:800; cursor:pointer; text-decoration:none; display:inline-block; }
 
     /* Loading / error */
     #loading { text-align:center; color:var(--muted); margin:12px 0; }
@@ -132,17 +135,23 @@
   </main>
 
   <script>
+    // CONFIG
+    const BOOK_URL = '/booking'; // Booking page path (root). Buttons will go to /booking?pkgId=...&pkgName=...
+    const NEW_DAYS = 30; // "New" badge threshold
+
     // helpers
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
         name: row.name || 'Untitled',
         description: row.description || '',
+        created_at: row.created_at || row.createdAt || null,
+        updated_at: row.updated_at || row.updatedAt || row.created_at || null,
         prices: {
-          bike: row.prices?.bike ?? null,
-          hatchback: row.prices?.hatchback ?? null,
-          sedan: row.prices?.sedan ?? null,
-          suv: row.prices?.suv ?? null
+          bike: row.prices?.bike ?? (row.bike ?? null),
+          hatchback: row.prices?.hatchback ?? (row.hatchback ?? null),
+          sedan: row.prices?.sedan ?? (row.sedan ?? null),
+          suv: row.prices?.suv ?? (row.suv ?? null)
         }
       };
     }
@@ -152,6 +161,15 @@
              (prices.hatchback !== null && prices.hatchback !== undefined && String(prices.hatchback).trim() !== '') ||
              (prices.sedan !== null && prices.sedan !== undefined && String(prices.sedan).trim() !== '') ||
              (prices.suv !== null && prices.suv !== undefined && String(prices.suv).trim() !== '');
+    }
+
+    function isNewPackage(dateStr){
+      if(!dateStr) return false;
+      const then = new Date(dateStr);
+      if (!then || isNaN(then.getTime())) return false;
+      const ms = Date.now() - then.getTime();
+      const days = ms / (1000 * 60 * 60 * 24);
+      return days <= NEW_DAYS;
     }
 
     function formatPrice(v){
@@ -181,10 +199,7 @@
 
         // iterate packages and only render ones with any price
         for (const p of pk) {
-          if (!hasAnyPrice(p.prices)) {
-            // skip packages with no prices
-            continue;
-          }
+          if (!hasAnyPrice(p.prices)) continue; // skip packages without prices
 
           const cardSection = document.createElement('section');
           cardSection.className = 'pkg';
@@ -192,33 +207,43 @@
           const card = document.createElement('div');
           card.className = 'card';
 
-          // Title + description
+          // Title + New badge
+          const head = document.createElement('div');
+          head.className = 'pkg-head';
           const title = document.createElement('div');
           title.className = 'pkg-title';
           title.textContent = p.name;
+          head.appendChild(title);
 
-          const desc = document.createElement('div');
-          desc.className = 'pkg-desc';
-          desc.textContent = p.description || '';
+          if (isNewPackage(p.updated_at || p.created_at)) {
+            const badge = document.createElement('div');
+            badge.className = 'badge-new';
+            badge.textContent = 'New';
+            head.appendChild(badge);
+          }
 
-          card.appendChild(title);
-          if (p.description) card.appendChild(desc);
+          card.appendChild(head);
+
+          // Description
+          if (p.description) {
+            const desc = document.createElement('div');
+            desc.className = 'pkg-desc';
+            desc.textContent = p.description;
+            card.appendChild(desc);
+          }
 
           const inner = document.createElement('div');
           inner.className = 'pkg-inner';
 
-          // Bike tile - only if bike price exists
+          // Bike tile (if present)
           if (p.prices.bike !== null && p.prices.bike !== undefined && String(p.prices.bike).trim() !== '') {
             const tileBike = document.createElement('div');
             tileBike.className = 'tile-bike';
-            tileBike.innerHTML = `
-              <div class="bike-price">${formatPrice(p.prices.bike)}</div>
-              <div class="bike-desc">${escapeHtml(p.description)}</div>
-            `;
+            tileBike.innerHTML = `<div class="bike-price">${formatPrice(p.prices.bike)}</div><div class="bike-desc">${escapeHtml(p.description)}</div>`;
             inner.appendChild(tileBike);
           }
 
-          // Cars tile - only if at least one car price exists
+          // Cars tile (if any car price present)
           const carHas = (p.prices.hatchback !== null && p.prices.hatchback !== undefined && String(p.prices.hatchback).trim() !== '') ||
                          (p.prices.sedan !== null && p.prices.sedan !== undefined && String(p.prices.sedan).trim() !== '') ||
                          (p.prices.suv !== null && p.prices.suv !== undefined && String(p.prices.suv).trim() !== '');
@@ -227,7 +252,6 @@
             const tileCars = document.createElement('div');
             tileCars.className = 'tile-cars';
 
-            // create cars row, but only append columns that have prices
             const carsRow = document.createElement('div');
             carsRow.className = 'cars-row';
             carsRow.setAttribute('role', 'group');
@@ -256,18 +280,20 @@
             inner.appendChild(tileCars);
           }
 
-          // Book button (show if any price exists)
+          // Book button (link to BOOK_URL with params)
           const bookWrap = document.createElement('div');
           bookWrap.className = 'book-wrap';
-          const btn = document.createElement('button');
-          btn.className = 'book-btn';
-          btn.textContent = 'Book';
-          btn.dataset.pkgId = p.id;
-          btn.addEventListener('click', ()=> {
-            // placeholder - replace with real booking flow if needed
-            alert('Book package: ' + p.name);
-          });
-          bookWrap.appendChild(btn);
+
+          const url = new URL(BOOK_URL, window.location.origin);
+          url.searchParams.set('pkgId', p.id);
+          url.searchParams.set('pkgName', p.name);
+
+          const anchor = document.createElement('a');
+          anchor.className = 'book-btn';
+          anchor.href = url.toString();
+          anchor.textContent = 'Book';
+
+          bookWrap.appendChild(anchor);
 
           card.appendChild(inner);
           card.appendChild(bookWrap);
@@ -275,7 +301,6 @@
           packagesArea.appendChild(cardSection);
         }
 
-        // if no packages showed, show friendly message
         if (!packagesArea.children.length) {
           const msg = document.createElement('div');
           msg.style.textAlign = 'center';
