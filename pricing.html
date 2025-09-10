@@ -55,12 +55,12 @@
     /* cars row side-by-side */
     .cars-row {
       display:flex;
-      gap:40px;                 /* horizontal gap */
+      gap:40px;
       align-items:flex-start;
-      justify-content:center;   /* center the group */
+      justify-content:center;
     }
     .car-col {
-      flex: 0 1 160px;          /* fixed-ish columns */
+      flex: 0 1 160px;
       min-width:120px;
       background:rgba(255,255,255,0.01);
       border-radius:8px;
@@ -73,8 +73,6 @@
     }
     .car-label { color:#fff; font-weight:900; font-size:20px; margin-bottom:10px; text-align:center; }
     .car-price { color:var(--accent); font-weight:900; font-size:28px; margin-bottom:6px; text-align:center; }
-    /* small muted description under price if you want (kept small) */
-    .car-desc { color:#cfcfcf; font-size:13px; text-align:center; margin-top:6px; }
 
     /* Book button centered below tiles */
     .book-wrap { text-align:center; margin-top:18px; }
@@ -84,15 +82,25 @@
     #loading { text-align:center; color:var(--muted); margin-top:12px }
     #error { text-align:center; color:var(--accent); margin-top:12px; display:none }
 
-    /* responsive: stack on smaller screens, ensure car columns wrap into rows */
+    /* Responsive: stack tiles but keep car columns side-by-side with horizontal scroll */
     @media (max-width:800px){
-      .pkg-inner { flex-direction:column; }
-      .cars-row { gap:12px; justify-content:space-between; flex-wrap:wrap; }
-      .car-col { flex: 1 1 45%; min-width:120px; max-width:48%; }
-    }
-    @media (max-width:420px){
-      .car-col { flex-basis:100%; max-width:100%; }
-      .cars-row { gap:8px; }
+      .pkg-inner { flex-direction: column; }
+
+      .cars-row {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 12px;
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
+      }
+
+      .car-col {
+        flex: 0 0 140px;
+        min-width: 140px;
+        max-width: 220px;
+      }
     }
   </style>
 </head>
@@ -127,7 +135,6 @@
   </main>
 
   <script>
-    // safe mapping helper
     function mapToPkg(row) {
       return {
         id: row.id ?? String(row.name || Math.random().toString(36).slice(2)),
@@ -135,7 +142,7 @@
         description: row.description || '',
         prices: {
           bike: row.prices?.bike ?? null,
-          hatchback: row.prices?.hatchback ?? row.prices?.sedan ?? null,
+          hatchback: row.prices?.hatchback ?? null,
           sedan: row.prices?.sedan ?? null,
           suv: row.prices?.suv ?? null
         }
@@ -190,7 +197,7 @@
             </div>
           `;
 
-          // tile: cars (right) with centered title & single description above the 3 columns
+          // tile: cars (right)
           const tileCars = document.createElement('div');
           tileCars.className = 'tile-cars';
           tileCars.innerHTML = `
@@ -228,8 +235,7 @@
         document.querySelectorAll('.book-btn').forEach(btn=>{
           btn.addEventListener('click', ()=> {
             const id = btn.getAttribute('data-pkg-id');
-            // placeholder action — replace with your booking flow later
-            alert('Book package: ' + id);
+            alert('Book package: ' + id); // placeholder
           });
         });
 
