@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Manage Pricing (Kleenkars)</title>
+  <style>
+    body{font-family:Inter,Arial;background:#071426;color:#eef2f5;padding:18px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:12px}
+    label{display:block;margin-top:8px}
+    input, textarea, select{width:100%;padding:8px;border-radius:6px;margin-top:4px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    .row{display:flex;gap:8px}
+    .col{flex:1}
+    .small{width:120px}
+    .btn{padding:8px 10px;border-radius:8px;background:#1db954;border:none;color:#fff;cursor:pointer}
+    .danger{background:#ff4d4f}
+    .muted{color:#9aa4b2}
+    table{width:100%;border-collapse:collapse}
+    td,th{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);text-align:left}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.01);cursor:pointer}
+    .active{background:#0ea5a0;color:#041014}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header style="display:flex;justify-content:space-between;align-items:center">
+      <h1 style="margin:0">Admin — Pricing Catalog</h1>
+      <div style="text-align:right">
+        <div class="muted" style="font-size:12px">Paste admin token (session only)</div>
+        <input id="admintoken" placeholder="Paste ADMIN_TOKEN here" />
+      </div>
+    </header>
+
+    <div style="margin-top:12px" class="card">
+      <div class="tabs">
+        <div id="tab-packages" class="tab active">Packages</div>
+        <div id="tab-alacarte" class="tab">A la carte</div>
+      </div>
+
+      <div id="form-wrap">
+        <h3 id="form-title" style="margin-top:0">Create new package</h3>
+        <div id="form" style="margin-top:6px">
+          <label>Name <input id="name" /></label>
+          <label>Description <textarea id="desc"></textarea></label>
+          <div class="row">
+            <div class="col"><label>Bike price <input id="price-bike" type="number" /></label></div>
+            <div class="col"><label>Hatchback <input id="price-hatchback" type="number" /></label></div>
+            <div class="col"><label>Sedan <input id="price-sedan" type="number" /></label></div>
+            <div class="col"><label>SUV <input id="price-suv" type="number" /></label></div>
+          </div>
+          <div style="margin-top:8px">
+            <button id="create" class="btn">Create</button>
+            <button id="cancel-edit" class="btn" style="background:#888;margin-left:8px;display:none">Cancel Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0" id="list-title">Existing items</h3>
+      <div id="list">Loading…</div>
+    </div>
+  </div>
+
+<script>
+(async function(){
+  const tokenInput = document.getElementById('admintoken');
+  const listEl = document.getElementById('list');
+  const createBtn = document.getElementById('create');
+  const cancelEditBtn = document.getElementById('cancel-edit');
+
+  let activeTable = 'Packages'; // or 'Alacarte'
+  let editingId = null;
+
+  // UI tab toggles
+  document.getElementById('tab-packages').addEventListener('click', ()=>{ setActive('Packages'); });
+  document.getElementById('tab-alacarte').addEventListener('click', ()=>{ setActive('Alacarte'); });
+
+  function setActive(table){
+    activeTable = table;
+    document.getElementById('form-title').textContent = table === 'Packages' ? 'Create new package' : 'Create new a-la-carte item';
+    document.getElementById('list-title').textContent = table === 'Packages' ? 'Existing packages' : 'Existing a-la-carte items';
+    document.getElementById('tab-packages').classList.toggle('active', table==='Packages');
+    document.getElementById('tab-alacarte').classList.toggle('active', table==='Alacarte');
+    resetForm();
+    fetchAndRender();
+  }
+
+  function adminHeaders(){
+    const headers = {'Content-Type':'application/json'};
+    const t = tokenInput.value.trim();
+    if(t) headers['Authorization'] = 'Bearer ' + t;
+    return headers;
+  }
+
+  async function fetchAndRender(){
+    listEl.innerHTML = 'Loading...';
+    try{
+      const res = await fetch('/api/prices?table=' + encodeURIComponent(activeTable));
+      if(!res.ok) throw new Error('Failed to load: ' + res.status);
+      const json = await res.json();
+      const items = activeTable === 'Packages' ? json.packages : json.alacarte;
+      renderList(items || []);
+    }catch(err){
+      listEl.innerHTML = '<div style="color:#ffb3b3">Load failed: ' + err.message + '</div>';
+    }
+  }
+
+  function renderList(items){
+    if(!items.length){
+      listEl.innerHTML = '<div class="muted">No items found.</div>';
+      return;
+    }
+    const t = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Name</th><th>Prices (B/H/S/SUV)</th><th style="width:200px">Actions</th></tr>';
+    t.appendChild(thead);
+    const tb = document.createElement('tbody');
+    items.forEach(it=>{
+      const tr = document.createElement('tr');
+      const nameTd = document.createElement('td');
+      nameTd.innerHTML = `<strong>${escapeHtml(it.name)}</strong><div class="muted">${escapeHtml(it.description||'')}</div>`;
+      const prices = it.prices || {};
+      const priceTd = document.createElement('td');
+      priceTd.textContent = `₹${prices.bike ?? '-'} / ₹${prices.hatchback ?? '-'} / ₹${prices.sedan ?? '-'} / ₹${prices.suv ?? '-'}`;
+
+      const actionsTd = document.createElement('td');
+      const editBtn = document.createElement('button'); editBtn.className='btn'; editBtn.textContent='Edit';
+      const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='Delete';
+      editBtn.style.marginRight='8px';
+      actionsTd.appendChild(editBtn); actionsTd.appendChild(delBtn);
+
+      tr.appendChild(nameTd); tr.appendChild(priceTd); tr.appendChild(actionsTd);
+      tb.appendChild(tr);
+
+      editBtn.addEventListener('click', ()=>{
+        populateFormForEdit(it);
+      });
+      delBtn.addEventListener('click', async ()=>{
+        if(!confirm('Delete this item?')) return;
+        await deleteItem(it.id);
+      });
+    });
+    t.appendChild(tb);
+    listEl.innerHTML = '';
+    listEl.appendChild(t);
+  }
+
+  // escape simple
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function getFormData(){
+    return {
+      name: document.getElementById('name').value.trim(),
+      description: document.getElementById('desc').value.trim(),
+      prices: {
+        bike: maybeNumber(document.getElementById('price-bike').value),
+        hatchback: maybeNumber(document.getElementById('price-hatchback').value),
+        sedan: maybeNumber(document.getElementById('price-sedan').value),
+        suv: maybeNumber(document.getElementById('price-suv').value)
+      }
+    };
+  }
+  function maybeNumber(v){ if(v === '' || v === null || v === undefined) return null; const n = Number(v); return Number.isFinite(n)? n : null; }
+
+  async function createItem(payload){
+    const res = await fetch('/api/prices?table=' + encodeURIComponent(activeTable), {
+      method: 'POST',
+      headers: adminHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Create failed: ' + res.status);
+    return res.json();
+  }
+
+  async function updateItem(id, payload){
+    const res = await fetch('/api/prices?table=' + encodeURIComponent(activeTable) + '&id=' + encodeURIComponent(id), {
+      method: 'PUT',
+      headers: adminHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Update failed: ' + res.status);
+    return res.json();
+  }
+
+  async function deleteItem(id){
+    try{
+      const res = await fetch('/api/prices?table=' + encodeURIComponent(activeTable) + '&id=' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: adminHeaders()
+      });
+      if(!res.ok) throw new Error('Delete failed: ' + res.status);
+      // success — refresh
+      fetchAndRender();
+    }catch(err){
+      alert(err.message);
+    }
+  }
+
+  function populateFormForEdit(item){
+    editingId = item.id;
+    document.getElementById('name').value = item.name || '';
+    document.getElementById('desc').value = item.description || '';
+    document.getElementById('price-bike').value = item.prices?.bike ?? '';
+    document.getElementById('price-hatchback').value = item.prices?.hatchback ?? '';
+    document.getElementById('price-sedan').value = item.prices?.sedan ?? '';
+    document.getElementById('price-suv').value = item.prices?.suv ?? '';
+    createBtn.textContent = 'Save Changes';
+    cancelEditBtn.style.display = '';
+    document.getElementById('form-title').textContent = 'Editing: ' + (item.name || '(no name)');
+  }
+
+  function resetForm(){
+    editingId = null;
+    document.getElementById('name').value = '';
+    document.getElementById('desc').value = '';
+    document.getElementById('price-bike').value = '';
+    document.getElementById('price-hatchback').value = '';
+    document.getElementById('price-sedan').value = '';
+    document.getElementById('price-suv').value = '';
+    createBtn.textContent = 'Create';
+    cancelEditBtn.style.display = 'none';
+    document.getElementById('form-title').textContent = activeTable === 'Packages' ? 'Create new package' : 'Create new a-la-carte item';
+  }
+
+  cancelEditBtn.addEventListener('click', (e)=>{ e.preventDefault(); resetForm(); });
+
+  createBtn.addEventListener('click', async ()=>{
+    const payload = getFormData();
+    if(!payload.name) return alert('Name is required');
+    try{
+      if(editingId){
+        await updateItem(editingId, payload);
+      } else {
+        await createItem(payload);
+      }
+      resetForm();
+      fetchAndRender();
+    }catch(err){
+      alert(err.message);
+    }
+  });
+
+  // initial load
+  fetchAndRender();
+
+})();
+</script>
+</body>
+</html>
