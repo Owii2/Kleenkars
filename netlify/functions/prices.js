@@ -25,6 +25,27 @@ function normalizeRow(row){
   };
 }
 
+/**
+ * Map a kleenkars_services row -> the package shape expected by clients.
+ * kleenkars_services columns: name (PK), bike, sedan, suv, position, visible, description
+ * We'll use name as id (string), hatchback will fall back to sedan.
+ */
+function mapServiceRowToPackage(row){
+  return {
+    id: String(row.name),
+    name: row.name,
+    description: row.description || '',
+    prices: {
+      bike: row.bike == null ? null : Number(row.bike),
+      hatchback: (row.hatchback !== undefined && row.hatchback !== null) ? Number(row.hatchback) : (row.sedan == null ? null : Number(row.sedan)),
+      sedan: row.sedan == null ? null : Number(row.sedan),
+      suv: row.suv == null ? null : Number(row.suv)
+    },
+    created_at: row.updated_at || null,
+    updated_at: row.updated_at || null
+  };
+}
+
 export const handler = async (event) => {
   try {
     const method = event.httpMethod;
@@ -34,27 +55,48 @@ export const handler = async (event) => {
 
     // GET: public
     if (method === 'GET') {
-      if (!tableParam) {
-        const [pk, al] = await Promise.all([
-          sql`SELECT * FROM packages ORDER BY created_at ASC`,
-          sql`SELECT * FROM alacarte ORDER BY created_at ASC`
-        ]);
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            packages: pk.map(normalizeRow),
-            alacarte: al.map(normalizeRow)
-          })
-        };
+      // If client asked for a specific table, return that table from Neon as before
+      if (tableParam) {
+        if (isAlacarte) {
+          const rows = await sql`SELECT * FROM alacarte ORDER BY created_at ASC`;
+          return { statusCode: 200, body: JSON.stringify({ alacarte: rows.map(normalizeRow) }) };
+        } else {
+          const rows = await sql`SELECT * FROM packages ORDER BY created_at ASC`;
+          return { statusCode: 200, body: JSON.stringify({ packages: rows.map(normalizeRow) }) };
+        }
       }
 
-      if (isAlacarte) {
-        const rows = await sql`SELECT * FROM alacarte ORDER BY created_at ASC`;
-        return { statusCode: 200, body: JSON.stringify({ alacarte: rows.map(normalizeRow) }) };
-      } else {
-        const rows = await sql`SELECT * FROM packages ORDER BY created_at ASC`;
-        return { statusCode: 200, body: JSON.stringify({ packages: rows.map(normalizeRow) }) };
+      // No table param -> return both packages & alacarte.
+      const [pk, al] = await Promise.all([
+        sql`SELECT * FROM packages ORDER BY created_at ASC`,
+        sql`SELECT * FROM alacarte ORDER BY created_at ASC`
+      ]);
+
+      let packages = pk.map(normalizeRow);
+      const alacarte = al.map(normalizeRow);
+
+      // If packages is empty, fallback to kleenkars_services so frontend shows services
+      if ((!packages || packages.length === 0)) {
+        try {
+          const svcRows = await sql`
+            SELECT name, bike, sedan, suv, position, visible, description, updated_at
+            FROM kleenkars_services
+            WHERE visible = TRUE
+            ORDER BY position ASC, name ASC
+          `;
+          if (Array.isArray(svcRows) && svcRows.length > 0) {
+            packages = svcRows.map(mapServiceRowToPackage);
+          }
+        } catch (fallbackErr) {
+          console.warn('prices: fallback to kleenkars_services failed', fallbackErr);
+          // ignore fallback error — we'll return the (possibly empty) packages list
+        }
       }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ packages, alacarte })
+      };
     }
 
     // All modifying endpoints require admin token
