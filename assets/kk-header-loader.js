@@ -35,8 +35,6 @@
 
   /* ---------- CSS / HTML ---------- */
   const css = `
-  :root{ --kk-logo-width:110px; } /* updated at runtime to match actual logo */
-
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
     display:flex;
@@ -65,31 +63,33 @@
   .kk-logo{
     width:110px !important;
     height:auto;
-    border-radius:50%;
+    border-radius:10px;
     border:0;
-    padding:0;
-    background:transparent;
-    box-shadow:none;
+    padding:6px;
+    background:rgba(0,0,0,0.12);
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
     display:block;
     object-fit:contain;
     cursor:pointer;
   }
 
-   /* title font-size scales with logo width; clamp to sensible range */
-.kk-title{
-  font-weight:800;
-  font-size: clamp(1.8rem, calc(var(--kk-logo-width, 110px) * 0.25), 3.2rem);
-  line-height:1.1;
-  color:#ffffff;
-  text-transform:uppercase;
-  margin-left:8px;
-}
+  /* Title scales relative to measured logo width (see JS below) */
+  .kk-title{
+    font-weight:800;
+    font-size: clamp(1.6rem, calc(var(--kk-logo-width,110px) * 0.22), 3.2rem);
+    line-height:1.05;
+    color:#ffffff;
+    text-transform:uppercase;
+    margin-left:8px;
+  }
 
+  /* subtitle smaller */
   .kk-sub{
     color: rgba(255,255,255,0.9);
-    margin-top:4px;
-    font-size:.8rem;   /* smaller subtitle */
+    margin-top:6px;
+    font-size:.85rem;
     font-weight:400;
+    margin-left:8px;
   }
 
   .kk-header-controls{ margin-left:auto; display:flex;gap:10px;align-items:center; }
@@ -104,23 +104,16 @@
     cursor:pointer;
   }
 
-  /* theme toggle moved to fixed bottom-right. still present in DOM in header, but visually pinned */
-  #kk-theme-toggle{
-    position:fixed;
-    right:18px;
-    bottom:18px;
-    z-index:99999;
-    background:transparent;border:0;color:inherit;font-size:1.3rem;cursor:pointer;
-    padding:10px 12px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  #kk-theme-toggle{ background:transparent;border:0;color:inherit;font-size:1.2rem;cursor:pointer;padding:10px;border-radius:50%;
+    /* pinned to bottom-right so it's always accessible */
+    position:fixed; right:18px; bottom:18px; z-index:99999; box-shadow:0 8px 20px rgba(0,0,0,0.45);
   }
-
-  /* keep an invisible (screenreader) focus target in header if desired */
-  .kk-header-hero [id="kk-theme-toggle"]{ /* no-op to prevent clobbering */ }
 
   @media (max-width:640px){
     .kk-title{font-size:1.1rem}
     .kk-header-hero{min-height:140px;padding:20px 14px 14px 14px}
     .kk-logo{ width:110px !important; }
+    #kk-theme-toggle{ right:12px; bottom:12px; }
   }
   `;
 
@@ -137,6 +130,7 @@
       </div>
 
       <div class="kk-header-controls" style="margin-left:auto;">
+        <!-- keep in DOM (but visually pinned by CSS) -->
         <button id="kk-theme-toggle" class="kk-btn" title="Toggle theme" aria-pressed="false">🌙</button>
       </div>
     </div>
@@ -209,27 +203,26 @@
   function setTheme(isLight) {
     try {
       if (isLight) {
-        document.documentElement.classList.add('light');
-        if (document.body) document.body.classList.add('light');
-        localStorage.setItem(THEME_KEY, 'light');
-        themeToggle.textContent = '☀️';
-        themeToggle.setAttribute('aria-pressed', 'true');
+        document.documentElement.classList.add("light");
+        if (document.body) document.body.classList.add("light");
+        localStorage.setItem(THEME_KEY, "light");
+        themeToggle.textContent = "☀️";
+        themeToggle.setAttribute("aria-pressed", "true");
       } else {
-        document.documentElement.classList.remove('light');
-        if (document.body) document.body.classList.remove('light');
-        localStorage.setItem(THEME_KEY, 'dark');
-        themeToggle.textContent = '🌙';
-        themeToggle.setAttribute('aria-pressed', 'false');
+        document.documentElement.classList.remove("light");
+        if (document.body) document.body.classList.remove("light");
+        localStorage.setItem(THEME_KEY, "dark");
+        themeToggle.textContent = "🌙";
+        themeToggle.setAttribute("aria-pressed", "false");
       }
-      // If you wish to sync other components (maps etc.) they can observe body.class changes
     } catch (e) { console.warn(e); }
   }
 
   (function initThemeButton() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
-      if (saved === 'light') setTheme(true);
-      else if (saved === 'dark') setTheme(false);
+      if (saved === "light") setTheme(true);
+      else if (saved === "dark") setTheme(false);
       else {
         const hr = new Date().getHours();
         setTheme(hr >= 7 && hr < 19);
@@ -244,34 +237,26 @@
     });
   }
 
-  /* ---------- title size sync (make title scale with logo width) ---------- */
-  (function syncTitleToLogo() {
+  /* ---------- make title size follow logo width (reliable) ---------- */
+  (function syncTitleToLogo(){
     try {
-      const root = document.getElementById('kk-header-inject');
-      if (!root) return;
-      const logo = root.querySelector('.kk-logo');
-      if (!logo) return;
-
-      function updateVar() {
-        try {
-          // measure the computed width (fallback to 110)
-          const w = Math.max(40, Math.round((logo.getBoundingClientRect().width) || 110));
-          root.style.setProperty('--kk-logo-width', w + 'px');
-        } catch (e) {}
+      function setLogoVar(){
+        const logo = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
+        if (!logo) return;
+        const w = (logo.offsetWidth || logo.clientWidth || 110);
+        // set CSS var on root so clamp calc picks it up
+        document.documentElement.style.setProperty('--kk-logo-width', w + 'px');
       }
-
-      // run now and on load/resize in case images change size
-      updateVar();
-      // if logo image changes (loaded or error) re-measure
-      logo.addEventListener('load', updateVar);
-      window.addEventListener('resize', updateVar);
-
-      // also observe attribute changes just in case (responsive swaps)
-      try {
-        const obs = new MutationObserver(updateVar);
-        obs.observe(logo, { attributes: true, attributeFilter: ['style', 'width', 'class', 'src'] });
-      } catch (e) {}
-    } catch (e) { console.warn(e); }
+      setLogoVar();
+      // update on events that matter
+      window.addEventListener('load', setLogoVar);
+      window.addEventListener('resize', setLogoVar);
+      const root = document.getElementById('kk-header-inject') || document.body;
+      const mo = new MutationObserver(setLogoVar);
+      mo.observe(root, { childList:true, subtree:true, attributes:true });
+      const logoImg = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
+      if (logoImg && logoImg.tagName === 'IMG') logoImg.addEventListener('load', setLogoVar);
+    } catch (e) { /* silent */ }
   })();
 
   /* ---------- hide old headers (conservative) ---------- */
