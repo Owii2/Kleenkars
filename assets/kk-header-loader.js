@@ -76,14 +76,14 @@
   }
 
    /* title font-size scales with logo width; clamp to sensible range */
-  .kk-title{
-    font-weight:800;
-    font-size: clamp(1.4rem, calc(var(--kk-logo-width) * 0.18), 2.6rem);
-    line-height:1.1;
-    color:#ffffff;
-    text-transform:uppercase;
-    margin-left:6px;
-  }
+.kk-title{
+  font-weight:800;
+  font-size: clamp(1.8rem, calc(var(--kk-logo-width, 110px) * 0.25), 3.2rem);
+  line-height:1.1;
+  color:#ffffff;
+  text-transform:uppercase;
+  margin-left:8px;
+}
 
   .kk-sub{
     color: rgba(255,255,255,0.9);
