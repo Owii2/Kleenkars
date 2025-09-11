@@ -548,11 +548,16 @@
       container.tabIndex = 0;
     })();
   </script>
-  <script>
+<script>
+  /* Kleenkars Google Maps initialiser
+     - Replace inserted API key only if needed
+     - Ensure <div id="kk-map"> exists before this runs
+  */
+
   const KK_COORDS = { lat: 27.9446834, lng: 78.0854261 };
   const KK_MAP_ZOOM = 16;
 
-  const MAP_STYLE_LIGHT = [];
+  const MAP_STYLE_LIGHT = []; // keep default look for light
   const MAP_STYLE_DARK = [
     { "elementType": "geometry", "stylers": [{ "color": "#0f0f16" }] },
     { "elementType": "labels.text.fill", "stylers": [{ "color": "#8a8a8a" }] },
@@ -566,50 +571,77 @@
   let __kk_map = null;
   let __kk_marker = null;
 
+  // init callback used by Google Maps API (keeps name global)
   function initKleenkarsMap() {
-    const mapEl = document.getElementById('kk-map');
-    if(!mapEl) return;
+    try {
+      const mapEl = document.getElementById('kk-map');
+      if (!mapEl) return;
 
-    const isLight = document.body.classList.contains('light');
-    __kk_map = new google.maps.Map(mapEl, {
-      center: KK_COORDS,
-      zoom: KK_MAP_ZOOM,
-      disableDefaultUI: true,
-      zoomControl: true,
-      styles: isLight ? MAP_STYLE_LIGHT : MAP_STYLE_DARK,
-      gestureHandling: 'auto'
-    });
+      const isLight = document.body.classList.contains('light');
+      __kk_map = new google.maps.Map(mapEl, {
+        center: KK_COORDS,
+        zoom: KK_MAP_ZOOM,
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: isLight ? MAP_STYLE_LIGHT : MAP_STYLE_DARK,
+        gestureHandling: 'auto'
+      });
 
-    __kk_marker = new google.maps.Marker({
-      position: KK_COORDS,
-      map: __kk_map,
-      title: 'Kleenkars — Mustafa Market, Aligarh'
-    });
+      __kk_marker = new google.maps.Marker({
+        position: KK_COORDS,
+        map: __kk_map,
+        title: 'Kleenkars — Mustafa Market, Aligarh'
+      });
 
-    const infow = new google.maps.InfoWindow({
-      content: `<strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Aligarh`
-    });
-    __kk_marker.addListener('click', ()=> infow.open(__kk_map, __kk_marker));
+      const infow = new google.maps.InfoWindow({
+        content: `<strong>Kleenkars</strong><br>Mustafa Market, Anoop Shahar Rd, Aligarh`
+      });
+      __kk_marker.addListener('click', () => infow.open(__kk_map, __kk_marker));
+    } catch (err) {
+      // don't break page if maps fail
+      console.warn('initKleenkarsMap error', err);
+    }
   }
 
-  (function loadGoogleMaps(){
-    if(document.getElementById('kk-maps-script')) return;
+  // Load Google Maps script (only once)
+  (function loadGoogleMaps() {
+    if (document.getElementById('kk-maps-script')) return;
+
+    // Insert your API key here (you provided it earlier)
+    const apiKey = 'AIzaSyCtl4XEfXvrRknj_A6eEgWXohmKoLOCHNg';
+
     const s = document.createElement('script');
     s.id = 'kk-maps-script';
-    s.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&callback=initKleenkarsMap';
+    // use callback param so initKleenkarsMap is invoked once library loads
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(apiKey) + '&callback=initKleenkarsMap';
     s.async = true;
     s.defer = true;
+    s.addEventListener('error', () => console.warn('Google Maps script failed to load'));
     document.head.appendChild(s);
   })();
 
-  (function watchThemeForMap(){
-    const observer = new MutationObserver(()=> {
-      if(!__kk_map) return;
+  // Watch for theme changes and toggle map style dynamically
+  (function watchThemeForMap() {
+    const applyStyle = () => {
+      if (!__kk_map) return;
       const isLight = document.body.classList.contains('light');
       __kk_map.setOptions({ styles: isLight ? MAP_STYLE_LIGHT : MAP_STYLE_DARK });
-    });
-    observer.observe(document.body, { attributes:true, attributeFilter:['class'] });
+    };
+
+    // MutationObserver watches body.class changes (your theme toggler updates body class)
+    const observer = new MutationObserver(() => applyStyle());
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    // also apply once if map already initialised later
+    window.addEventListener('load', () => setTimeout(applyStyle, 150));
   })();
+
+  // Optional: expose helpers for debugging in console
+  window.__kk_map_helpers = {
+    setDark: () => document.body.classList.remove('light'),
+    setLight: () => document.body.classList.add('light'),
+    recenter: () => __kk_map && __kk_map.setCenter(KK_COORDS)
+  };
 </script>
 </body>
 </html>
