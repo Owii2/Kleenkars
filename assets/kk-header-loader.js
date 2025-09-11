@@ -75,11 +75,11 @@
     cursor:pointer;
   }
 
-  /* title font-size scales with logo width; clamp to sensible range */
+   /* title font-size scales with logo width; clamp to sensible range */
   .kk-title{
     font-weight:800;
-    font-size: clamp(1rem, calc(var(--kk-logo-width) * 0.13), 2rem);
-    line-height:1;
+    font-size: clamp(1.4rem, calc(var(--kk-logo-width) * 0.18), 2.6rem);
+    line-height:1.1;
     color:#ffffff;
     text-transform:uppercase;
     margin-left:6px;
@@ -87,8 +87,8 @@
 
   .kk-sub{
     color: rgba(255,255,255,0.9);
-    margin-top:6px;
-    font-size:.95rem;
+    margin-top:4px;
+    font-size:.8rem;   /* smaller subtitle */
     font-weight:400;
   }
 
