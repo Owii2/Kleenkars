@@ -35,6 +35,8 @@
 
   /* ---------- CSS / HTML ---------- */
   const css = `
+  :root{ --kk-logo-width:110px; } /* updated at runtime to match actual logo */
+
   .kk-header-root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;color:var(--kk-ink,#e9e9ef)}
   .kk-header-hero{
     display:flex;
@@ -73,9 +75,10 @@
     cursor:pointer;
   }
 
+  /* title font-size scales with logo width; clamp to sensible range */
   .kk-title{
     font-weight:800;
-    font-size: clamp(1.2rem, 3.5vw, 2.0rem);
+    font-size: clamp(1rem, calc(var(--kk-logo-width) * 0.13), 2rem);
     line-height:1;
     color:#ffffff;
     text-transform:uppercase;
@@ -101,7 +104,18 @@
     cursor:pointer;
   }
 
-  #kk-theme-toggle{ background:transparent;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:6px 8px;border-radius:8px }
+  /* theme toggle moved to fixed bottom-right. still present in DOM in header, but visually pinned */
+  #kk-theme-toggle{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:99999;
+    background:transparent;border:0;color:inherit;font-size:1.3rem;cursor:pointer;
+    padding:10px 12px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  /* keep an invisible (screenreader) focus target in header if desired */
+  .kk-header-hero [id="kk-theme-toggle"]{ /* no-op to prevent clobbering */ }
 
   @media (max-width:640px){
     .kk-title{font-size:1.1rem}
@@ -195,26 +209,27 @@
   function setTheme(isLight) {
     try {
       if (isLight) {
-        document.documentElement.classList.add("light");
-        if (document.body) document.body.classList.add("light");
-        localStorage.setItem(THEME_KEY, "light");
-        themeToggle.textContent = "☀️";
-        themeToggle.setAttribute("aria-pressed", "true");
+        document.documentElement.classList.add('light');
+        if (document.body) document.body.classList.add('light');
+        localStorage.setItem(THEME_KEY, 'light');
+        themeToggle.textContent = '☀️';
+        themeToggle.setAttribute('aria-pressed', 'true');
       } else {
-        document.documentElement.classList.remove("light");
-        if (document.body) document.body.classList.remove("light");
-        localStorage.setItem(THEME_KEY, "dark");
-        themeToggle.textContent = "🌙";
-        themeToggle.setAttribute("aria-pressed", "false");
+        document.documentElement.classList.remove('light');
+        if (document.body) document.body.classList.remove('light');
+        localStorage.setItem(THEME_KEY, 'dark');
+        themeToggle.textContent = '🌙';
+        themeToggle.setAttribute('aria-pressed', 'false');
       }
+      // If you wish to sync other components (maps etc.) they can observe body.class changes
     } catch (e) { console.warn(e); }
   }
 
   (function initThemeButton() {
     try {
       const saved = localStorage.getItem(THEME_KEY);
-      if (saved === "light") setTheme(true);
-      else if (saved === "dark") setTheme(false);
+      if (saved === 'light') setTheme(true);
+      else if (saved === 'dark') setTheme(false);
       else {
         const hr = new Date().getHours();
         setTheme(hr >= 7 && hr < 19);
@@ -223,11 +238,41 @@
   })();
 
   if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-      const isLight = document.body ? document.body.classList.contains("light") : document.documentElement.classList.contains("light");
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.body ? document.body.classList.contains('light') : document.documentElement.classList.contains('light');
       setTheme(!isLight);
     });
   }
+
+  /* ---------- title size sync (make title scale with logo width) ---------- */
+  (function syncTitleToLogo() {
+    try {
+      const root = document.getElementById('kk-header-inject');
+      if (!root) return;
+      const logo = root.querySelector('.kk-logo');
+      if (!logo) return;
+
+      function updateVar() {
+        try {
+          // measure the computed width (fallback to 110)
+          const w = Math.max(40, Math.round((logo.getBoundingClientRect().width) || 110));
+          root.style.setProperty('--kk-logo-width', w + 'px');
+        } catch (e) {}
+      }
+
+      // run now and on load/resize in case images change size
+      updateVar();
+      // if logo image changes (loaded or error) re-measure
+      logo.addEventListener('load', updateVar);
+      window.addEventListener('resize', updateVar);
+
+      // also observe attribute changes just in case (responsive swaps)
+      try {
+        const obs = new MutationObserver(updateVar);
+        obs.observe(logo, { attributes: true, attributeFilter: ['style', 'width', 'class', 'src'] });
+      } catch (e) {}
+    } catch (e) { console.warn(e); }
+  })();
 
   /* ---------- hide old headers (conservative) ---------- */
   try {
