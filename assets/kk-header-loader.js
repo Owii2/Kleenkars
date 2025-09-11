@@ -61,7 +61,7 @@
   .kk-logo{
     width:110px !important;
     height:auto;
-    border-radius:30%;
+    border-radius:50%;
     border:0;
     padding:0;
     background:transparent;
