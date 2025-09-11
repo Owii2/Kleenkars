@@ -74,7 +74,7 @@
   .kk-title{
     font-weight:800;
     /* font size scales with logo width (var set by syncTitleToLogo) */
-    font-size: clamp(1.2rem, calc(var(--kk-logo-width, 140px) * 0.30), 3.0rem);
+    font-size: clamp(1.2rem, calc(var(--kk-logo-width, 140px) * 0.24), 3.0rem);
     line-height:1.1;
     color:#ffffff;
     text-transform:uppercase;
