@@ -102,11 +102,13 @@
 
   #kk-theme-toggle{ background:transparent;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:6px 8px;border-radius:8px;position:absolute;bottom:10px;right:10px; }
 
-  @media (max-width:640px){
-    .kk-title{font-size: clamp(1.1rem, calc(var(--kk-logo-width, 110px) * 0.32), 2.2rem); }
-    .kk-header-hero{min-height:140px;padding:20px 14px 14px 14px}
-    .kk-logo{ width:110px !important; }
+@media (max-width:640px){
+  .kk-title{
+    font-size: clamp(1rem, calc(var(--kk-logo-width, 110px) * 0.24), 2.4rem);
   }
+  .kk-header-hero{min-height:140px;padding:20px 14px 14px 14px}
+  .kk-logo{ width:110px !important; }
+}
   `;
 
   const headerHtml = `
