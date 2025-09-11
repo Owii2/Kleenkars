@@ -60,8 +60,8 @@
     transition: transform 220ms ease, box-shadow 180ms ease;
   }
 
-  .kk-logo{
-    width:110px !important;
+    .kk-logo{
+    width:140px !important; /* increase default logo width so title scales bigger */
     height:auto;
     border-radius:10px;
     border:0;
@@ -76,18 +76,19 @@
   /* Title scales relative to measured logo width (see JS below) */
   .kk-title{
     font-weight:800;
-    font-size: clamp(1.6rem, calc(var(--kk-logo-width,110px) * 0.22), 3.2rem);
-    line-height:1.05;
+    /* more generous scaling: min 1.8rem, up to 4rem using logo width as reference */
+    font-size: clamp(1.8rem, calc(var(--kk-logo-width,140px) * 0.30), 4rem);
+    line-height:1.02;
     color:#ffffff;
     text-transform:uppercase;
     margin-left:8px;
   }
 
-  /* subtitle smaller */
+  /* subtitle slightly smaller */
   .kk-sub{
     color: rgba(255,255,255,0.9);
     margin-top:6px;
-    font-size:.85rem;
+    font-size:.78rem;
     font-weight:400;
     margin-left:8px;
   }
