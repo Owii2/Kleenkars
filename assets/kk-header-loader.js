@@ -147,7 +147,29 @@
 
   const container = el("div", { id: "kk-header-inject", html: headerHtml });
   document.body.insertBefore(container, document.body.firstChild);
+  
+/* ---------- sync logo size to title ---------- */
+  (function syncTitleToLogo(){
+    try {
+      function setLogoVar(){
+        const logo = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
+        if (!logo) return;
+        const w = (logo.offsetWidth || logo.clientWidth || 140);
+        document.documentElement.style.setProperty('--kk-logo-width', w + 'px');
+      }
+      setLogoVar();
+      // small delayed call to catch late image/layout changes
+      setTimeout(setLogoVar, 80);
 
+      window.addEventListener('load', setLogoVar);
+      window.addEventListener('resize', setLogoVar);
+      const root = document.getElementById('kk-header-inject') || document.body;
+      const mo = new MutationObserver(setLogoVar);
+      mo.observe(root, { childList:true, subtree:true, attributes:true });
+      const logoImg = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
+      if (logoImg && logoImg.tagName === 'IMG') logoImg.addEventListener('load', setLogoVar);
+    } catch (e) { /* silent */ }
+  })();
   /* ---------- runtime setters ---------- */
   function applyBgOffset(px) {
     try {
