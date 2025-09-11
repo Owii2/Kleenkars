@@ -47,7 +47,6 @@
     background-size: cover;
     background-repeat: no-repeat;
 
-    /* original padding restored so logo/title don't move */
     padding:20px;
     border-radius:12px;
     margin:18px 18px 12px 18px;
@@ -55,42 +54,38 @@
     box-shadow:0 6px 18px rgba(0,0,0,.4);
     color: #fff;
 
-    /* allow tile movement via transform (set at runtime) */
     transform: translateY(0);
     transition: transform 220ms ease, box-shadow 180ms ease;
   }
 
-    .kk-logo{
-    width:140px !important; /* increase default logo width so title scales bigger */
+  .kk-logo{
+    width:110px !important;
     height:auto;
-    border-radius:10px;
+    border-radius:50%;
     border:0;
-    padding:6px;
-    background:rgba(0,0,0,0.12);
-    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+    padding:0;
+    background:transparent;
+    box-shadow:none;
     display:block;
     object-fit:contain;
     cursor:pointer;
   }
 
-  /* Title scales relative to measured logo width (see JS below) */
   .kk-title{
     font-weight:800;
-    /* more generous scaling: min 1.8rem, up to 4rem using logo width as reference */
-    font-size: clamp(1.8rem, calc(var(--kk-logo-width,140px) * 0.30), 4rem);
-    line-height:1.02;
+    /* font size scales with logo width (var set by syncTitleToLogo) */
+    font-size: clamp(1.2rem, calc(var(--kk-logo-width, 140px) * 0.30), 3.0rem);
+    line-height:1.1;
     color:#ffffff;
     text-transform:uppercase;
-    margin-left:8px;
+    margin-left:6px;
   }
 
-  /* subtitle slightly smaller */
   .kk-sub{
-    color: rgba(255,255,255,0.9);
-    margin-top:6px;
-    font-size:.78rem;
+    color: rgba(255,255,255,0.85);
+    margin-top:4px;
+    font-size:.9rem;
     font-weight:400;
-    margin-left:8px;
   }
 
   .kk-header-controls{ margin-left:auto; display:flex;gap:10px;align-items:center; }
@@ -105,16 +100,12 @@
     cursor:pointer;
   }
 
-  #kk-theme-toggle{ background:transparent;border:0;color:inherit;font-size:1.2rem;cursor:pointer;padding:10px;border-radius:50%;
-    /* pinned to bottom-right so it's always accessible */
-    position:fixed; right:18px; bottom:18px; z-index:99999; box-shadow:0 8px 20px rgba(0,0,0,0.45);
-  }
+  #kk-theme-toggle{ background:transparent;border:0;color:inherit;font-size:1.1rem;cursor:pointer;padding:6px 8px;border-radius:8px;position:absolute;bottom:10px;right:10px; }
 
   @media (max-width:640px){
-    .kk-title{font-size:1.1rem}
+    .kk-title{font-size: clamp(1.1rem, calc(var(--kk-logo-width, 110px) * 0.32), 2.2rem); }
     .kk-header-hero{min-height:140px;padding:20px 14px 14px 14px}
     .kk-logo{ width:110px !important; }
-    #kk-theme-toggle{ right:12px; bottom:12px; }
   }
   `;
 
@@ -130,8 +121,7 @@
         <div class="kk-sub">Clean cars. Happy customers.</div>
       </div>
 
-      <div class="kk-header-controls" style="margin-left:auto;">
-        <!-- keep in DOM (but visually pinned by CSS) -->
+      <div class="kk-header-controls">
         <button id="kk-theme-toggle" class="kk-btn" title="Toggle theme" aria-pressed="false">🌙</button>
       </div>
     </div>
@@ -147,35 +137,38 @@
 
   const container = el("div", { id: "kk-header-inject", html: headerHtml });
   document.body.insertBefore(container, document.body.firstChild);
-  
-/* ---------- sync logo size to title ---------- */
+
+  /* ---------- sync logo size to title ---------- */
   (function syncTitleToLogo(){
     try {
       function setLogoVar(){
         const logo = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
         if (!logo) return;
-        const w = (logo.offsetWidth || logo.clientWidth || 140);
+        const rect = logo.getBoundingClientRect ? logo.getBoundingClientRect() : { width: logo.offsetWidth || 140 };
+        const w = Math.max(80, Math.round(rect.width || 140));
         document.documentElement.style.setProperty('--kk-logo-width', w + 'px');
       }
       setLogoVar();
-      // small delayed call to catch late image/layout changes
       setTimeout(setLogoVar, 80);
+      setTimeout(setLogoVar, 400);
 
       window.addEventListener('load', setLogoVar);
       window.addEventListener('resize', setLogoVar);
+
       const root = document.getElementById('kk-header-inject') || document.body;
       const mo = new MutationObserver(setLogoVar);
       mo.observe(root, { childList:true, subtree:true, attributes:true });
+
       const logoImg = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
       if (logoImg && logoImg.tagName === 'IMG') logoImg.addEventListener('load', setLogoVar);
-    } catch (e) { /* silent */ }
+    } catch (e) {}
   })();
+
   /* ---------- runtime setters ---------- */
   function applyBgOffset(px) {
     try {
       const hero = document.querySelector(".kk-header-hero");
       if (!hero) return;
-      // set background vertical position to center + px
       hero.style.backgroundPosition = `center ${px}px`;
     } catch (e) { console.warn(e); }
   }
@@ -188,11 +181,9 @@
     } catch (e) { console.warn(e); }
   }
 
-  // apply initial configured offsets
   applyBgOffset(BG_OFFSET_PX);
   applyTileOffset(TILE_OFFSET_PX);
 
-  // helpers available in console for quick tuning
   window.__kk_set_bg_offset = function (px) {
     const n = Number(px) || 0;
     BG_OFFSET_PX = n;
@@ -206,7 +197,7 @@
     console.log("kk-header: tile translateY set to", n);
   };
 
-  /* ---------- theme toggle (robust) ---------- */
+  /* ---------- theme toggle ---------- */
   const THEME_KEY = "kleenkars.theme";
   (function applySavedThemeEarly() {
     try {
@@ -254,35 +245,13 @@
   })();
 
   if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      const isLight = document.body ? document.body.classList.contains('light') : document.documentElement.classList.contains('light');
+    themeToggle.addEventListener("click", () => {
+      const isLight = document.body ? document.body.classList.contains("light") : document.documentElement.classList.contains("light");
       setTheme(!isLight);
     });
   }
 
-  /* ---------- make title size follow logo width (reliable) ---------- */
-  (function syncTitleToLogo(){
-    try {
-      function setLogoVar(){
-        const logo = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
-        if (!logo) return;
-        const w = (logo.offsetWidth || logo.clientWidth || 110);
-        // set CSS var on root so clamp calc picks it up
-        document.documentElement.style.setProperty('--kk-logo-width', w + 'px');
-      }
-      setLogoVar();
-      // update on events that matter
-      window.addEventListener('load', setLogoVar);
-      window.addEventListener('resize', setLogoVar);
-      const root = document.getElementById('kk-header-inject') || document.body;
-      const mo = new MutationObserver(setLogoVar);
-      mo.observe(root, { childList:true, subtree:true, attributes:true });
-      const logoImg = document.querySelector('#kk-header-inject .kk-logo') || document.querySelector('.kk-logo');
-      if (logoImg && logoImg.tagName === 'IMG') logoImg.addEventListener('load', setLogoVar);
-    } catch (e) { /* silent */ }
-  })();
-
-  /* ---------- hide old headers (conservative) ---------- */
+  /* ---------- hide old headers ---------- */
   try {
     const selectorsToHide = ["header", ".header", "#header", ".site-header", ".site-hero"];
     selectorsToHide.forEach(sel => {
