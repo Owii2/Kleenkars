@@ -78,12 +78,12 @@
     line-height:1.1;
     color:#ffffff;
     text-transform:uppercase;
-    margin-left:2px;
+    margin-left:0px;
   }
 
   .kk-sub{
     color: rgba(255,255,255,0.85);
-    margin-top:2px;
+    margin-top:1px;
     font-size:.9rem;
     font-weight:400;
   }
