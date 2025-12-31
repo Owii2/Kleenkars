@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kleenkars – Membership Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+body{
+  margin:0; font-family:Inter,system-ui;
+  background:#0b0b12; color:#e9e9ef;
+}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+.card{
+  background:#13131b;border:1px solid #242433;
+  border-radius:14px;padding:20px;margin-bottom:20px
+}
+h1,h2{margin:0 0 10px}
+input,select{
+  width:100%;padding:10px;border-radius:10px;
+  border:1px solid #242433;background:#0f0f16;color:#fff
+}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.btn{
+  background:#e63946;color:#fff;border:0;
+  padding:10px 14px;border-radius:10px;
+  font-weight:700;cursor:pointer
+}
+.btn.secondary{background:#2a2a3a}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:10px;border-bottom:1px solid #242433;text-align:left}
+.badge{
+  padding:4px 8px;border-radius:999px;font-size:12px
+}
+.active{background:#1e7f3f}
+.expired{background:#7f1e1e}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<h1>Membership Manager</h1>
+<p class="muted">Manage New Year Membership Plans</p>
+
+<!-- ADD MEMBERSHIP -->
+<div class="card">
+<h2>Add New Membership</h2>
+<div class="row">
+  <input id="name" placeholder="Customer Name">
+  <input id="phone" placeholder="Phone Number">
+  <input id="vehicle" placeholder="Vehicle Number">
+  <select id="plan">
+    <option value="starter">Starter – 7 Washes (2 Months)</option>
+    <option value="three">3 Month – 15 Washes</option>
+    <option value="nine">9 Month – 31 Washes</option>
+  </select>
+  <select id="type">
+    <option>Hatch/Sedan</option>
+    <option>SUV</option>
+  </select>
+</div>
+<br>
+<button class="btn" onclick="addMembership()">Add Membership</button>
+</div>
+
+<!-- MEMBERSHIP LIST -->
+<div class="card">
+<h2>All Memberships</h2>
+<table>
+<thead>
+<tr>
+  <th>Name</th>
+  <th>Vehicle</th>
+  <th>Plan</th>
+  <th>Used</th>
+  <th>Valid Till</th>
+  <th>Status</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+const plans={
+  starter:{washes:7,months:2},
+  three:{washes:15,months:3},
+  nine:{washes:31,months:9}
+};
+
+let data=JSON.parse(localStorage.getItem('memberships')||'[]');
+
+function save(){localStorage.setItem('memberships',JSON.stringify(data));render();}
+function addMembership(){
+  const planKey=plan.value;
+  const p=plans[planKey];
+  const start=new Date();
+  const end=new Date(); end.setMonth(end.getMonth()+p.months);
+
+  data.push({
+    id:Date.now(),
+    name:name.value,
+    phone:phone.value,
+    vehicle:vehicle.value,
+    plan:planKey,
+    total:p.washes,
+    used:0,
+    expiry:end.toISOString().split('T')[0],
+    status:'Active'
+  });
+  save();
+}
+
+function useWash(id){
+  const m=data.find(x=>x.id===id);
+  if(!m||m.status==='Expired')return;
+  m.used++;
+  if(m.used>=m.total) m.status='Expired';
+  save();
+}
+
+function render(){
+  rows.innerHTML='';
+  data.forEach(m=>{
+    rows.innerHTML+=`
+    <tr>
+      <td>${m.name}</td>
+      <td>${m.vehicle}</td>
+      <td>${m.plan}</td>
+      <td>${m.used}/${m.total}</td>
+      <td>${m.expiry}</td>
+      <td><span class="badge ${m.status==='Active'?'active':'expired'}">${m.status}</span></td>
+      <td><button class="btn secondary" onclick="useWash(${m.id})">Use Wash</button></td>
+    </tr>`;
+  });
+}
+render();
+</script>
+</body>
+</html>
