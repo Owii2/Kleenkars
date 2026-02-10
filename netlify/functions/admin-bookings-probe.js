@@ -36,7 +36,6 @@ export const handler = async () => {
   ORDER BY created_at DESC
   LIMIT 3
 `;
-
 const countRes = await sql`
   SELECT COUNT(*)::int AS c
   FROM bookings
