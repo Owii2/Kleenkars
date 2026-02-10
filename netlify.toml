@@ -9,8 +9,11 @@
   NODE_VERSION = "20"          # pin Node.js to v20 for Netlify
 
 [functions]
-  node_bundler = "esbuild"     # bundle all deps; no externals
+  node_bundler = "esbuild"
 
+[functions."*"]
+  external_node_modules = ["pg"]
+  
 [[redirects]]
   from = "/admin*"
   to = "/.netlify/functions/admin-guard"
