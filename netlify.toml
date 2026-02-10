@@ -11,6 +11,12 @@
 [functions]
   node_bundler = "esbuild"     # bundle all deps; no externals
 
+[[redirects]]
+  from = "/admin*"
+  to = "/.netlify/functions/admin-guard"
+  status = 401
+  force = true
+
 # Route /api/prices to the Netlify function "prices"
 [[redirects]]
   from = "/api/prices"
