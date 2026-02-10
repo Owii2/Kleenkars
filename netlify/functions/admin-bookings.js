@@ -75,18 +75,15 @@ export async function handler(event) {
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     params.push(limit);
-    const rows = await sql(
-      `
-      SELECT order_id, name, phone, vehicle, service,
-             date, time, visit, address, price, created_at
-      FROM kleenkars_bookings
-      ${whereSql}
-      ORDER BY created_at DESC, order_id DESC
-      LIMIT $${params.length};
-      `,
-      params
-    );
-
+    const rows = await sql.query(
+  `
+  SELECT order_id, name, phone, vehicle, service,
+         date, time, visit, address, price, created_at
+  ${whereSql}
+  LIMIT $1
+  `,
+  params
+);
     return ok({ ok: true, rows });
   } catch (e) {
     console.error("admin-bookings", e);
