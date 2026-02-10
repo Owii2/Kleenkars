@@ -30,8 +30,18 @@ export const handler = async () => {
           AND table_name = 'bookings'
         ORDER BY ordinal_position
       `);
-      info.sample_rows = await sql(`SELECT * FROM bookings ORDER BY 1 DESC LIMIT 3`);
-      info.count = (await sql(`SELECT COUNT(*)::int AS c FROM bookings`))[0]?.c ?? 0;
+      info.sample_rows = await sql`
+  SELECT *
+  FROM bookings
+  ORDER BY created_at DESC
+  LIMIT 3
+`;
+
+const countRes = await sql`
+  SELECT COUNT(*)::int AS c
+  FROM bookings
+`;
+info.count = countRes[0]?.c ?? 0;
     }
 
     return json(200, { ok:true, info });
