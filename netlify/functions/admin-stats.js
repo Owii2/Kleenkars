@@ -85,7 +85,7 @@ export const handler = async (event) => {
       GROUP BY 1
       ORDER BY 1
     `;
-    const points = await sql(trendQ, p);
+    const points = await sql.query(trendQ, p);
 
     // 2) Totals (for selected window)
     const totalsQ = `
@@ -94,7 +94,7 @@ export const handler = async (event) => {
              COUNT(*)::int AS count
       FROM base
     `;
-    const totals = (await sql(totalsQ, p))[0] || { total: 0, count: 0 };
+    const totals = (await sql.query(totalsQ, p))[0] || { total: 0, count: 0 };
     const avg_ticket = totals.count ? Math.round(totals.total / totals.count) : 0;
 
     // 3) By service
@@ -108,7 +108,7 @@ export const handler = async (event) => {
       ORDER BY total DESC NULLS LAST
       LIMIT 8
     `;
-    const byService = await sql(byServiceQ, p);
+    const byService = await sql.query(byServiceQ, p);
 
     // 4) By vehicle
     const byVehicleQ = `
@@ -120,7 +120,7 @@ export const handler = async (event) => {
       GROUP BY vehicle
       ORDER BY total DESC NULLS LAST
     `;
-    const byVehicle = await sql(byVehicleQ, p);
+    const byVehicle = await sql.query(byVehicleQ, p);
 
     // 5) Hour-of-day histogram (0..23)
     const byHourQ = `
@@ -132,7 +132,7 @@ export const handler = async (event) => {
       GROUP BY 1
       ORDER BY 1
     `;
-    const byHour = await sql(byHourQ, p);
+    const byHour = await sql.query(byHourQ, p);
 
     // 6) Day-of-week histogram (0=Sunday..6=Saturday)
     const byDowQ = `
@@ -144,7 +144,7 @@ export const handler = async (event) => {
       GROUP BY 1
       ORDER BY 1
     `;
-    const byDow = await sql(byDowQ, p);
+    const byDow = await sql.query(byDowQ, p);
 
     return json(200, {
       ok: true,
