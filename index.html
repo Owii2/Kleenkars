@@ -602,22 +602,23 @@
     }
   }
 
-  // Load Google Maps script (only once)
-  (function loadGoogleMaps() {
-    if (document.getElementById('kk-maps-script')) return;
+<div style="margin-top:20px;">
+  <iframe 
+    src="https://www.google.com/maps?q=Kleenkars+Aligarh&output=embed"
+    width="100%" 
+    height="320" 
+    style="border:0; border-radius:12px;" 
+    allowfullscreen="" 
+    loading="lazy">
+  </iframe>
 
-    // Insert your API key here (you provided it earlier)
-    const apiKey = 'AIzaSyCtl4XEfXvrRknj_A6eEgWXohmKoLOCHNg';
-
-    const s = document.createElement('script');
-    s.id = 'kk-maps-script';
-    // use callback param so initKleenkarsMap is invoked once library loads
-    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(apiKey) + '&callback=initKleenkarsMap';
-    s.async = true;
-    s.defer = true;
-    s.addEventListener('error', () => console.warn('Google Maps script failed to load'));
-    document.head.appendChild(s);
-  })();
+  <div style="text-align:center; margin-top:12px;">
+    <a href="https://maps.google.com/?q=Kleenkars+Aligarh" target="_blank" 
+       style="text-decoration:none; background:#000; color:#fff; padding:10px 18px; border-radius:8px;">
+       Get Directions
+    </a>
+  </div>
+</div>
 
   // Watch for theme changes and toggle map style dynamically
   (function watchThemeForMap() {
