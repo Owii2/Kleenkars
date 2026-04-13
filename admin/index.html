@@ -7,23 +7,29 @@
   <!-- Netlify Identity -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
-  <!-- CMS -->
+  <!-- Decap CMS -->
   <script src="https://unpkg.com/decap-cms@latest/dist/decap-cms.js"></script>
-
-  <script>
-    // FORCE identity init (this is the missing piece)
-    window.addEventListener("load", function () {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.init();
-
-        window.netlifyIdentity.on("login", () => {
-          document.location.href = "/admin/";
-        });
-      }
-    });
-  </script>
-
 </head>
+
 <body>
+
+<button onclick="netlifyIdentity.open()" style="padding:12px 20px; font-size:16px;">
+  Open Login
+</button>
+
+<script>
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.init();
+
+    netlifyIdentity.on("login", () => {
+      document.location.href = "/admin/";
+    });
+
+    netlifyIdentity.on("init", user => {
+      console.log("User:", user);
+    });
+  }
+</script>
+
 </body>
 </html>
