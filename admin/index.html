@@ -4,11 +4,25 @@
   <meta charset="utf-8" />
   <title>Kleenkars CMS</title>
 
-  <!-- Identity -->
+  <!-- Netlify Identity -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <!-- CMS -->
-  <script src="https://unpkg.com/decap-cms@3.1.9/dist/decap-cms.js"></script>
+  <script src="https://unpkg.com/decap-cms@latest/dist/decap-cms.js"></script>
+
+  <script>
+    // FORCE identity init (this is the missing piece)
+    window.addEventListener("load", function () {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init();
+
+        window.netlifyIdentity.on("login", () => {
+          document.location.href = "/admin/";
+        });
+      }
+    });
+  </script>
+
 </head>
 <body>
 </body>
