@@ -1,1 +1,35 @@
+backend:
+  name: git-gateway
+  branch: main
 
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+
+collections:
+
+  - name: "homepage"
+    label: "Homepage"
+    files:
+      - file: "content/homepage.json"
+        label: "Homepage Content"
+        fields:
+          - { label: "Hero Title", name: "hero_title", widget: "string" }
+          - { label: "Hero Subtitle", name: "hero_subtitle", widget: "text" }
+          - { label: "Offer Banner", name: "offer", widget: "string" }
+
+  - name: "pricing"
+    label: "Pricing"
+    files:
+      - file: "content/pricing.json"
+        label: "Pricing"
+        fields:
+          - { label: "Express Wash", name: "express", widget: "number" }
+          - { label: "Classic Small", name: "classic_small", widget: "number" }
+          - { label: "Classic SUV", name: "classic_suv", widget: "number" }
+
+  - name: "gallery"
+    label: "Gallery"
+    folder: "content/gallery"
+    create: true
+    fields:
+      - { label: "Image", name: "image", widget: "image" }
