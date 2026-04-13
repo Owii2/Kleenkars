@@ -1,61 +1,15 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kleenkars Car Wash — Premium Car Wash & Detailing in Aligarh</title>
+  <title>Kleenkars CMS</title>
 
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b0b12">
+  <!-- Identity -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-180.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-  <style>
-    body{margin:0;font-family:Inter;background:#0b0b12;color:#fff;text-align:center}
-    .wrap{padding:20px}
-    .btn{padding:12px 20px;border-radius:999px;background:#e63946;color:#fff;font-weight:700;display:inline-block;margin:10px}
-  </style>
+  <!-- CMS -->
+  <script src="https://unpkg.com/decap-cms@3.1.9/dist/decap-cms.js"></script>
 </head>
-
 <body>
-
-<div class="wrap">
-  <h1>KLEENKARS</h1>
-  <p>Premium Car Wash & Detailing in Aligarh</p>
-
-  <a href="/customer.html" class="btn">Customer Login</a>
-  <a href="/admin.html" class="btn">Employee Login</a>
-</div>
-
-<!-- ✅ NETLIFY IDENTITY FIX (IMPORTANT) -->
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-
-<script>
-  if (window.netlifyIdentity) {
-
-    // Redirect after login
-    window.netlifyIdentity.on("login", () => {
-      document.location.href = "/admin/";
-    });
-
-    // Handle invite & password setup
-    window.netlifyIdentity.on("init", user => {
-      if (!user) {
-        if (window.location.hash.includes("invite_token") || window.location.hash.includes("recovery_token")) {
-          window.netlifyIdentity.open();
-        }
-      }
-    });
-
-    // Force open if token exists
-    if (window.location.hash.includes("invite_token") || window.location.hash.includes("recovery_token")) {
-      window.netlifyIdentity.open();
-    }
-  }
-</script>
-
 </body>
 </html>
