@@ -643,5 +643,27 @@
     recenter: () => __kk_map && __kk_map.setCenter(KK_COORDS)
   };
 </script>
+  <!-- ✅ NETLIFY IDENTITY FIX -->
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<script>
+  window.addEventListener("load", function () {
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.init();
+
+      // 🔥 FORCE OPEN when invite or reset token present
+      const hash = window.location.hash;
+
+      if (hash.includes("invite_token") || hash.includes("recovery_token")) {
+        window.netlifyIdentity.open();
+      }
+
+      // Redirect after login
+      window.netlifyIdentity.on("login", () => {
+        document.location.href = "/admin/";
+      });
+    }
+  });
+</script>
 </body>
 </html>
