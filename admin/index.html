@@ -4,11 +4,24 @@
   <meta charset="utf-8" />
   <title>Kleenkars CMS</title>
 
-  <!-- Netlify Identity (REQUIRED) -->
+  <!-- Netlify Identity -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
-  <!-- Decap CMS -->
-  <script src="https://unpkg.com/decap-cms@3.1.9/dist/decap-cms.js"></script>
+  <!-- Force Identity Init -->
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", () => {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
+
+  <!-- Decap CMS (latest stable) -->
+  <script src="https://unpkg.com/decap-cms@latest/dist/decap-cms.js"></script>
 </head>
 <body>
 </body>
