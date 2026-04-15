@@ -18,15 +18,17 @@ const HOME_SURCHARGE = 50;
 function normText(v, max = 500) { return String(v ?? "").trim().slice(0, max); }
 function normPhone(v) { return String(v || "").replace(/\D/g, "").slice(0, 15); }
 function normDate(v) {
-  try { return new Date(v).toISOString().split("T")[0]; } catch { return ""; }
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString().split("T")[0];
 }
 function normTime(v) {
-  try {
-    const d = new Date(`1970-01-01T${v}`);
-    const hh = String(d.getUTCHours()).padStart(2, "0");
-    const mm = String(d.getUTCMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
-  } catch { return ""; }
+  const s = String(v ?? "").trim();
+  const m = s.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if (!m) return "";
+  const hh = String(Number(m[1])).padStart(2, "0");
+  const mm = m[2];
+  return `${hh}:${mm}`;
 }
 
 // Reuse gaps: 1,2,3… find smallest missing order_id

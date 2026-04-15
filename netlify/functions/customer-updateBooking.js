@@ -19,6 +19,18 @@ function computePrice(v, s, visit){
   if(visit === "Home Visit") p += HOME_SURCHARGE;
   return p;
 }
+function normDate(v){
+  const d = new Date(String(v ?? ""));
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString().split("T")[0];
+}
+function normTime(v){
+  const s = String(v ?? "").trim();
+  const m = s.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if (!m) return "";
+  const hh = String(Number(m[1])).padStart(2, "0");
+  return `${hh}:${m[2]}`;
+}
 
 export async function handler(event){
   if(event.httpMethod !== "POST") return json(405, { ok:false, error:"Method not allowed" });
@@ -36,13 +48,9 @@ export async function handler(event){
     address = String(address||"").trim().slice(0,500);
 
     // normalize date/time
-    try { date = new Date(String(date)).toISOString().split("T")[0]; } catch {}
-    try {
-      const d = new Date(`1970-01-01T${String(time)}`);
-      const hh = String(d.getUTCHours()).padStart(2,"0");
-      const mm = String(d.getUTCMinutes()).padStart(2,"0");
-      time = `${hh}:${mm}`;
-    } catch {}
+    date = normDate(date);
+    time = normTime(time);
+    if (!date || !time) return json(400, { ok:false, error:"Invalid date/time" });
 
     const price = computePrice(vehicle, service, visit);
     if(price == null) return json(400, { ok:false, error:`${service} not available for ${vehicle}` });

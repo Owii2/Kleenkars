@@ -1,5 +1,6 @@
 // netlify/functions/admin-updateBooking.js
 import { neon } from "@netlify/neon";
+import jwt from "jsonwebtoken";
 
 const ok = (obj) => ({
   statusCode: 200,
@@ -38,7 +39,16 @@ function computePrice(vehicle, service, visit){
 export async function handler(event){
   if (event.httpMethod === "OPTIONS") return ok({ ok:true });
   const auth = event.headers.authorization || event.headers.Authorization || "";
-  if (!auth.startsWith("Bearer ") || !auth.slice(7).trim()) return err(401, "Unauthorized");
+  const m = auth.match(/^Bearer\s+(.+)$/i);
+  if (!m) return err(401, "Unauthorized");
+  try {
+    const payload = jwt.verify(m[1], process.env.ADMIN_JWT_SECRET);
+    if (!(payload?.role === "admin" || payload?.role === "owner")) {
+      return err(401, "Unauthorized");
+    }
+  } catch {
+    return err(401, "Unauthorized");
+  }
 
   try{
     const body = JSON.parse(event.body || "{}");

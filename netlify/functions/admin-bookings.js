@@ -28,7 +28,10 @@ function authz(event) {
   const h = event.headers?.authorization || event.headers?.Authorization || "";
   const m = h.match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
-  try { return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET); }
+  try {
+    const payload = jwt.verify(m[1], process.env.ADMIN_JWT_SECRET);
+    return payload?.role === "admin" || payload?.role === "owner" ? payload : null;
+  }
   catch { return null; }
 }
 
@@ -75,12 +78,15 @@ export async function handler(event) {
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     params.push(limit);
+    const limitIdx = params.length;
     const rows = await sql.query(
   `
   SELECT order_id, name, phone, vehicle, service,
          date, time, visit, address, price, created_at
+  FROM kleenkars_bookings
   ${whereSql}
-  LIMIT $1
+  ORDER BY created_at DESC
+  LIMIT $${limitIdx}
   `,
   params
 );
