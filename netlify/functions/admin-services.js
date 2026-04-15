@@ -1,5 +1,6 @@
 // netlify/functions/admin-services.js
 import { neon, neonConfig } from "@neondatabase/serverless";
+import jwt from "jsonwebtoken";
 neonConfig.fetchConnectionCache = true;
 
 const ok = (obj) => ({
@@ -33,7 +34,14 @@ function needAuth(event){
 }
 function authorize(event){
   const auth = event.headers.authorization || event.headers.Authorization || "";
-  return auth.startsWith("Bearer ") && !!auth.slice(7).trim();
+  const m = auth.match(/^Bearer\s+(.+)$/i);
+  if (!m) return false;
+  try {
+    const payload = jwt.verify(m[1], process.env.ADMIN_JWT_SECRET);
+    return payload?.role === "admin" || payload?.role === "owner";
+  } catch {
+    return false;
+  }
 }
 function normInt(v){
   if (v === null || v === undefined || v === "") return null;
