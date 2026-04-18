@@ -45,5 +45,28 @@
 <section class='section'><div class='wrap'><h2>Google Reviews Ready</h2><div class='grid three'><div class='card review'>Quick, professional and worth the price.</div><div class='card review'>Best detailing experience locally.</div><div class='card review'>Highly recommended for premium wash.</div></div></div></section>
 <section class='section reveal'><div class='wrap'><h2>Owner Revenue Dashboard</h2><div class='grid three'><div class='card'><h3>Today's Sales</h3><div class='price'>₹12,450</div></div><div class='card'><h3>Cars Served</h3><div class='price'>27</div></div><div class='card'><h3>Memberships</h3><div class='price'>12</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Membership Plans</h2><div class='grid three'><div class='card'><h3>4 Wash Plan</h3><div class='price'>₹499</div></div><div class='card'><h3>8 Wash Plan</h3><div class='price'>₹899</div></div><div class='card'><h3>Unlimited Basic</h3><div class='price'>₹1499</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>SaaS Control Center</h2><div class='grid three'><div class='card'><h3>OTP Customer Login</h3><p>Secure mobile sign-in, booking history, memberships.</p></div><div class='card'><h3>Employee Live Ops</h3><p>Attendance, assigned jobs, payout tracking.</p></div><div class='card'><h3>Franchise Admin</h3><p>Manage multiple branches from one dashboard.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Automation Engine</h2><div class='grid three'><div class='card'><h3>WhatsApp Follow-up</h3><p>Auto reminders for next wash due dates.</p></div><div class='card'><h3>Invoice Generator</h3><p>Create instant invoices after every service.</p></div><div class='card'><h3>Google Reviews Boost</h3><p>Auto request ratings after completed wash.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Multi-Branch Analytics</h2><div class='grid three'><div class='card'><h3>Branch A</h3><div class='price'>₹42K</div><p>Weekly Revenue</p></div><div class='card'><h3>Branch B</h3><div class='price'>₹38K</div><p>Weekly Revenue</p></div><div class='card'><h3>Total CRM Users</h3><div class='price'>2,480</div><p>Customer Database</p></div></div></div></section><footer class='footer'><div class='wrap'>© 2026 Kleenkars. Premium Car Wash & Detailing. Live SaaS-ready system for Netlify + Neon backend integration.</div></footer>
 <div class='sticky'><a href='tel:8650007661'>Call</a><a href='https://wa.me/918650007661'>WhatsApp</a><a href='owner-login.html'>Login</a></div>
+<script>
+async function bookNow() {
+  const payload = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    service: document.getElementById("service").value,
+    vehicle: document.getElementById("vehicle").value,
+    price: 0,
+    address: ""
+  };
+
+  const res = await fetch('/.netlify/functions/create-booking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  document.getElementById("msg").innerText =
+    data.success ? "Booking Confirmed!" : "Booking Failed";
+}
+</script>
 </body></html>
 
