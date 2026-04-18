@@ -1,6 +1,15 @@
 const { Client } = require("pg");
 
 exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Use POST request to create booking"
+      })
+    };
+  }
+
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
