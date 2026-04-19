@@ -23,22 +23,31 @@
 .booking-grid input,
 .booking-grid select{
   width:100%;
-  padding:14px 16px;
-  border-radius:14px;
+  padding:16px 18px;
+  border-radius:16px;
   border:1px solid #2b2b2b;
-  background:#0f0f0f;
-  color:#fff;
-  font-size:16px;
+  background:#0b0b0b;
+  color:#ffffff;
+  font-size:18px;
   outline:none;
+}
+
+.booking-grid input::placeholder{
+  color:#9a9a9a;
 }
 
 .booking-grid input:focus,
 .booking-grid select:focus{
   border-color:#e50914;
+  box-shadow:0 0 0 2px rgba(229,9,20,.15);
 }
 
 .booking-grid button{
-  min-height:52px;
+  min-height:56px;
+  color:#ffffff;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.3px;
 }
 
 .booking-msg{
@@ -100,7 +109,6 @@
 <section class='section reveal'><div class='wrap'><h2>Owner Revenue Dashboard</h2><div class='grid three'><div class='card'><h3>Today's Sales</h3><div class='price'>₹12,450</div></div><div class='card'><h3>Cars Served</h3><div class='price'>27</div></div><div class='card'><h3>Memberships</h3><div class='price'>12</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Membership Plans</h2><div class='grid three'><div class='card'><h3>4 Wash Plan</h3><div class='price'>₹499</div></div><div class='card'><h3>8 Wash Plan</h3><div class='price'>₹899</div></div><div class='card'><h3>Unlimited Basic</h3><div class='price'>₹1499</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>SaaS Control Center</h2><div class='grid three'><div class='card'><h3>OTP Customer Login</h3><p>Secure mobile sign-in, booking history, memberships.</p></div><div class='card'><h3>Employee Live Ops</h3><p>Attendance, assigned jobs, payout tracking.</p></div><div class='card'><h3>Franchise Admin</h3><p>Manage multiple branches from one dashboard.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Automation Engine</h2><div class='grid three'><div class='card'><h3>WhatsApp Follow-up</h3><p>Auto reminders for next wash due dates.</p></div><div class='card'><h3>Invoice Generator</h3><p>Create instant invoices after every service.</p></div><div class='card'><h3>Google Reviews Boost</h3><p>Auto request ratings after completed wash.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Multi-Branch Analytics</h2><div class='grid three'><div class='card'><h3>Branch A</h3><div class='price'>₹42K</div><p>Weekly Revenue</p></div><div class='card'><h3>Branch B</h3><div class='price'>₹38K</div><p>Weekly Revenue</p></div><div class='card'><h3>Total CRM Users</h3><div class='price'>2,480</div><p>Customer Database</p></div></div></div></section><footer class='footer'><div class='wrap'>© 2026 Kleenkars. Premium Car Wash & Detailing. Live SaaS-ready system for Netlify + Neon backend integration.</div></footer>
 <div class='sticky'><a href='tel:8650007661'>Call</a><a href='https://wa.me/918650007661'>WhatsApp</a><a href='owner-login.html'>Login</a></div>
 <script>
-<script>
 async function bookNow() {
 
   const btn = document.querySelector("#booking button");
@@ -121,29 +129,44 @@ async function bookNow() {
 
   try {
     const res = await fetch('/.netlify/functions/create-booking', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
     });
 
     const data = await res.json();
 
-    if (data.success) {
-      msg.innerText = "Booking Confirmed. We will contact you shortly.";
+    if(data.success){
+
+      msg.innerText =
+      "Booking Confirmed. Our team will contact you shortly.";
+
+      const waText =
+`Hello ${payload.name},
+
+Your booking for ${payload.service} (${payload.vehicle}) has been received by Kleenkars.
+
+Our team will contact you shortly.
+
+📞 8650007661`;
+
+      window.open(
+        "https://wa.me/918650007661?text=" +
+        encodeURIComponent(waText),
+        "_blank"
+      );
+
     } else {
       msg.innerText = "Booking Failed. Try again.";
     }
 
-  } catch (error) {
+  } catch(error){
     msg.innerText = "Network Error. Try again.";
   }
 
   btn.innerText = "Book Now";
   btn.disabled = false;
 }
-</script>
 </script>
 </body></html>
 
