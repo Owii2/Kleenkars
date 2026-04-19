@@ -136,12 +136,26 @@ async function bookNow() {
 
     const data = await res.json();
 
-    if(data.success){
+   if(data.success){
 
-      msg.innerText =
-      "Booking Confirmed. Our team will contact you shortly.";
+  msg.innerText =
+  "Booking Confirmed. Our team will contact you shortly.";
 
-      const waText =
+  const ownerText =
+`🚗 New Kleenkars Booking
+
+Name: ${payload.name}
+Phone: ${payload.phone}
+Service: ${payload.service}
+Vehicle: ${payload.vehicle}`;
+
+  window.open(
+    "https://wa.me/918650007661?text=" +
+    encodeURIComponent(ownerText),
+    "_blank"
+  );
+
+  const customerText =
 `Hello ${payload.name},
 
 Your booking for ${payload.service} (${payload.vehicle}) has been received by Kleenkars.
@@ -150,22 +164,14 @@ Our team will contact you shortly.
 
 📞 8650007661`;
 
-      window.open(
-        "https://wa.me/918650007661?text=" +
-        encodeURIComponent(waText),
-        "_blank"
-      );
+  setTimeout(() => {
+    window.open(
+      "https://wa.me/91" + payload.phone +
+      "?text=" + encodeURIComponent(customerText),
+      "_blank"
+    );
+  }, 2000);
 
-    } else {
-      msg.innerText = "Booking Failed. Try again.";
-    }
-
-  } catch(error){
-    msg.innerText = "Network Error. Try again.";
-  }
-
-  btn.innerText = "Book Now";
-  btn.disabled = false;
 }
 </script>
 </body></html>
