@@ -110,54 +110,94 @@ color:#aaa;
 
 <div class="card">
 <div class="label">Today's Revenue</div>
-<div class="num">₹12,450</div>
+<div class="num" id="rev">₹0</div>
 </div>
 
 <div class="card">
 <div class="label">Bookings Today</div>
-<div class="num">27</div>
+<div class="num" id="book">0</div>
 </div>
 
 <div class="card">
 <div class="label">Repeat Customers</div>
-<div class="num">14</div>
+<div class="num" id="rep">0</div>
 </div>
 
 <div class="card">
 <div class="label">Active Memberships</div>
-<div class="num">12</div>
+<div class="num" id="mem">0</div>
 </div>
 
 </div>
 
 <table class="table">
+<thead>
 <tr>
 <th>Top Service</th>
 <th>Bookings</th>
 <th>Revenue</th>
 </tr>
+</thead>
 
+<tbody id="rows">
 <tr>
-<td>Express Wash</td>
-<td>18</td>
-<td>₹2,682</td>
+<td>Loading...</td>
+<td>-</td>
+<td>-</td>
 </tr>
-
-<tr>
-<td>Classic Wash</td>
-<td>7</td>
-<td>₹1,393</td>
-</tr>
-
-<tr>
-<td>Premium Wash</td>
-<td>2</td>
-<td>₹998</td>
-</tr>
+</tbody>
 
 </table>
 
 </div>
+
+<script>
+async function loadDashboard(){
+
+try{
+
+const res = await fetch('/.netlify/functions/get-owner-dashboard');
+const data = await res.json();
+
+document.getElementById("rev").innerText =
+"₹" + data.revenue;
+
+document.getElementById("book").innerText =
+data.bookings;
+
+document.getElementById("rep").innerText =
+data.repeat;
+
+document.getElementById("mem").innerText =
+data.memberships;
+
+let html = "";
+
+data.top.forEach(item => {
+
+html += `
+<tr>
+<td>${item.service}</td>
+<td>${item.bookings}</td>
+<td>₹${item.revenue}</td>
+</tr>
+`;
+
+});
+
+document.getElementById("rows").innerHTML = html;
+
+}catch(e){
+
+document.getElementById("rows").innerHTML =
+"<tr><td colspan='3'>Failed to load data</td></tr>";
+
+}
+
+}
+
+loadDashboard();
+</script>
 
 </body>
 </html>
