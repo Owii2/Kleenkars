@@ -174,5 +174,229 @@ Our team will contact you shortly.
 
 }
 </script>
-</body></html>
+  <!-- PLACE THIS JUST BEFORE </body> -->
+
+<!-- PREMIUM SUCCESS POPUP -->
+<div id="popup" class="kk-popup">
+  <div class="kk-popup-card">
+    <div class="kk-check">✓</div>
+    <h3>Booking Confirmed</h3>
+    <p>Your request has been received. Our team will contact you shortly.</p>
+
+    <div class="kk-actions">
+      <a href="tel:8650007661" class="kk-btn kk-dark">Call Now</a>
+      <a href="https://wa.me/918650007661" target="_blank" class="kk-btn kk-red">WhatsApp</a>
+    </div>
+
+    <button class="kk-close" onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+<style>
+/* PREMIUM POPUP */
+.kk-popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  padding:20px;
+}
+
+.kk-popup-card{
+  width:100%;
+  max-width:460px;
+  background:linear-gradient(180deg,#111,#0a0a0a);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  padding:34px 28px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  animation:kkPop .35s ease;
+}
+
+@keyframes kkPop{
+  from{transform:translateY(18px) scale(.96);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+
+.kk-check{
+  width:72px;
+  height:72px;
+  margin:0 auto 18px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#e50914;
+  color:#fff;
+  font-size:34px;
+  font-weight:900;
+}
+
+.kk-popup-card h3{
+  margin:0 0 10px;
+  font-size:30px;
+  color:#fff;
+}
+
+.kk-popup-card p{
+  margin:0;
+  color:#cfcfcf;
+  line-height:1.6;
+  font-size:16px;
+}
+
+.kk-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:26px;
+}
+
+.kk-btn{
+  padding:14px 16px;
+  border-radius:14px;
+  text-decoration:none;
+  font-weight:800;
+  font-size:15px;
+  display:block;
+}
+
+.kk-red{
+  background:#e50914;
+  color:#fff;
+}
+
+.kk-dark{
+  background:#1b1b1b;
+  color:#fff;
+  border:1px solid #2a2a2a;
+}
+
+.kk-close{
+  margin-top:16px;
+  background:none;
+  border:none;
+  color:#999;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.kk-close:hover{
+  color:#fff;
+}
+
+@media(max-width:520px){
+  .kk-actions{
+    grid-template-columns:1fr;
+  }
+
+  .kk-popup-card{
+    padding:28px 20px;
+  }
+
+  .kk-popup-card h3{
+    font-size:26px;
+  }
+}
+</style>
+
+<script>
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
+}
+
+/* FINAL BEST VERSION OF bookNow() */
+async function bookNow(){
+
+  const btn = document.querySelector("#booking button");
+  btn.innerText = "Booking...";
+  btn.disabled = true;
+
+  const payload = {
+    name: document.getElementById("name").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    service: document.getElementById("service").value,
+    vehicle: document.getElementById("vehicle").value,
+    price: 0,
+    address: ""
+  };
+
+  if(!payload.name || !payload.phone){
+    alert("Please enter name and phone number.");
+    btn.innerText = "Book Now";
+    btn.disabled = false;
+    return;
+  }
+
+  try{
+
+    const res = await fetch('/.netlify/functions/create-booking',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+
+      /* SHOW PREMIUM POPUP */
+      document.getElementById("popup").style.display = "flex";
+
+      /* OWNER ALERT */
+      const ownerText =
+`🚗 New Kleenkars Booking
+
+Name: ${payload.name}
+Phone: ${payload.phone}
+Service: ${payload.service}
+Vehicle: ${payload.vehicle}`;
+
+      window.open(
+        "https://wa.me/918650007661?text=" +
+        encodeURIComponent(ownerText),
+        "_blank"
+      );
+
+      /* CUSTOMER CONFIRMATION */
+      const customerText =
+`Hello ${payload.name},
+
+Your booking for ${payload.service} (${payload.vehicle}) has been received by Kleenkars.
+
+Our team will contact you shortly.
+
+📞 8650007661`;
+
+      setTimeout(()=>{
+        window.open(
+          "https://wa.me/91" + payload.phone +
+          "?text=" + encodeURIComponent(customerText),
+          "_blank"
+        );
+      },1500);
+
+      /* RESET FORM */
+      document.getElementById("name").value = "";
+      document.getElementById("phone").value = "";
+
+    }else{
+      alert("Booking failed. Please try again.");
+    }
+
+  }catch(err){
+    alert("Network error. Please try again.");
+  }
+
+  btn.innerText = "Book Now";
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
 
