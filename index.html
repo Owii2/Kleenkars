@@ -13,27 +13,37 @@
 <body>
 <header class='top'><div class='wrap nav'><div class='logo'>KLEENKARS</div><div class='menu'><a class='btn dark' href='customer-login.html'>Customer</a><a class='btn dark' href='employee-login.html'>Employee</a><a class='btn dark' href='owner-login.html'>Owner</a><a class='btn red' href='tel:8650007661'>Call Now</a></div></div></header>
 <section class='hero hero-video reveal'><div class='wrap'><h1 class='lux'>Aligarh's Premium Car Wash & Detailing Studio</h1><p class='sub'>Fast foam wash, interior detailing, polishing, ceramic coating and premium finishing for cars that represent you.</p><div class='cta'><a class='btn red' href='tel:8650007661'>Call 8650007661</a><a class='btn dark' href='https://wa.me/918650007661'>WhatsApp</a><a class='btn dark' href='customer-login.html'>Customer Login</a></div><div class='stats'><div class='glass'><strong>15–30 Min</strong><br>Quick Service</div><div class='glass'><strong>₹149+</strong><br>Starts From</div><div class='glass'><strong>Open Daily</strong><br>10 AM – 8 PM</div><div class='glass'><strong>Premium Finish</strong><br>Trusted Locally</div></div></div></section>
-<section id="booking">
-  <h2>Book Your Wash</h2>
+<section class="section" id="booking">
+  <div class="wrap">
+    <h2>Reserve Your Slot in 30 Seconds</h2>
 
-  <input id="name" placeholder="Your Name">
-  <input id="phone" placeholder="Phone Number">
+    <div class="card booking-box">
+      <div class="booking-grid">
 
-  <select id="service">
-    <option>Express Wash</option>
-    <option>Classic Wash</option>
-    <option>Premium Wash</option>
-  </select>
+        <input id="name" placeholder="Your Name">
 
-  <select id="vehicle">
-    <option>Car</option>
-    <option>SUV</option>
-    <option>Bike</option>
-  </select>
+        <input id="phone" placeholder="Phone Number">
 
-  <button onclick="bookNow()">Book Now</button>
+        <select id="service">
+          <option>Express Wash</option>
+          <option>Classic Wash</option>
+          <option>Premium Wash</option>
+          <option>Bike Wash</option>
+        </select>
 
-  <p id="msg"></p>
+        <select id="vehicle">
+          <option>Car</option>
+          <option>SUV</option>
+          <option>Bike</option>
+        </select>
+
+        <button class="btn red" onclick="bookNow()">Book Now</button>
+
+      </div>
+
+      <p id="msg" class="booking-msg"></p>
+    </div>
+  </div>
 </section>
 <section class='section'><div class='wrap'><h2>Popular Services</h2><div class='grid three'><div class='card'><h3>Express Wash</h3><p>Foam wash, rinse and microfiber dry.</p><div class='price'>₹149</div></div><div class='card'><h3>Classic Wash</h3><p>Exterior wash plus vacuum cleaning.</p><div class='price'>₹199</div></div><div class='card'><h3>Premium Detail</h3><p>Interior care, polish, tyre shine.</p><div class='price'>₹399+</div></div></div></div></section>
 <section class='section'><div class='wrap'><h2>Pricing</h2><table class='table'><tr><th>Vehicle</th><th>Express</th><th>Classic</th><th>Premium</th></tr><tr><td>Bike</td><td>₹50</td><td>₹100</td><td>₹150</td></tr><tr><td>Hatchback</td><td>₹149</td><td>₹199</td><td>₹399</td></tr><tr><td>Sedan</td><td>₹149</td><td>₹199</td><td>₹449</td></tr><tr><td>SUV</td><td>₹199</td><td>₹249</td><td>₹549</td></tr></table></div></section>
