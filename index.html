@@ -1,402 +1,487 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 <head>
-<meta charset='utf-8'>
-<meta name='viewport' content='width=device-width,initial-scale=1'>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kleenkars | Premium Car Wash & Detailing in Aligarh</title>
-<meta name='description' content='Premium car wash in Aligarh. Express wash, detailing, ceramic coating. Book Kleenkars now.'>
-<link rel='preconnect' href='https://fonts.googleapis.com'>
+<meta name="description" content="Kleenkars premium car wash and detailing studio in Aligarh. Express wash, interior cleaning, polishing, memberships and instant booking.">
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#070707;color:#fff;line-height:1.5;scroll-behavior:smooth} .reveal{opacity:0;transition:all .8s ease} .hero-video{background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.7)),url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat} .lux{letter-spacing:.5px;text-transform:uppercase} iframe{width:100%;height:320px;border:0;border-radius:18px}a{text-decoration:none;color:inherit}.wrap{max-width:1280px;margin:auto;padding:0 24px}.top{position:sticky;top:0;z-index:99;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);border-bottom:1px solid #1e1e1e}.nav{display:flex;justify-content:space-between;align-items:center;padding:16px 0}.logo{font-size:30px;font-weight:900;color:#e50914;letter-spacing:1px}.menu{display:flex;gap:10px;flex-wrap:wrap}.btn{padding:12px 18px;border-radius:12px;font-weight:700;transition:.25s}.btn.red{background:#e50914}.btn.dark{background:#171717}.btn:hover{transform:translateY(-2px)}.hero{padding:100px 0;background:radial-gradient(circle at top right,#2a0004,#070707 45%)}h1{font-size:58px;line-height:1.05;max-width:760px}.sub{margin-top:16px;color:#d2d2d2;font-size:20px;max-width:760px}.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:36px}.glass{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:18px;border-radius:18px}.section{padding:72px 0}.grid{display:grid;gap:22px}.three{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}.card{background:#111;border:1px solid #222;padding:24px;border-radius:20px;transition:.25s}.card:hover{transform:translateY(-4px);border-color:#e50914}.price{font-size:34px;color:#e50914;font-weight:900;margin-top:10px}.table{width:100%;border-collapse:collapse;background:#101010;border-radius:18px;overflow:hidden}.table th,.table td{padding:14px;border:1px solid #222;text-align:center}.review{color:#ddd;font-style:italic}.footer{padding:40px 0;background:#050505;color:#999}.sticky{position:fixed;bottom:0;left:0;right:0;display:flex;background:#111;border-top:1px solid #222}.sticky a{flex:1;padding:14px;text-align:center;font-weight:800}.sticky a+a{border-left:1px solid #222}@media(max-width:768px){h1{font-size:40px}.sub{font-size:18px}.menu{display:none}}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+font-family:Arial,sans-serif;
+background:#070707;
+color:#fff;
+line-height:1.5;
+}
+
+a{text-decoration:none;color:inherit}
+
+.wrap{
+max-width:1280px;
+margin:auto;
+padding:0 22px;
+}
+
+.top{
+position:sticky;
+top:0;
+z-index:999;
+background:rgba(0,0,0,.82);
+backdrop-filter:blur(10px);
+border-bottom:1px solid #1f1f1f;
+}
+
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 0;
+gap:15px;
+}
+
+.logo{
+font-size:30px;
+font-weight:900;
+color:#e50914;
+letter-spacing:1px;
+}
+
+.menu{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.btn{
+padding:12px 18px;
+border-radius:12px;
+font-weight:800;
+display:inline-block;
+transition:.2s;
+}
+
+.btn:hover{transform:translateY(-2px)}
+
+.red{background:#e50914}
+.dark{background:#171717;border:1px solid #222}
+
+.hero{
+padding:110px 0;
+background:
+linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.75)),
+url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80') center/cover;
+}
+
+.hero h1{
+font-size:58px;
+line-height:1.05;
+max-width:780px;
+}
+
+.sub{
+margin-top:16px;
+color:#ddd;
+font-size:20px;
+max-width:760px;
+}
+
+.cta{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+margin-top:28px;
+}
+
+.stats,.grid{
+display:grid;
+gap:18px;
+}
+
+.stats{
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+margin-top:36px;
+}
+
+.grid.three{
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+
+.glass,.card{
+background:#111;
+border:1px solid #222;
+padding:22px;
+border-radius:20px;
+}
+
+.section{
+padding:74px 0;
+}
+
+h2{
+font-size:34px;
+margin-bottom:22px;
+}
+
+.price{
+font-size:34px;
+font-weight:900;
+color:#e50914;
+margin-top:10px;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+background:#111;
+overflow:hidden;
+border-radius:18px;
+}
+
+.table th,.table td{
+padding:14px;
+border:1px solid #222;
+text-align:center;
+}
+
+.review{
+color:#ddd;
+font-style:italic;
+}
+
+iframe{
+width:100%;
+height:420px;
+border:0;
+border-radius:20px;
+}
+
 .booking-box{
-  max-width:900px;
-  margin:auto;
-  padding:30px;
+max-width:980px;
+margin:auto;
 }
 
 .booking-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:16px;
 }
 
 .booking-grid input,
 .booking-grid select{
-  width:100%;
-  padding:16px 18px;
-  border-radius:16px;
-  border:1px solid #2b2b2b;
-  background:#0b0b0b;
-  color:#ffffff;
-  font-size:18px;
-  outline:none;
+padding:16px;
+border-radius:14px;
+border:1px solid #333;
+background:#0d0d0d;
+color:#fff;
+font-size:16px;
+width:100%;
 }
 
-.booking-grid input::placeholder{
-  color:#9a9a9a;
+.footer{
+padding:40px 0 90px;
+background:#050505;
+color:#999;
 }
 
-.booking-grid input:focus,
-.booking-grid select:focus{
-  border-color:#e50914;
-  box-shadow:0 0 0 2px rgba(229,9,20,.15);
+.sticky{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+display:flex;
+background:#111;
+border-top:1px solid #222;
+z-index:999;
 }
 
-.booking-grid button{
-  min-height:56px;
-  color:#ffffff;
-  font-size:18px;
-  font-weight:800;
-  letter-spacing:.3px;
+.sticky a{
+flex:1;
+padding:14px;
+text-align:center;
+font-weight:800;
 }
 
-.booking-msg{
-  margin-top:18px;
-  font-weight:700;
-  color:#e50914;
-  text-align:center;
+.sticky a+a{
+border-left:1px solid #222;
 }
 
-#booking h2{
-  text-align:center;
-  margin-bottom:24px;
+.popup{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.78);
+display:none;
+align-items:center;
+justify-content:center;
+padding:20px;
+z-index:9999;
+}
+
+.popup-box{
+background:#111;
+border:1px solid #222;
+border-radius:22px;
+padding:30px;
+max-width:430px;
+width:100%;
+text-align:center;
+}
+
+.popup-box h3{
+color:#e50914;
+font-size:30px;
+margin-bottom:12px;
+}
+
+.popup-box p{
+color:#ddd;
+margin-bottom:18px;
+}
+
+@media(max-width:768px){
+.hero h1{font-size:40px}
+.sub{font-size:18px}
+.menu{display:none}
+h2{font-size:28px}
 }
 </style>
-<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.reveal').forEach((el,i)=>setTimeout(()=>el.style.opacity='1',i*120));});</script></head>
+</head>
+
 <body>
-<header class='top'><div class='wrap nav'><div class='logo'>KLEENKARS</div><div class='menu'><a class='btn dark' href='customer-login.html'>Customer</a><a class='btn dark' href='employee-login.html'>Employee</a><a class='btn dark' href='owner-login.html'>Owner</a><a class='btn red' href='tel:8650007661'>Call Now</a></div></div></header>
-<section class='hero hero-video reveal'><div class='wrap'><h1 class='lux'>Aligarh's Premium Car Wash & Detailing Studio</h1><p class='sub'>Fast foam wash, interior detailing, polishing, ceramic coating and premium finishing for cars that represent you.</p><div class='cta'><a class='btn red' href='tel:8650007661'>Call 8650007661</a><a class='btn dark' href='https://wa.me/918650007661'>WhatsApp</a><a class='btn dark' href='customer-login.html'>Customer Login</a></div><div class='stats'><div class='glass'><strong>15–30 Min</strong><br>Quick Service</div><div class='glass'><strong>₹149+</strong><br>Starts From</div><div class='glass'><strong>Open Daily</strong><br>10 AM – 8 PM</div><div class='glass'><strong>Premium Finish</strong><br>Trusted Locally</div></div></div></section>
-<section class="section" id="booking">
-  <div class="wrap">
-    <h2>Reserve Your Slot in 30 Seconds</h2>
 
-    <div class="card booking-box">
-      <div class="booking-grid">
+<header class="top">
+<div class="wrap nav">
 
-        <input id="name" placeholder="Your Name">
+<div class="logo">KLEENKARS</div>
 
-        <input id="phone" placeholder="Phone Number">
-
-        <select id="service">
-          <option>Express Wash</option>
-          <option>Classic Wash</option>
-          <option>Premium Wash</option>
-          <option>Bike Wash</option>
-        </select>
-
-        <select id="vehicle">
-          <option>Car</option>
-          <option>SUV</option>
-          <option>Bike</option>
-        </select>
-
-        <button class="btn red" onclick="bookNow()">Book Now</button>
-
-      </div>
-
-      <p id="msg" class="booking-msg"></p>
-    </div>
-  </div>
-</section>
-<section class='section'><div class='wrap'><h2>Popular Services</h2><div class='grid three'><div class='card'><h3>Express Wash</h3><p>Foam wash, rinse and microfiber dry.</p><div class='price'>₹149</div></div><div class='card'><h3>Classic Wash</h3><p>Exterior wash plus vacuum cleaning.</p><div class='price'>₹199</div></div><div class='card'><h3>Premium Detail</h3><p>Interior care, polish, tyre shine.</p><div class='price'>₹399+</div></div></div></div></section>
-<section class='section'><div class='wrap'><h2>Pricing</h2><table class='table'><tr><th>Vehicle</th><th>Express</th><th>Classic</th><th>Premium</th></tr><tr><td>Bike</td><td>₹50</td><td>₹100</td><td>₹150</td></tr><tr><td>Hatchback</td><td>₹149</td><td>₹199</td><td>₹399</td></tr><tr><td>Sedan</td><td>₹149</td><td>₹199</td><td>₹449</td></tr><tr><td>SUV</td><td>₹199</td><td>₹249</td><td>₹549</td></tr></table></div></section>
-<section class='section'><div class='wrap'><h2>What Customers Say</h2><div class='grid three'><div class='card review'>Best car wash experience in Aligarh.</div><div class='card review'>Interior cleaning was excellent.</div><div class='card review'>My SUV looked showroom ready.</div></div></div></section>
-<section class='section reveal'><div class='wrap'><h2>Visit Kleenkars</h2><p>Mustafa Market, Anoopshahr Road, Maheshpur, Aligarh</p><iframe loading='lazy' src='https://www.google.com/maps?q=Maheshpur%20Aligarh&output=embed'></iframe><div class='cta'><a class='btn red' href='tel:8650007661'>Call</a><a class='btn dark' href='https://wa.me/918650007661'>WhatsApp</a></div></div></section>
-<section class='section reveal'><div class='wrap'><h2>Our Results</h2><div class='stats'><div class='glass'><strong>5000+</strong><br>Cars Washed</div><div class='glass'><strong>1200+</strong><br>Happy Clients</div><div class='glass'><strong>4.9/5</strong><br>Service Rating</div><div class='glass'><strong>Daily</strong><br>Fast Turnaround</div></div></div></section>
-<section class='section reveal'><div class='wrap'><h2>Gallery</h2><div class='grid three'><div class='card'>Before / After Sedan Shine</div><div class='card'>SUV Premium Detail Finish</div><div class='card'>Interior Deep Clean Result</div></div></div></section>
-<section class='section reveal'><div class='wrap'><h2>Book Instantly</h2><div class='card'><p>Choose package and send instant WhatsApp request.</p><div class='cta'><a class='btn red' href='https://wa.me/918650007661?text=I%20want%20to%20book%20a%20car%20wash'>Book on WhatsApp</a><a class='btn dark' href='customer-login.html'>My Account</a></div><form style='margin-top:18px;display:grid;gap:10px'><input placeholder='Name' style='padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff'><input placeholder='Phone' style='padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff'><select style='padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff'><option>Express Wash</option><option>Classic Wash</option><option>Premium Detail</option></select><button class='btn red' type='button'>Request Booking</button></form></div></div></section>
-<section class='section'><div class='wrap'><h2>Google Reviews Ready</h2><div class='grid three'><div class='card review'>Quick, professional and worth the price.</div><div class='card review'>Best detailing experience locally.</div><div class='card review'>Highly recommended for premium wash.</div></div></div></section>
-<section class='section reveal'><div class='wrap'><h2>Owner Revenue Dashboard</h2><div class='grid three'><div class='card'><h3>Today's Sales</h3><div class='price'>₹12,450</div></div><div class='card'><h3>Cars Served</h3><div class='price'>27</div></div><div class='card'><h3>Memberships</h3><div class='price'>12</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Membership Plans</h2><div class='grid three'><div class='card'><h3>4 Wash Plan</h3><div class='price'>₹499</div></div><div class='card'><h3>8 Wash Plan</h3><div class='price'>₹899</div></div><div class='card'><h3>Unlimited Basic</h3><div class='price'>₹1499</div></div></div></div></section><section class='section reveal'><div class='wrap'><h2>SaaS Control Center</h2><div class='grid three'><div class='card'><h3>OTP Customer Login</h3><p>Secure mobile sign-in, booking history, memberships.</p></div><div class='card'><h3>Employee Live Ops</h3><p>Attendance, assigned jobs, payout tracking.</p></div><div class='card'><h3>Franchise Admin</h3><p>Manage multiple branches from one dashboard.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Automation Engine</h2><div class='grid three'><div class='card'><h3>WhatsApp Follow-up</h3><p>Auto reminders for next wash due dates.</p></div><div class='card'><h3>Invoice Generator</h3><p>Create instant invoices after every service.</p></div><div class='card'><h3>Google Reviews Boost</h3><p>Auto request ratings after completed wash.</p></div></div></div></section><section class='section reveal'><div class='wrap'><h2>Multi-Branch Analytics</h2><div class='grid three'><div class='card'><h3>Branch A</h3><div class='price'>₹42K</div><p>Weekly Revenue</p></div><div class='card'><h3>Branch B</h3><div class='price'>₹38K</div><p>Weekly Revenue</p></div><div class='card'><h3>Total CRM Users</h3><div class='price'>2,480</div><p>Customer Database</p></div></div></div></section><footer class='footer'><div class='wrap'>© 2026 Kleenkars. Premium Car Wash & Detailing. Live SaaS-ready system for Netlify + Neon backend integration.</div></footer>
-<div class='sticky'><a href='tel:8650007661'>Call</a><a href='https://wa.me/918650007661'>WhatsApp</a><a href='owner-login.html'>Login</a></div>
-<script>
-async function bookNow() {
-
-  const btn = document.querySelector("#booking button");
-  const msg = document.getElementById("msg");
-
-  btn.innerText = "Booking...";
-  btn.disabled = true;
-  msg.innerText = "";
-
-  const payload = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    service: document.getElementById("service").value,
-    vehicle: document.getElementById("vehicle").value,
-    price: 0,
-    address: ""
-  };
-
-  try {
-    const res = await fetch('/.netlify/functions/create-booking', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-   if(data.success){
-
-  msg.innerText =
-  "Booking Confirmed. Our team will contact you shortly.";
-
-  const ownerText =
-`🚗 New Kleenkars Booking
-
-Name: ${payload.name}
-Phone: ${payload.phone}
-Service: ${payload.service}
-Vehicle: ${payload.vehicle}`;
-
-  window.open(
-    "https://wa.me/918650007661?text=" +
-    encodeURIComponent(ownerText),
-    "_blank"
-  );
-
-  const customerText =
-`Hello ${payload.name},
-
-Your booking for ${payload.service} (${payload.vehicle}) has been received by Kleenkars.
-
-Our team will contact you shortly.
-
-📞 8650007661`;
-
-  setTimeout(() => {
-    window.open(
-      "https://wa.me/91" + payload.phone +
-      "?text=" + encodeURIComponent(customerText),
-      "_blank"
-    );
-  }, 2000);
-
-}
-</script>
-  <!-- PLACE THIS JUST BEFORE </body> -->
-
-<!-- PREMIUM SUCCESS POPUP -->
-<div id="popup" class="kk-popup">
-  <div class="kk-popup-card">
-    <div class="kk-check">✓</div>
-    <h3>Booking Confirmed</h3>
-    <p>Your request has been received. Our team will contact you shortly.</p>
-
-    <div class="kk-actions">
-      <a href="tel:8650007661" class="kk-btn kk-dark">Call Now</a>
-      <a href="https://wa.me/918650007661" target="_blank" class="kk-btn kk-red">WhatsApp</a>
-    </div>
-
-    <button class="kk-close" onclick="closePopup()">Close</button>
-  </div>
+<div class="menu">
+<a class="btn dark" href="customer-login.html">Customer</a>
+<a class="btn dark" href="employee-login.html">Employee</a>
+<a class="btn dark" href="owner-login.html">Owner</a>
+<a class="btn red" href="tel:8650007661">Call Now</a>
 </div>
 
-<style>
-/* PREMIUM POPUP */
-.kk-popup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.78);
-  backdrop-filter:blur(8px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:99999;
-  padding:20px;
-}
+</div>
+</header>
 
-.kk-popup-card{
-  width:100%;
-  max-width:460px;
-  background:linear-gradient(180deg,#111,#0a0a0a);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:24px;
-  padding:34px 28px;
-  text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.45);
-  animation:kkPop .35s ease;
-}
+<section class="hero">
+<div class="wrap">
 
-@keyframes kkPop{
-  from{transform:translateY(18px) scale(.96);opacity:0}
-  to{transform:translateY(0) scale(1);opacity:1}
-}
+<h1>Aligarh's Premium Car Wash & Detailing Studio</h1>
 
-.kk-check{
-  width:72px;
-  height:72px;
-  margin:0 auto 18px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#e50914;
-  color:#fff;
-  font-size:34px;
-  font-weight:900;
-}
+<p class="sub">
+Fast foam wash, interior detailing, polishing and premium finish for cars that represent you.
+</p>
 
-.kk-popup-card h3{
-  margin:0 0 10px;
-  font-size:30px;
-  color:#fff;
-}
+<div class="cta">
+<a class="btn red" href="tel:8650007661">Call 8650007661</a>
+<a class="btn dark" href="https://wa.me/918650007661">WhatsApp</a>
+<a class="btn dark" href="#booking">Book Now</a>
+</div>
 
-.kk-popup-card p{
-  margin:0;
-  color:#cfcfcf;
-  line-height:1.6;
-  font-size:16px;
-}
+<div class="stats">
+<div class="glass"><strong>15–30 Min</strong><br>Quick Service</div>
+<div class="glass"><strong>₹149+</strong><br>Starts From</div>
+<div class="glass"><strong>Open Daily</strong><br>10 AM – 8 PM</div>
+<div class="glass"><strong>Trusted Locally</strong><br>Premium Finish</div>
+</div>
 
-.kk-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-top:26px;
-}
+</div>
+</section>
 
-.kk-btn{
-  padding:14px 16px;
-  border-radius:14px;
-  text-decoration:none;
-  font-weight:800;
-  font-size:15px;
-  display:block;
-}
+<section class="section" id="booking">
+<div class="wrap">
+<h2>Reserve Your Slot in 30 Seconds</h2>
 
-.kk-red{
-  background:#e50914;
-  color:#fff;
-}
+<div class="card booking-box">
+<div class="booking-grid">
 
-.kk-dark{
-  background:#1b1b1b;
-  color:#fff;
-  border:1px solid #2a2a2a;
-}
+<input id="name" placeholder="Your Name">
+<input id="phone" placeholder="Phone Number">
 
-.kk-close{
-  margin-top:16px;
-  background:none;
-  border:none;
-  color:#999;
-  font-size:15px;
-  cursor:pointer;
-}
+<select id="service">
+<option>Express Wash</option>
+<option>Classic Wash</option>
+<option>Premium Wash</option>
+<option>Bike Wash</option>
+</select>
 
-.kk-close:hover{
-  color:#fff;
-}
+<select id="vehicle">
+<option>Car</option>
+<option>SUV</option>
+<option>Bike</option>
+</select>
 
-@media(max-width:520px){
-  .kk-actions{
-    grid-template-columns:1fr;
-  }
+<button class="btn red" onclick="bookNow()">Book Now</button>
 
-  .kk-popup-card{
-    padding:28px 20px;
-  }
+</div>
+</div>
 
-  .kk-popup-card h3{
-    font-size:26px;
-  }
-}
-</style>
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Popular Services</h2>
+
+<div class="grid three">
+
+<div class="card">
+<h3>Express Wash</h3>
+<p>Foam wash, rinse and microfiber dry.</p>
+<div class="price">₹149</div>
+</div>
+
+<div class="card">
+<h3>Classic Wash</h3>
+<p>Exterior wash + interior vacuum cleaning.</p>
+<div class="price">₹199</div>
+</div>
+
+<div class="card">
+<h3>Premium Wash</h3>
+<p>Interior care, tyre shine and premium finish.</p>
+<div class="price">₹449+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Pricing</h2>
+
+<table class="table">
+<tr><th>Vehicle</th><th>Express</th><th>Classic</th><th>Premium</th></tr>
+<tr><td>Bike</td><td>₹50</td><td>₹100</td><td>₹150</td></tr>
+<tr><td>Car</td><td>₹149</td><td>₹199</td><td>₹449</td></tr>
+<tr><td>SUV</td><td>₹199</td><td>₹249</td><td>₹549</td></tr>
+</table>
+
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>What Customers Say</h2>
+
+<div class="grid three">
+<div class="card review">Best car wash experience in Aligarh.</div>
+<div class="card review">Interior cleaning was excellent.</div>
+<div class="card review">My SUV looked showroom ready.</div>
+</div>
+
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Our Results</h2>
+
+<div class="stats">
+<div class="glass"><strong>5000+</strong><br>Cars Washed</div>
+<div class="glass"><strong>1200+</strong><br>Happy Clients</div>
+<div class="glass"><strong>4.9/5</strong><br>Service Rating</div>
+<div class="glass"><strong>Daily</strong><br>Fast Turnaround</div>
+</div>
+
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Gallery</h2>
+
+<div class="grid three">
+<div class="card">Before / After Sedan Shine</div>
+<div class="card">SUV Premium Detail Finish</div>
+<div class="card">Interior Deep Clean Result</div>
+</div>
+
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Membership Plans</h2>
+
+<div class="grid three">
+<div class="card"><h3>4 Wash Plan</h3><div class="price">₹499</div></div>
+<div class="card"><h3>8 Wash Plan</h3><div class="price">₹899</div></div>
+<div class="card"><h3>Unlimited Basic</h3><div class="price">₹1499</div></div>
+</div>
+
+</div>
+</section>
+
+<section class="section">
+<div class="wrap">
+<h2>Visit Kleenkars</h2>
+
+<p style="margin-bottom:18px;color:#ccc">
+Mustafa Market, Anoopshahr Road, Maheshpur, Aligarh
+</p>
+
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3524.608167238671!2d78.08283637594313!3d27.944655076047344!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3974a5b81169893d%3A0xcb21b5d4e74acd0a!2sKLEENKARS!5e0!3m2!1sen!2sin!4v1776560925746!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+
+<div class="cta">
+<a class="btn red" href="tel:8650007661">Call</a>
+<a class="btn dark" href="https://wa.me/918650007661">WhatsApp</a>
+</div>
+
+</div>
+</section>
+
+<footer class="footer">
+<div class="wrap">
+© 2026 Kleenkars. Premium Car Wash & Detailing in Aligarh.
+</div>
+</footer>
+
+<div class="sticky">
+<a href="tel:8650007661">Call</a>
+<a href="https://wa.me/918650007661">WhatsApp</a>
+<a href="owner-login.html">Owner</a>
+</div>
+
+<div id="popup" class="popup">
+<div class="popup-box">
+<h3>Booking Confirmed</h3>
+<p>Our team will contact you shortly.</p>
+<a class="btn red" href="https://wa.me/918650007661">WhatsApp</a>
+</div>
+</div>
 
 <script>
-function closePopup(){
-  document.getElementById("popup").style.display = "none";
+function bookNow(){
+
+const payload={
+name:document.getElementById("name").value,
+phone:document.getElementById("phone").value,
+service:document.getElementById("service").value,
+vehicle:document.getElementById("vehicle").value
+};
+
+if(!payload.name || !payload.phone){
+alert("Please fill name and phone.");
+return;
 }
 
-/* FINAL BEST VERSION OF bookNow() */
-async function bookNow(){
+document.getElementById("popup").style.display="flex";
 
-  const btn = document.querySelector("#booking button");
-  btn.innerText = "Booking...";
-  btn.disabled = true;
-
-  const payload = {
-    name: document.getElementById("name").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    service: document.getElementById("service").value,
-    vehicle: document.getElementById("vehicle").value,
-    price: 0,
-    address: ""
-  };
-
-  if(!payload.name || !payload.phone){
-    alert("Please enter name and phone number.");
-    btn.innerText = "Book Now";
-    btn.disabled = false;
-    return;
-  }
-
-  try{
-
-    const res = await fetch('/.netlify/functions/create-booking',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-
-      /* SHOW PREMIUM POPUP */
-      document.getElementById("popup").style.display = "flex";
-
-      /* OWNER ALERT */
-      const ownerText =
-`🚗 New Kleenkars Booking
-
-Name: ${payload.name}
-Phone: ${payload.phone}
-Service: ${payload.service}
-Vehicle: ${payload.vehicle}`;
-
-      window.open(
-        "https://wa.me/918650007661?text=" +
-        encodeURIComponent(ownerText),
-        "_blank"
-      );
-
-      /* CUSTOMER CONFIRMATION */
-      const customerText =
-`Hello ${payload.name},
-
-Your booking for ${payload.service} (${payload.vehicle}) has been received by Kleenkars.
-
-Our team will contact you shortly.
-
-📞 8650007661`;
-
-      setTimeout(()=>{
-        window.open(
-          "https://wa.me/91" + payload.phone +
-          "?text=" + encodeURIComponent(customerText),
-          "_blank"
-        );
-      },1500);
-
-      /* RESET FORM */
-      document.getElementById("name").value = "";
-      document.getElementById("phone").value = "";
-
-    }else{
-      alert("Booking failed. Please try again.");
-    }
-
-  }catch(err){
-    alert("Network error. Please try again.");
-  }
-
-  btn.innerText = "Book Now";
-  btn.disabled = false;
+window.open(
+"https://wa.me/918650007661?text="+encodeURIComponent(
+"🚗 New Booking\n\nName: "+payload.name+
+"\nPhone: "+payload.phone+
+"\nService: "+payload.service+
+"\nVehicle: "+payload.vehicle
+),
+"_blank"
+);
 }
 </script>
+
 </body>
 </html>
-
