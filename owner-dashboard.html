@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kleenkars Owner Dashboard</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Arial,sans-serif;
+background:#070707;
+color:#fff;
+}
+
+.wrap{
+max-width:1280px;
+margin:auto;
+padding:24px;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:15px;
+flex-wrap:wrap;
+}
+
+.logo{
+font-size:32px;
+font-weight:900;
+color:#e50914;
+}
+
+.btn{
+padding:12px 18px;
+background:#e50914;
+color:#fff;
+text-decoration:none;
+border-radius:12px;
+font-weight:800;
+}
+
+h1{
+margin-top:22px;
+font-size:34px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+margin-top:24px;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+padding:22px;
+border-radius:20px;
+}
+
+.label{
+color:#aaa;
+font-size:14px;
+margin-bottom:10px;
+}
+
+.num{
+font-size:34px;
+font-weight:900;
+color:#e50914;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:28px;
+background:#111;
+border-radius:18px;
+overflow:hidden;
+}
+
+.table th,.table td{
+padding:14px;
+border:1px solid #222;
+text-align:left;
+}
+
+.table th{
+color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+<div class="logo">KLEENKARS</div>
+<a href="index.html" class="btn">Back Website</a>
+</div>
+
+<h1>Owner Dashboard</h1>
+
+<div class="grid">
+
+<div class="card">
+<div class="label">Today's Revenue</div>
+<div class="num">₹12,450</div>
+</div>
+
+<div class="card">
+<div class="label">Bookings Today</div>
+<div class="num">27</div>
+</div>
+
+<div class="card">
+<div class="label">Repeat Customers</div>
+<div class="num">14</div>
+</div>
+
+<div class="card">
+<div class="label">Active Memberships</div>
+<div class="num">12</div>
+</div>
+
+</div>
+
+<table class="table">
+<tr>
+<th>Top Service</th>
+<th>Bookings</th>
+<th>Revenue</th>
+</tr>
+
+<tr>
+<td>Express Wash</td>
+<td>18</td>
+<td>₹2,682</td>
+</tr>
+
+<tr>
+<td>Classic Wash</td>
+<td>7</td>
+<td>₹1,393</td>
+</tr>
+
+<tr>
+<td>Premium Wash</td>
+<td>2</td>
+<td>₹998</td>
+</tr>
+
+</table>
+
+</div>
+
+</body>
+</html>
