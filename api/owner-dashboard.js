@@ -34,7 +34,7 @@ const staff = await client.query(
 
 /* Recent bookings */
 const recent = await client.query(
-`SELECT name,service,vehicle,price,created_at
+`SELECT id,name,service,vehicle,price,visit,created_at
  FROM bookings
  ORDER BY created_at DESC
  LIMIT 10`
@@ -48,6 +48,15 @@ const logs = await client.query(
  LIMIT 10`
 );
 
+ const perf = await client.query(
+`SELECT employee_name,
+COUNT(*) AS days_present
+FROM attendance
+GROUP BY employee_name
+ORDER BY COUNT(*) DESC
+LIMIT 5`
+);
+ 
 res.status(200).json({
 bookings: bookings.rows[0].total,
 revenue: revenue.rows[0].total,
