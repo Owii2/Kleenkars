@@ -3,10 +3,87 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Owner Dashboard</title>
+<title>Kleenkars Owner Dashboard</title>
 
 <style>
-  input,select,button{
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#070707;
+color:#fff;
+}
+
+.wrap{
+max-width:1280px;
+margin:auto;
+padding:24px;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.logo{
+font-size:32px;
+font-weight:900;
+color:#e50914;
+}
+
+.btn{
+padding:12px 18px;
+background:#e50914;
+color:#fff;
+text-decoration:none;
+border-radius:12px;
+font-weight:800;
+display:inline-block;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+gap:18px;
+margin-top:22px;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+padding:22px;
+border-radius:20px;
+margin-top:22px;
+}
+
+.num{
+font-size:34px;
+font-weight:900;
+color:#e50914;
+margin-top:8px;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:16px;
+}
+
+.table th,.table td{
+padding:12px;
+border:1px solid #222;
+text-align:left;
+}
+
+.table th{
+color:#aaa;
+}
+
+input,select,button{
 width:100%;
 padding:12px;
 margin-top:10px;
@@ -21,36 +98,20 @@ background:#e50914;
 font-weight:800;
 cursor:pointer;
 }
-body{margin:0;font-family:Arial;background:#070707;color:#fff}
-.wrap{max-width:1280px;margin:auto;padding:24px}
-.logo{font-size:32px;font-weight:900;color:#e50914}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:20px}
-.card{background:#111;border:1px solid #222;padding:22px;border-radius:20px}
-.num{font-size:34px;font-weight:900;color:#e50914}
-.table{width:100%;border-collapse:collapse;margin-top:20px}
-.table th,.table td{padding:12px;border:1px solid #222;text-align:left}
-.btn{padding:12px 18px;background:#e50914;color:#fff;text-decoration:none;border-radius:12px;font-weight:800}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+
+h1{
+margin-top:20px;
+font-size:34px;
+}
+
+h3{
+margin-bottom:10px;
+}
 </style>
 </head>
+
 <body>
-<div class="card">
-<h3>Create Employee</h3>
 
-<input id="ename" placeholder="Name">
-<input id="ephone" placeholder="Phone">
-<input id="euser" placeholder="Username">
-<input id="epass" placeholder="Password">
-
-<select id="erole">
-<option value="employee">Staff</option>
-<option value="manager">Manager</option>
-</select>
-
-<button onclick="createEmp()">Create</button>
-
-<p id="empmsg"></p>
-</div>
 <div class="wrap">
 
 <div class="top">
@@ -80,7 +141,26 @@ body{margin:0;font-family:Arial;background:#070707;color:#fff}
 </div>
 
 <div class="card">
+<h3>Create Employee</h3>
+
+<input id="ename" placeholder="Name">
+<input id="ephone" placeholder="Phone">
+<input id="euser" placeholder="Username">
+<input id="epass" placeholder="Password">
+
+<select id="erole">
+<option value="employee">Staff</option>
+<option value="manager">Manager</option>
+</select>
+
+<button onclick="createEmp()">Create Employee</button>
+
+<p id="empmsg"></p>
+</div>
+
+<div class="card">
 <h3>Recent Bookings</h3>
+
 <table class="table">
 <thead>
 <tr>
@@ -88,14 +168,19 @@ body{margin:0;font-family:Arial;background:#070707;color:#fff}
 <th>Service</th>
 <th>Vehicle</th>
 <th>Price</th>
+<th>Status</th>
+<th>Action</th>
 </tr>
 </thead>
+
 <tbody id="rows1"></tbody>
 </table>
+
 </div>
 
 <div class="card">
 <h3>Attendance Log</h3>
+
 <table class="table">
 <thead>
 <tr>
@@ -105,14 +190,34 @@ body{margin:0;font-family:Arial;background:#070707;color:#fff}
 <th>Check Out</th>
 </tr>
 </thead>
+
 <tbody id="rows2"></tbody>
 </table>
+
+</div>
+
+<div class="card">
+<h3>Top Staff Performance</h3>
+
+<table class="table">
+<thead>
+<tr>
+<th>Employee</th>
+<th>Days Present</th>
+</tr>
+</thead>
+
+<tbody id="rows3"></tbody>
+</table>
+
 </div>
 
 </div>
 
 <script>
 async function load(){
+
+try{
 
 const res = await fetch('/api/owner-dashboard');
 const data = await res.json();
@@ -121,34 +226,73 @@ book.innerText = data.bookings;
 rev.innerText = "₹" + data.revenue;
 staff.innerText = data.staff;
 
+/* Bookings */
 let h1 = "";
-data.recent.forEach(x=>{
+
+data.recent.forEach(x => {
+
 h1 += `
 <tr>
 <td>${x.name}</td>
 <td>${x.service}</td>
 <td>${x.vehicle}</td>
 <td>₹${x.price}</td>
-</tr>`;
-});
-rows1.innerHTML = h1;
+<td>${x.visit || ''}</td>
+<td>
+<button onclick="completeBooking('${x.id}')">Done</button>
+</td>
+</tr>
+`;
 
+});
+
+rows1.innerHTML = h1 || "<tr><td colspan='6'>No bookings</td></tr>";
+
+/* Attendance */
 let h2 = "";
-data.logs.forEach(x=>{
+
+data.logs.forEach(x => {
+
 h2 += `
 <tr>
 <td>${x.employee_name}</td>
 <td>${x.status}</td>
 <td>${x.check_in || ''}</td>
 <td>${x.check_out || ''}</td>
-</tr>`;
+</tr>
+`;
+
 });
-rows2.innerHTML = h2;
+
+rows2.innerHTML = h2 || "<tr><td colspan='4'>No logs</td></tr>";
+
+/* Performance */
+let h3 = "";
+
+if(data.performance){
+data.performance.forEach(x => {
+
+h3 += `
+<tr>
+<td>${x.employee_name}</td>
+<td>${x.days_present}</td>
+</tr>
+`;
+
+});
+}
+
+rows3.innerHTML = h3 || "<tr><td colspan='2'>No data</td></tr>";
+
+}catch(e){
+
+rows1.innerHTML = "<tr><td colspan='6'>Failed to load</td></tr>";
 
 }
 
-load();
-  async function createEmp(){
+}
+
+async function createEmp(){
 
 const payload = {
 action:"create",
@@ -167,10 +311,26 @@ body:JSON.stringify(payload)
 
 const data = await res.json();
 
-empmsg.innerText =
-data.message || data.error;
+empmsg.innerText = data.message || data.error;
 
 }
+
+async function completeBooking(id){
+
+await fetch('/api/manage-bookings',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+action:"complete",
+id:id
+})
+});
+
+load();
+
+}
+
+load();
 </script>
 
 </body>
