@@ -148,6 +148,29 @@ rows2.innerHTML = h2;
 }
 
 load();
+  async function createEmp(){
+
+const payload = {
+action:"create",
+name:ename.value,
+phone:ephone.value,
+username:euser.value,
+password:epass.value,
+role:erole.value
+};
+
+const res = await fetch('/api/manage-employees',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+empmsg.innerText =
+data.message || data.error;
+
+}
 </script>
 
 </body>
