@@ -1,6 +1,7 @@
 import { Client } from "pg";
 
 export default async function handler(req, res) {
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -11,23 +12,31 @@ export default async function handler(req, res) {
   });
 
   try {
+
     await client.connect();
 
-    const data = req.body;
+    const {
+      name,
+      phone,
+      service,
+      vehicle,
+      price,
+      address
+    } = req.body;
 
     const result = await client.query(
       `INSERT INTO bookings
       (name, phone, service, vehicle, datetime, created_at, price, visit, address)
-      VALUES ($1,$2,$3,$4,NOW(),NOW(),$5,$6,$7)
+      VALUES
+      ($1,$2,$3,$4,NOW(),NOW(),$5,'New',$6)
       RETURNING *`,
       [
-        data.name,
-        data.phone,
-        data.service,
-        data.vehicle,
-        data.price || 0,
-        "New",
-        data.address || ""
+        name || '',
+        phone || '',
+        service || '',
+        vehicle || '',
+        Number(price || 0),
+        address || ''
       ]
     );
 
@@ -37,9 +46,14 @@ export default async function handler(req, res) {
     });
 
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+
+    return res.status(500).json({
+      error: e.message
+    });
 
   } finally {
+
     await client.end();
+
   }
 }
