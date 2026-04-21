@@ -15,52 +15,18 @@ export default async function handler(req, res) {
 
     await client.connect();
 
-    const {
-      name,
-      phone,
-      service,
-      vehicle,
-      price,
-      address
-    } = req.body;
+    const data = req.body || {};
 
     const result = await client.query(
-      `INSERT INTO bookings (
-        datetime,
-        price,
-        user_id,
-        notes,
-        status,
-        payment_status,
-        visit,
-        address,
-        name,
-        phone,
-        service,
-        vehicle
-      )
-      VALUES (
-        NOW(),
-        $1,
-        NULL,
-        '',
-        'pending',
-        'unpaid',
-        'New',
-        $2,
-        $3,
-        $4,
-        $5,
-        $6
-      )
+      `INSERT INTO bookings
+      (name, phone, service, vehicle)
+      VALUES ($1,$2,$3,$4)
       RETURNING *`,
       [
-        Number(price || 0),
-        address || '',
-        name || '',
-        phone || '',
-        service || '',
-        vehicle || ''
+        data.name || '',
+        data.phone || '',
+        data.service || '',
+        data.vehicle || ''
       ]
     );
 
@@ -72,7 +38,11 @@ export default async function handler(req, res) {
   } catch (e) {
 
     return res.status(500).json({
-      error: e.message
+      error: e.message,
+      detail: e.detail || null,
+      code: e.code || null,
+      table: e.table || null,
+      column: e.column || null
     });
 
   } finally {
