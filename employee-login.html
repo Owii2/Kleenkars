@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kleenkars Employee Login</title>
+<style>
+body{margin:0;font-family:Arial;background:#070707;color:#fff;display:grid;place-items:center;height:100vh}
+.box{width:min(420px,92%);background:#111;padding:32px;border-radius:22px;border:1px solid #222}
+.logo{font-size:32px;font-weight:900;color:#e50914;margin-bottom:14px}
+input{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #333;background:#0d0d0d;color:#fff}
+button{width:100%;padding:14px;border:0;border-radius:12px;background:#e50914;color:#fff;font-weight:800;margin-top:10px}
+#msg{margin-top:12px;color:#ff9a9a}
+</style>
+</head>
+<body>
+
+<div class="box">
+<div class="logo">KLEENKARS</div>
+<h2>Employee Login</h2>
+
+<input id="login" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="go()">Login</button>
+<div id="msg"></div>
+</div>
+
+<script>
+async function go(){
+
+const payload={
+login:login.value,
+password:password.value
+};
+
+const res = await fetch('/api/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+if(data.success && data.role==="employee"){
+localStorage.setItem("employeeUser",payload.login);
+location.href="employee-dashboard.html";
+}else{
+msg.innerText="Login failed";
+}
+
+}
+</script>
+
+</body>
+</html>
