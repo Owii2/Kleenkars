@@ -1,100 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kleenkars Owner Dashboard</title>
+<title>Owner Dashboard</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-
-body{
-font-family:Arial,sans-serif;
-background:#070707;
-color:#fff;
-}
-
-.wrap{
-max-width:1280px;
-margin:auto;
-padding:24px;
-}
-
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:15px;
-flex-wrap:wrap;
-}
-
-.logo{
-font-size:32px;
-font-weight:900;
-color:#e50914;
-}
-
-.btn{
-padding:12px 18px;
-background:#e50914;
-color:#fff;
-text-decoration:none;
-border-radius:12px;
-font-weight:800;
-}
-
-h1{
-margin-top:22px;
-font-size:34px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:18px;
-margin-top:24px;
-}
-
-.card{
-background:#111;
-border:1px solid #222;
-padding:22px;
-border-radius:20px;
-}
-
-.label{
-color:#aaa;
-font-size:14px;
-margin-bottom:10px;
-}
-
-.num{
-font-size:34px;
-font-weight:900;
-color:#e50914;
-}
-
-.table{
-width:100%;
-border-collapse:collapse;
-margin-top:28px;
-background:#111;
-border-radius:18px;
-overflow:hidden;
-}
-
-.table th,.table td{
-padding:14px;
-border:1px solid #222;
-text-align:left;
-}
-
-.table th{
-color:#aaa;
-}
+body{margin:0;font-family:Arial;background:#070707;color:#fff}
+.wrap{max-width:1280px;margin:auto;padding:24px}
+.logo{font-size:32px;font-weight:900;color:#e50914}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:20px}
+.card{background:#111;border:1px solid #222;padding:22px;border-radius:20px}
+.num{font-size:34px;font-weight:900;color:#e50914}
+.table{width:100%;border-collapse:collapse;margin-top:20px}
+.table th,.table td{padding:12px;border:1px solid #222;text-align:left}
+.btn{padding:12px 18px;background:#e50914;color:#fff;text-decoration:none;border-radius:12px;font-weight:800}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 </style>
 </head>
-
 <body>
 
 <div class="wrap">
@@ -109,94 +32,91 @@ color:#aaa;
 <div class="grid">
 
 <div class="card">
-<div class="label">Today's Revenue</div>
-<div class="num" id="rev">₹0</div>
-</div>
-
-<div class="card">
-<div class="label">Bookings Today</div>
+<div>Today's Bookings</div>
 <div class="num" id="book">0</div>
 </div>
 
 <div class="card">
-<div class="label">Repeat Customers</div>
-<div class="num" id="rep">0</div>
+<div>Today's Revenue</div>
+<div class="num" id="rev">₹0</div>
 </div>
 
 <div class="card">
-<div class="label">Active Memberships</div>
-<div class="num" id="mem">0</div>
+<div>Staff Present</div>
+<div class="num" id="staff">0</div>
 </div>
 
 </div>
 
+<div class="card">
+<h3>Recent Bookings</h3>
 <table class="table">
 <thead>
 <tr>
-<th>Top Service</th>
-<th>Bookings</th>
-<th>Revenue</th>
+<th>Name</th>
+<th>Service</th>
+<th>Vehicle</th>
+<th>Price</th>
 </tr>
 </thead>
-
-<tbody id="rows">
-<tr>
-<td>Loading...</td>
-<td>-</td>
-<td>-</td>
-</tr>
-</tbody>
-
+<tbody id="rows1"></tbody>
 </table>
+</div>
+
+<div class="card">
+<h3>Attendance Log</h3>
+<table class="table">
+<thead>
+<tr>
+<th>Employee</th>
+<th>Status</th>
+<th>Check In</th>
+<th>Check Out</th>
+</tr>
+</thead>
+<tbody id="rows2"></tbody>
+</table>
+</div>
 
 </div>
 
 <script>
-async function loadDashboard(){
+async function load(){
 
-try{
-
-const res = await fetch('/.netlify/functions/get-owner-dashboard');
+const res = await fetch('/api/owner-dashboard');
 const data = await res.json();
 
-document.getElementById("rev").innerText =
-"₹" + data.revenue;
+book.innerText = data.bookings;
+rev.innerText = "₹" + data.revenue;
+staff.innerText = data.staff;
 
-document.getElementById("book").innerText =
-data.bookings;
-
-document.getElementById("rep").innerText =
-data.repeat;
-
-document.getElementById("mem").innerText =
-data.memberships;
-
-let html = "";
-
-data.top.forEach(item => {
-
-html += `
+let h1 = "";
+data.recent.forEach(x=>{
+h1 += `
 <tr>
-<td>${item.service}</td>
-<td>${item.bookings}</td>
-<td>₹${item.revenue}</td>
-</tr>
-`;
-
+<td>${x.name}</td>
+<td>${x.service}</td>
+<td>${x.vehicle}</td>
+<td>₹${x.price}</td>
+</tr>`;
 });
+rows1.innerHTML = h1;
 
-document.getElementById("rows").innerHTML = html;
-
-}catch(e){
-
-document.getElementById("rows").innerHTML =
-"<tr><td colspan='3'>Failed to load data</td></tr>";
+let h2 = "";
+data.logs.forEach(x=>{
+h2 += `
+<tr>
+<td>${x.employee_name}</td>
+<td>${x.status}</td>
+<td>${x.check_in || ''}</td>
+<td>${x.check_out || ''}</td>
+</tr>`;
+});
+rows2.innerHTML = h2;
 
 }
 
-}
-
-loadDashboard();
+load();
 </script>
 
 </body>
