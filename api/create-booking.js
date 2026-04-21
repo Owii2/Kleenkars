@@ -25,18 +25,42 @@ export default async function handler(req, res) {
     } = req.body;
 
     const result = await client.query(
-      `INSERT INTO bookings
-      (name, phone, service, vehicle, datetime, created_at, price, visit, address)
-      VALUES
-      ($1,$2,$3,$4,NOW(),NOW(),$5,'New',$6)
+      `INSERT INTO bookings (
+        datetime,
+        price,
+        user_id,
+        notes,
+        status,
+        payment_status,
+        visit,
+        address,
+        name,
+        phone,
+        service,
+        vehicle
+      )
+      VALUES (
+        NOW(),
+        $1,
+        NULL,
+        '',
+        'pending',
+        'unpaid',
+        'New',
+        $2,
+        $3,
+        $4,
+        $5,
+        $6
+      )
       RETURNING *`,
       [
+        Number(price || 0),
+        address || '',
         name || '',
         phone || '',
         service || '',
-        vehicle || '',
-        Number(price || 0),
-        address || ''
+        vehicle || ''
       ]
     );
 
