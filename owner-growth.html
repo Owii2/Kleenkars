@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Growth Dashboard</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#070707;color:#fff}
+.wrap{max-width:1300px;margin:auto;padding:24px}
+.logo{font-size:32px;font-weight:900;color:#e50914}
+.card{background:#111;border:1px solid #222;padding:22px;border-radius:20px;margin-top:22px}
+.table{width:100%;border-collapse:collapse;margin-top:16px}
+.table th,.table td{padding:12px;border:1px solid #222;text-align:left}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.num{font-size:34px;font-weight:900;color:#e50914}
+.btn{padding:12px 18px;background:#e50914;color:#fff;text-decoration:none;border-radius:12px;font-weight:800}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="top">
+<div class="logo">KLEENKARS</div>
+<a href="owner-dashboard.html" class="btn">Dashboard</a>
+</div>
+
+<h1>Growth Dashboard</h1>
+
+<div class="grid">
+
+<div class="card">
+<div>Repeat Customers</div>
+<div class="num" id="repeat">0</div>
+</div>
+
+</div>
+
+<div class="card">
+<h3>7 Day Revenue</h3>
+<table class="table">
+<thead>
+<tr>
+<th>Date</th>
+<th>Revenue</th>
+<th>Bookings</th>
+</tr>
+</thead>
+<tbody id="rows1"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h3>Inactive Customers (15+ days)</h3>
+<table class="table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Phone</th>
+<th>Last Visit</th>
+</tr>
+</thead>
+<tbody id="rows2"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h3>Top Spenders</h3>
+<table class="table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Phone</th>
+<th>Total Spend</th>
+</tr>
+</thead>
+<tbody id="rows3"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+async function load(){
+
+const res = await fetch('/api/growth-analytics');
+const data = await res.json();
+
+repeat.innerText = data.repeat;
+
+/* revenue */
+let h1="";
+data.revenue.forEach(x=>{
+h1 += `
+<tr>
+<td>${x.day}</td>
+<td>₹${x.revenue}</td>
+<td>${x.bookings}</td>
+</tr>`;
+});
+rows1.innerHTML = h1;
+
+/* inactive */
+let h2="";
+data.inactive.forEach(x=>{
+h2 += `
+<tr>
+<td>${x.name}</td>
+<td>${x.phone}</td>
+<td>${x.last_visit}</td>
+</tr>`;
+});
+rows2.innerHTML = h2;
+
+/* vip */
+let h3="";
+data.vip.forEach(x=>{
+h3 += `
+<tr>
+<td>${x.name}</td>
+<td>${x.phone}</td>
+<td>₹${x.spend}</td>
+</tr>`;
+});
+rows3.innerHTML = h3;
+
+}
+
+load();
+</script>
+
+</body>
+</html>
