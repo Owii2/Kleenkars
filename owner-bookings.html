@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Owner Booking Command Center</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#070707;color:#fff}
+.wrap{max-width:1400px;margin:auto;padding:24px}
+.logo{font-size:32px;font-weight:900;color:#e50914}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card{background:#111;border:1px solid #222;padding:22px;border-radius:20px;margin-top:22px}
+input,select,button{
+padding:12px;border-radius:12px;border:1px solid #333;
+background:#0d0d0d;color:#fff
+}
+button{background:#e50914;font-weight:800;cursor:pointer}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.table{width:100%;border-collapse:collapse;margin-top:18px}
+.table th,.table td{padding:12px;border:1px solid #222;text-align:left}
+.btn{padding:12px 18px;background:#e50914;color:#fff;text-decoration:none;border-radius:12px;font-weight:800}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+<div class="logo">KLEENKARS</div>
+<a href="owner-dashboard.html" class="btn">Dashboard</a>
+</div>
+
+<h1>Booking Command Center</h1>
+
+<div class="card">
+<h3>Create Walk-In Booking</h3>
+
+<div class="row">
+<input id="name" placeholder="Customer Name">
+<input id="phone" placeholder="Phone">
+<select id="service">
+<option>Express Wash</option>
+<option>Classic Wash</option>
+<option>Premium Wash</option>
+</select>
+
+<select id="vehicle">
+<option>Car</option>
+<option>SUV</option>
+<option>Bike</option>
+</select>
+
+<input id="price" placeholder="Price">
+<button onclick="createBooking()">Create</button>
+</div>
+
+<p id="msg"></p>
+
+</div>
+
+<div class="card">
+<h3>Search Bookings</h3>
+
+<div class="row">
+<input id="search" placeholder="Name or Phone">
+<select id="status">
+<option value="">All</option>
+<option value="New">New</option>
+<option value="Completed">Completed</option>
+<option value="Cancelled">Cancelled</option>
+</select>
+<button onclick="load()">Search</button>
+</div>
+
+<table class="table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Phone</th>
+<th>Service</th>
+<th>Vehicle</th>
+<th>Price</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="rows"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script>
+async function createBooking(){
+
+const payload={
+name:name.value,
+phone:phone.value,
+service:service.value,
+vehicle:vehicle.value,
+price:price.value
+};
+
+const res = await fetch('/api/create-booking',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+msg.innerText = data.success ? "Booking created" : "Failed";
+
+load();
+
+}
+
+async function load(){
+
+const q = search.value;
+const s = status.value;
+
+const res = await fetch('/api/all-bookings?q='+encodeURIComponent(q)+'&status='+encodeURIComponent(s));
+const data = await res.json();
+
+let html = "";
+
+data.rows.forEach(x=>{
+
+html += `
+<tr>
+<td>${x.name}</td>
+<td>${x.phone}</td>
+<td>${x.service}</td>
+<td>${x.vehicle}</td>
+<td>₹${x.price}</td>
+<td>${x.visit}</td>
+<td>
+<button onclick="doneBooking('${x.id}')">Done</button>
+<button onclick="cancelBooking('${x.id}')">Cancel</button>
+</td>
+</tr>
+`;
+
+});
+
+rows.innerHTML = html || "<tr><td colspan='7'>No bookings</td></tr>";
+
+}
+
+async function doneBooking(id){
+
+await fetch('/api/manage-bookings',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({action:'complete',id})
+});
+
+load();
+
+}
+
+async function cancelBooking(id){
+
+await fetch('/api/manage-bookings',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({action:'cancel',id})
+});
+
+load();
+
+}
+
+load();
+</script>
+
+</body>
+</html>
