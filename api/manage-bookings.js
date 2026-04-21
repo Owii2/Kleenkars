@@ -13,6 +13,20 @@ await client.connect();
 
 const { action,id,price,service } = req.body;
 
+ if(action==="cancel"){
+
+await client.query(
+`UPDATE bookings
+SET visit='Cancelled'
+WHERE id=$1`,
+[id]
+);
+
+return res.status(200).json({
+success:true,
+message:"Booking cancelled"
+});
+}
 /* COMPLETE */
 if(action==="complete"){
 
