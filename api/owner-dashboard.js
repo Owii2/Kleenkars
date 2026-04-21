@@ -58,6 +58,7 @@ LIMIT 5`
 );
  
 res.status(200).json({
+performance: perf.rows,
 bookings: bookings.rows[0].total,
 revenue: revenue.rows[0].total,
 staff: staff.rows[0].total,
