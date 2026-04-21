@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kleenkars Customer Dashboard</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Arial,sans-serif;
+background:#070707;
+color:#fff;
+}
+
+.wrap{
+max-width:1100px;
+margin:auto;
+padding:24px;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.logo{
+font-size:30px;
+font-weight:900;
+color:#e50914;
+}
+
+.btn{
+padding:12px 18px;
+background:#e50914;
+color:#fff;
+border-radius:12px;
+text-decoration:none;
+font-weight:800;
+cursor:pointer;
+border:0;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+padding:22px;
+border-radius:20px;
+margin-top:22px;
+}
+
+h1{
+margin-top:20px;
+font-size:34px;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:18px;
+}
+
+.table th,.table td{
+padding:14px;
+border:1px solid #222;
+text-align:left;
+}
+
+.table th{color:#aaa}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+<div class="logo">KLEENKARS</div>
+<button class="btn" onclick="logout()">Logout</button>
+</div>
+
+<h1>My Dashboard</h1>
+
+<div class="card">
+<h3>My Bookings</h3>
+
+<table class="table">
+<thead>
+<tr>
+<th>Date</th>
+<th>Service</th>
+<th>Vehicle</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody id="rows">
+<tr>
+<td colspan="4">Loading...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+function logout(){
+localStorage.removeItem("customerPhone");
+location.href="customer-login.html";
+}
+
+async function load(){
+
+const phone = localStorage.getItem("customerPhone");
+
+if(!phone){
+location.href="customer-login.html";
+return;
+}
+
+try{
+
+const res = await fetch('/api/customer-bookings?phone=' + phone);
+const data = await res.json();
+
+let html = "";
+
+if(data.rows.length === 0){
+html = "<tr><td colspan='4'>No bookings found</td></tr>";
+}else{
+
+data.rows.forEach(item => {
+
+html += `
+<tr>
+<td>${item.created_at}</td>
+<td>${item.service}</td>
+<td>${item.vehicle}</td>
+<td>${item.visit}</td>
+</tr>
+`;
+
+});
+
+}
+
+document.getElementById("rows").innerHTML = html;
+
+}catch(e){
+
+document.getElementById("rows").innerHTML =
+"<tr><td colspan='4'>Failed to load</td></tr>";
+
+}
+
+}
+
+load();
+</script>
+
+</body>
+</html>
