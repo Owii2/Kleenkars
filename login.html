@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kleenkars Login</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Arial,sans-serif;
+background:#070707;
+color:#fff;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:20px;
+}
+
+.box{
+width:100%;
+max-width:420px;
+background:#111;
+border:1px solid #222;
+border-radius:24px;
+padding:34px;
+}
+
+.logo{
+font-size:34px;
+font-weight:900;
+color:#e50914;
+margin-bottom:14px;
+}
+
+h1{font-size:28px;margin-bottom:8px}
+
+p{color:#aaa;margin-bottom:22px}
+
+input{
+width:100%;
+padding:14px;
+margin-bottom:14px;
+border-radius:14px;
+border:1px solid #333;
+background:#0c0c0c;
+color:#fff;
+}
+
+button{
+width:100%;
+padding:14px;
+border:0;
+border-radius:14px;
+background:#e50914;
+color:#fff;
+font-weight:800;
+cursor:pointer;
+}
+
+#msg{
+margin-top:14px;
+color:#ff8b8b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<div class="logo">KLEENKARS</div>
+
+<h1>Login</h1>
+<p>Owner, Employee or Customer Access</p>
+
+<input id="login" placeholder="Phone or Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="go()">Login</button>
+
+<div id="msg"></div>
+
+</div>
+
+<script>
+async function go(){
+
+document.getElementById("msg").innerText="";
+
+const payload = {
+login: document.getElementById("login").value,
+password: document.getElementById("password").value
+};
+
+try{
+
+const res = await fetch('/api/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+if(data.success){
+
+if(data.role === "owner"){
+location.href="owner-dashboard.html";
+}
+
+else if(data.role === "employee"){
+location.href="employee-dashboard.html";
+}
+
+else{
+location.href="customer-dashboard.html";
+}
+
+}else{
+document.getElementById("msg").innerText =
+data.error || "Login failed";
+}
+
+}catch(e){
+document.getElementById("msg").innerText =
+"Server error";
+}
+
+}
+</script>
+
+</body>
+</html>
