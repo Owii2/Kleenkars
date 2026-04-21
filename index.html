@@ -455,19 +455,33 @@ Mustafa Market, Anoopshahr Road, Maheshpur, Aligarh
 </div>
 
 <script>
-function bookNow(){
+async function bookNow(){
 
-const payload={
-name:document.getElementById("name").value,
-phone:document.getElementById("phone").value,
-service:document.getElementById("service").value,
-vehicle:document.getElementById("vehicle").value
+const payload = {
+name: document.getElementById("name").value,
+phone: document.getElementById("phone").value,
+service: document.getElementById("service").value,
+vehicle: document.getElementById("vehicle").value,
+price: 0,
+address: ""
 };
 
 if(!payload.name || !payload.phone){
 alert("Please fill name and phone.");
 return;
 }
+
+try{
+
+const res = await fetch('/api/create-booking',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body: JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+if(data.success){
 
 document.getElementById("popup").style.display="flex";
 
@@ -480,6 +494,15 @@ window.open(
 ),
 "_blank"
 );
+
+}else{
+alert("Booking failed");
+}
+
+}catch(e){
+alert("Server error");
+}
+
 }
 </script>
 
