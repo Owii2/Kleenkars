@@ -19,7 +19,23 @@ body{margin:0;font-family:Arial;background:#070707;color:#fff}
 </style>
 </head>
 <body>
+<div class="card">
+<h3>Create Employee</h3>
 
+<input id="ename" placeholder="Name">
+<input id="ephone" placeholder="Phone">
+<input id="euser" placeholder="Username">
+<input id="epass" placeholder="Password">
+
+<select id="erole">
+<option value="employee">Staff</option>
+<option value="manager">Manager</option>
+</select>
+
+<button onclick="createEmp()">Create</button>
+
+<p id="empmsg"></p>
+</div>
 <div class="wrap">
 
 <div class="top">
