@@ -461,15 +461,8 @@ const payload = {
 name: document.getElementById("name").value,
 phone: document.getElementById("phone").value,
 service: document.getElementById("service").value,
-vehicle: document.getElementById("vehicle").value,
-price: 0,
-address: ""
+vehicle: document.getElementById("vehicle").value
 };
-
-if(!payload.name || !payload.phone){
-alert("Please fill name and phone.");
-return;
-}
 
 try{
 
@@ -481,26 +474,12 @@ body: JSON.stringify(payload)
 
 const data = await res.json();
 
-if(data.success){
-
-document.getElementById("popup").style.display="flex";
-
-window.open(
-"https://wa.me/918650007661?text="+encodeURIComponent(
-"🚗 New Booking\n\nName: "+payload.name+
-"\nPhone: "+payload.phone+
-"\nService: "+payload.service+
-"\nVehicle: "+payload.vehicle
-),
-"_blank"
-);
-
-}else{
-alert("Booking failed");
-}
+alert(JSON.stringify(data));
 
 }catch(e){
-alert("Server error");
+
+alert("API failed");
+
 }
 
 }
