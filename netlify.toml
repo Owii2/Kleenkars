@@ -32,3 +32,15 @@
   to = "/.netlify/functions/prices"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/customer/request-otp"
+  to = "/.netlify/functions/customer-requestOtp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/customer/verify-otp"
+  to = "/.netlify/functions/customer-verifyOtp"
+  status = 200
+  force = true

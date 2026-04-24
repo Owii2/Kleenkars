@@ -1,7 +1,7 @@
 import { Client } from "pg";
+import { verifyPassword, hashPassword, needsRehash } from "../netlify/functions/_password.js";
 
 export default async function handler(req, res) {
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -14,7 +14,6 @@ export default async function handler(req, res) {
   });
 
   try {
-
     await client.connect();
 
     const result = await client.query(
@@ -26,23 +25,22 @@ export default async function handler(req, res) {
     );
 
     if (!result.rows.length) {
-      return res.status(401).json({
-        error: "Invalid login"
-      });
+      return res.status(401).json({ error: "Invalid login" });
     }
 
     const user = result.rows[0];
 
     if (!user.is_active) {
-      return res.status(403).json({
-        error: "Account suspended"
-      });
+      return res.status(403).json({ error: "Account suspended" });
     }
 
-    if (password !== user.password_hash) {
-      return res.status(401).json({
-        error: "Wrong password"
-      });
+    if (!verifyPassword(password, user.password_hash)) {
+      return res.status(401).json({ error: "Wrong password" });
+    }
+
+    if (needsRehash(user.password_hash)) {
+      const upgradedHash = hashPassword(password);
+      await client.query(`UPDATE users SET password_hash=$1 WHERE id=$2`, [upgradedHash, user.id]);
     }
 
     return res.status(200).json({
@@ -50,16 +48,9 @@ export default async function handler(req, res) {
       role: user.role,
       name: user.name
     });
-
   } catch (e) {
-
-    return res.status(500).json({
-      error: e.message
-    });
-
+    return res.status(500).json({ error: e.message });
   } finally {
-
     await client.end();
-
   }
 }

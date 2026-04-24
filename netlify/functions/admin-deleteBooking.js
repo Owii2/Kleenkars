@@ -1,6 +1,6 @@
 // netlify/functions/admin-deleteBooking.js
 import { neon } from "@netlify/neon";
-import jwt from "jsonwebtoken";
+import { requireRoleFromEvent } from "./_auth.js";
 
 const ok = (obj) => ({
   statusCode: 200,
@@ -23,17 +23,9 @@ const err = (code, msg) => ({
   body: JSON.stringify({ ok: false, error: msg }),
 });
 
-function authz(event) {
-  const h = event.headers?.authorization || event.headers?.Authorization || "";
-  const m = h.match(/^Bearer\s+(.+)$/i);
-  if (!m) return null;
-  try { return jwt.verify(m[1], process.env.ADMIN_JWT_SECRET); }
-  catch { return null; }
-}
-
 export async function handler(event) {
   if (event.httpMethod === "OPTIONS") return ok({ ok: true });
-  if (!authz(event)) return err(401, "Unauthorized");
+  if (!requireRoleFromEvent(event, ["admin", "owner"])) return err(401, "Unauthorized");
   if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
 
   try {
@@ -43,7 +35,6 @@ export async function handler(event) {
 
     const sql = neon(process.env.DATABASE_URL);
 
-    // Ensure canonical table exists (same schema used by saveBooking)
     await sql`
       CREATE TABLE IF NOT EXISTS kleenkars_bookings (
         id SERIAL PRIMARY KEY,

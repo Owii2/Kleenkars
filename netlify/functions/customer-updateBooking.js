@@ -1,24 +1,21 @@
 // netlify/functions/customer-updateBooking.js
 import { neon, neonConfig } from "@neondatabase/serverless";
-neonConfig.fetchConnectionCache = true;
+import { normPhone, verifyCustomerToken } from "./_otp.js";
 
-const PRICES = {
-  "Bike":        { "Basic": 50,  "Premium": null, "Detailing": null },
-  "Hatch/Sedan": { "Basic": 150, "Premium": 200,  "Detailing": 1500 },
-  "SUV":         { "Basic": 200, "Premium": 250,  "Detailing": 2500 }
-};
+neonConfig.fetchConnectionCache = true;
 const HOME_SURCHARGE = 50;
 
 function json(status, obj){
   return { statusCode: status, headers: { "Content-Type":"application/json", "Access-Control-Allow-Origin":"*" }, body: JSON.stringify(obj) };
 }
 
-function computePrice(v, s, visit){
-  let p = PRICES?.[v]?.[s] ?? null;
-  if(p==null) return null;
-  if(visit === "Home Visit") p += HOME_SURCHARGE;
-  return p;
+function hasValidCustomerAuth(event, phone) {
+  const auth = event.headers?.authorization || event.headers?.Authorization || "";
+  const m = String(auth).match(/^Bearer\s+(.+)$/i);
+  if (!m) return false;
+  return verifyCustomerToken(m[1], phone);
 }
+
 function normDate(v){
   const d = new Date(String(v ?? ""));
   if (Number.isNaN(d.getTime())) return "";
@@ -32,32 +29,55 @@ function normTime(v){
   return `${hh}:${m[2]}`;
 }
 
+function keyForVehicle(vehicle) {
+  if (vehicle === "Bike") return "bike";
+  if (vehicle === "SUV") return "suv";
+  return "sedan";
+}
+
 export async function handler(event){
   if(event.httpMethod !== "POST") return json(405, { ok:false, error:"Method not allowed" });
 
   try{
     const body = JSON.parse(event.body || "{}");
-    const phone = String(body.phone||"").replace(/\D/g,"").slice(0,15);
+    const phone = normPhone(body.phone || "");
     const order_id = Number(body.order_id);
     if(!phone || !order_id) return json(400, { ok:false, error:"Missing phone/order_id" });
+
+    if (!hasValidCustomerAuth(event, phone)) {
+      return json(401, { ok:false, error:"Unauthorized. Verify OTP first and use customer token." });
+    }
 
     let { date, time, vehicle, service, visit, address } = body;
     vehicle = String(vehicle||"").trim();
     service = String(service||"").trim();
-    visit = String(visit||"In-Shop").trim();
+    visit = String(visit||"Wash Center").trim();
     address = String(address||"").trim().slice(0,500);
 
-    // normalize date/time
     date = normDate(date);
     time = normTime(time);
     if (!date || !time) return json(400, { ok:false, error:"Invalid date/time" });
 
-    const price = computePrice(vehicle, service, visit);
-    if(price == null) return json(400, { ok:false, error:`${service} not available for ${vehicle}` });
-
     const sql = neon(process.env.DATABASE_URL);
 
-    // Ensure booking exists and belongs to phone
+    const svcRows = await sql`
+      SELECT name, bike, sedan, suv, visible
+      FROM kleenkars_services
+      WHERE name = ${service}
+      LIMIT 1
+    `;
+    if (svcRows.length === 0 || svcRows[0].visible === false) {
+      return json(400, { ok:false, error:`${service} not available for ${vehicle}` });
+    }
+
+    const key = keyForVehicle(vehicle);
+    const base = svcRows[0][key];
+    if (base == null) {
+      return json(400, { ok:false, error:`${service} not available for ${vehicle}` });
+    }
+    let price = Number(base) || 0;
+    if (visit === "Home Visit") price += HOME_SURCHARGE;
+
     const existing = await sql`
       SELECT order_id FROM kleenkars_bookings WHERE order_id = ${order_id} AND phone = ${phone} LIMIT 1
     `;
