@@ -6,71 +6,87 @@
 <title>Kleenkars Owner Login</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
 body{
-font-family:Arial,sans-serif;
-background:#070707;
-color:#fff;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-padding:20px;
+  font-family:Arial,sans-serif;
+  background:#070707;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  padding:20px;
 }
 
 .box{
-width:100%;
-max-width:420px;
-background:#111;
-border:1px solid #222;
-border-radius:24px;
-padding:34px;
-box-shadow:0 20px 50px rgba(0,0,0,.35);
+  width:100%;
+  max-width:420px;
+  background:#111;
+  border:1px solid #222;
+  border-radius:24px;
+  padding:34px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
 }
 
 .logo{
-font-size:34px;
-font-weight:900;
-color:#e50914;
-margin-bottom:14px;
+  font-size:34px;
+  font-weight:900;
+  color:#e50914;
+  margin-bottom:14px;
 }
 
 h1{
-font-size:28px;
-margin-bottom:8px;
+  font-size:28px;
+  margin-bottom:8px;
 }
 
 p{
-color:#aaa;
-margin-bottom:22px;
+  color:#aaa;
+  margin-bottom:22px;
 }
 
 input{
-width:100%;
-padding:14px 16px;
-margin-bottom:14px;
-border-radius:14px;
-border:1px solid #333;
-background:#0c0c0c;
-color:#fff;
-font-size:16px;
+  width:100%;
+  padding:14px 16px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid #333;
+  background:#0c0c0c;
+  color:#fff;
+  font-size:16px;
+  outline:none;
+}
+
+input:focus{
+  border-color:#e50914;
 }
 
 button{
-width:100%;
-padding:14px;
-border:0;
-border-radius:14px;
-background:#e50914;
-color:#fff;
-font-size:16px;
-font-weight:800;
-cursor:pointer;
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:14px;
+  background:#e50914;
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
 }
 
 button:hover{
-opacity:.92;
+  opacity:.92;
+}
+
+.msg{
+  margin-top:14px;
+  font-size:14px;
+  color:#aaa;
+  text-align:center;
 }
 </style>
 </head>
@@ -89,20 +105,60 @@ opacity:.92;
 
 <button onclick="login()">Login</button>
 
+<div class="msg" id="msg"></div>
+
 </div>
 
 <script>
-function login(){
+async function login() {
 
-const u = document.getElementById("user").value.trim();
-const p = document.getElementById("pass").value.trim();
+  const username = document.getElementById("user").value.trim();
+  const password = document.getElementById("pass").value.trim();
+  const msg = document.getElementById("msg");
 
-if(!u || !p){
-alert("Enter username and password");
-return;
-}
+  msg.innerText = "";
 
-location.href="owner-dashboard.html";
+  if (!username || !password) {
+    msg.innerText = "Enter username and password";
+    return;
+  }
+
+  try {
+
+    msg.innerText = "Checking...";
+
+    const res = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success && data.token) {
+
+      localStorage.setItem("ownerToken", data.token);
+      localStorage.setItem("ownerUser", data.user.username);
+
+      msg.innerText = "Login successful...";
+      location.href = "owner-dashboard.html";
+
+    } else {
+
+      msg.innerText = data.error || "Login failed";
+
+    }
+
+  } catch (error) {
+
+    msg.innerText = "Server connection error";
+
+  }
 
 }
 </script>
