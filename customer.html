@@ -174,6 +174,7 @@ const els = {
 
 let currentPhone = "";
 let editing = null; // current booking row object
+let customerToken = "";
 
 /* ---------- Small helpers ---------- */
 els.phone.addEventListener('input', ()=> {
@@ -196,6 +197,38 @@ function timeOk(t){
 function setMsg(t){ els.msg.textContent = t || ""; }
 function setEditMsg(t){ document.getElementById('eMsg').textContent = t || ""; }
 
+
+async function ensureCustomerToken(phone){
+  const saved = sessionStorage.getItem(`kk_customer_token_${phone}`) || "";
+  if (saved) {
+    customerToken = saved;
+    return saved;
+  }
+
+  const req = await fetch('/api/customer/request-otp', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ phone, purpose: 'manage_booking' })
+  });
+  const reqJson = await req.json();
+  if (!req.ok || !reqJson.ok) throw new Error(reqJson.error || 'Unable to send OTP.');
+
+  const otp = window.prompt('Enter OTP sent to your phone');
+  if (!otp) throw new Error('OTP is required.');
+
+  const verify = await fetch('/api/customer/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ phone, purpose: 'manage_booking', otp })
+  });
+  const verJson = await verify.json();
+  if (!verify.ok || !verJson.ok) throw new Error(verJson.error || 'OTP verification failed.');
+
+  customerToken = verJson.token || '';
+  sessionStorage.setItem(`kk_customer_token_${phone}`, customerToken);
+  return customerToken;
+}
+
 /* ---------- Fetch / render ---------- */
 async function lookup(){
   setMsg("");
@@ -205,7 +238,8 @@ async function lookup(){
   currentPhone = raw;
   els.rows.innerHTML = `<tr><td colspan="8" class="muted">Loading…</td></tr>`;
   try{
-    const r = await fetch(`/.netlify/functions/customer-getBookings?phone=${raw}`);
+    const token = await ensureCustomerToken(raw);
+    const r = await fetch(`/.netlify/functions/customer-getBookings?phone=${raw}`, { headers: { Authorization: `Bearer ${token}` } });
     const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"Failed to fetch.");
     if(!Array.isArray(d.rows) || d.rows.length===0){
@@ -285,7 +319,7 @@ async function confirmCancel(b){
   try{
     const r = await fetch("/.netlify/functions/customer-cancelBooking", {
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      headers:{ "Content-Type":"application/json", Authorization:`Bearer ${customerToken}` },
       body: JSON.stringify({ order_id: b.order_id, phone: currentPhone })
     });
     const d = await r.json();
@@ -318,7 +352,7 @@ async function saveChanges(){
     };
     const r = await fetch("/.netlify/functions/customer-updateBooking", {
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      headers:{ "Content-Type":"application/json", Authorization:`Bearer ${customerToken}` },
       body: JSON.stringify(payload)
     });
     const d = await r.json();

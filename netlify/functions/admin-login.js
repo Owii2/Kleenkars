@@ -1,5 +1,6 @@
 // netlify/functions/admin-login.js
 import jwt from "jsonwebtoken";
+import { verifyPassword } from "./_password.js";
 
 const json = (s, b) => ({
   statusCode: s,
@@ -12,17 +13,22 @@ export const handler = async (event) => {
 
   const ADMIN_USER = process.env.ADMIN_USER || "";
   const ADMIN_PASS = process.env.ADMIN_PASS || process.env.ADMIN_PASSWORD || "";
-  const SECRET     = process.env.ADMIN_JWT_SECRET || "";
+  const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH || "";
+  const SECRET = process.env.ADMIN_JWT_SECRET || "";
 
-  if (!ADMIN_USER || !ADMIN_PASS || !SECRET) {
-    return json(500, { ok:false, error:"Admin env vars missing (ADMIN_USER, ADMIN_PASS or ADMIN_PASSWORD, ADMIN_JWT_SECRET)" });
+  if (!ADMIN_USER || (!ADMIN_PASS_HASH && !ADMIN_PASS) || !SECRET) {
+    return json(500, { ok:false, error:"Admin env vars missing (ADMIN_USER, ADMIN_PASS_HASH or ADMIN_PASS, ADMIN_JWT_SECRET)" });
   }
 
   let creds = {};
   try { creds = JSON.parse(event.body || "{}"); } catch {}
   const { user = "", pass = "" } = creds;
 
-  if (user !== ADMIN_USER || pass !== ADMIN_PASS) {
+  const passOk = ADMIN_PASS_HASH
+    ? verifyPassword(pass, ADMIN_PASS_HASH)
+    : pass === ADMIN_PASS;
+
+  if (user !== ADMIN_USER || !passOk) {
     return json(401, { ok:false, error:"Invalid credentials" });
   }
 

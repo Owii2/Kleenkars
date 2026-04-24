@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "pg": "^8.11.0",
-    "@netlify/neon": "latest",
-    "jsonwebtoken": "latest"
+    "@netlify/neon": "^0.1.2",
+    "jsonwebtoken": "^9.0.3"
   }
 }
